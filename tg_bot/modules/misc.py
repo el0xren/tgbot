@@ -367,6 +367,7 @@ def echo(update: Update, context: CallbackContext):
         message.reply_text(args[1], quote=False)
     message.delete()
 
+<<<<<<< HEAD
 
 def recho(update: Update, context: CallbackContext):
     bot = context.bot
