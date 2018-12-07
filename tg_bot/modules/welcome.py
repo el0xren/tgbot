@@ -8,7 +8,7 @@ from telegram.ext import MessageHandler, Filters, CommandHandler, run_async
 from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
 
 import tg_bot.modules.sql.welcome_sql as sql
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, LOGGER
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
@@ -16,6 +16,7 @@ from tg_bot.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql.global_bans_sql import is_user_gbanned
+from tg_bot.modules.helper_funcs.misc import send_to_list
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
 
@@ -120,6 +121,9 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text("Hewwo! Thanks for adding me >.<", reply_to_message_id=reply)
+                msg = "I have been added to {}\nID: <pre>{}</pre>".format(chat.title, chat.id)
+                send_to_list(bot, SUDO_USERS + SUPPORT_USERS, msg, 
+                    html=True)
                 continue
 
             else:
