@@ -25,9 +25,7 @@ BOT_IMG = "https://telegra.ph/file/572f1989b04f0eefa53b0.jpg"
 PM_START_TEXT = """
 Hi {}, my name is {}!
 I'm a group manager bot built in python3, using the python-telegram-bot library.
-
 I'll help you manage your groups in an efficient way!
-
 You can find the list of available commands with /help.
 """
 
@@ -35,7 +33,6 @@ HELP_STRINGS = """
 Hey there! My name is *{}*.
 I'm a modular group management bot with a few fun extras! Have a look at the following for an idea of some of \
 the things I can help you with.
-
 *Main* available commands:
  - /start: start the bot
  - /help: PM's you this message.
@@ -43,7 +40,6 @@ the things I can help you with.
  - /settings:
    - in PM: will send you your settings for all supported modules.
    - in a group: will redirect you to pm, with all that chat's settings.
-
 {}
 And the following:
 """.format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can either be used with / or !.\n")
@@ -449,20 +445,16 @@ def process_update(self, update):
         except Exception:
             self.logger.exception('An uncaught error was raised while handling the error')
         return
-
     now = datetime.datetime.utcnow()
     cnt = CHATS_CNT.get(update.effective_chat.id, 0)
-
     t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
     if t and now > t + datetime.timedelta(0, 1):
         CHATS_TIME[update.effective_chat.id] = now
         cnt = 0
     else:
         cnt += 1
-
     if cnt > 10:
         return
-
     CHATS_CNT[update.effective_chat.id] = cnt
     for group in self.groups:
         try:
@@ -472,16 +464,13 @@ def process_update(self, update):
                 context = CallbackContext.from_update(update, self)
                 handler.handle_update(update, self, check, context)
                 break
-
         # Stop processing with any other handler.
         except DispatcherHandlerStop:
             self.logger.debug('Stopping further handlers due to DispatcherHandlerStop')
             break
-
         # Dispatch any error.
         except TelegramError as te:
             self.logger.warning('A TelegramError was raised while processing the Update')
-
             try:
                 self.dispatch_error(update, te)
             except DispatcherHandlerStop:
@@ -489,7 +478,6 @@ def process_update(self, update):
                 break
             except Exception:
                 self.logger.exception('An uncaught error was raised while handling the error')
-
         # Errors should not stop the thread.
         except Exception:
             self.logger.exception('An uncaught error was raised while processing the update')"""
