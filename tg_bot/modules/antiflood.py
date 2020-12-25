@@ -10,6 +10,7 @@ from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql import antiflood_sql as sql
+from tg_bot.modules.sql.approve_sql import is_approved
 
 FLOOD_GROUP = 3
 
@@ -29,6 +30,11 @@ def check_flood(update: Update, context: CallbackContext) -> str:
     if is_user_admin(chat, user.id):
         sql.update_flood(chat.id, None)
         return ""
+
+    # ignore approved users
+    if is_approved(chat.id, user.id):
+        sql.update_flood(chat.id, None)
+        return
 
     should_ban = sql.update_flood(chat.id, user.id)
     if not should_ban:

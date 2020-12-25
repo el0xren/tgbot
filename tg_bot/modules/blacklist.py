@@ -12,6 +12,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import user_admin, user_not_admin
 from tg_bot.modules.helper_funcs.extraction import extract_text
 from tg_bot.modules.helper_funcs.misc import split_message
+from tg_bot.modules.sql.approve_sql import is_approved
 
 BLACKLIST_GROUP = 11
 
@@ -133,6 +134,8 @@ def del_blacklist(update: Update, context: CallbackContext):
     if not to_match:
         return
 
+    if is_approved(chat.id, user.id):
+        return
     chat_filters = sql.get_chat_blacklist(chat.id)
     for trigger in chat_filters:
         pattern = r"( |^|[^\w])" + re.escape(trigger) + r"( |$|[^\w])"

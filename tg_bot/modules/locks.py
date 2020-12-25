@@ -17,6 +17,7 @@ from tg_bot.modules.helper_funcs.chat_status import can_delete, is_user_admin, u
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql import users_sql
 from tg_bot.modules.helper_funcs.filters import CustomFilters
+from tg_bot.modules.sql.approve_sql import is_approved
 
 LOCK_TYPES = {
     'sticker':
@@ -274,6 +275,10 @@ def del_lockables(update: Update, context: CallbackContext):
     user = update.effective_user
 
     if int(user.id) == 777000 or int(user.id) == 1087968824:
+        return
+
+    user = update.effective_user
+    if is_approved(chat.id, user.id):
         return
 
     for lockable, filter in LOCK_TYPES.items():
