@@ -14,6 +14,8 @@ class CustomCommandHandler(tg.CommandHandler):
             del kwargs["admin_ok"]
         super().__init__(command, callback, **kwargs)
 
+        self.run_async = run_async
+
     def check_update(self, update):
         if isinstance(update, Update) and update.effective_message:
             message = update.effective_message
