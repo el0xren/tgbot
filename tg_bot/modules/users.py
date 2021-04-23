@@ -89,9 +89,23 @@ def log_user(update: Update, context: CallbackContext):
 def chats(update: Update, context: CallbackContext):
     bot = context.bot
     all_chats = sql.get_all_chats() or []
-    chatfile = 'List of chats.\n'
+    chatfile = "List of chats:\nChat Name | Chat ID | Members Count | Invitelink\n"
+    P = 1
     for chat in all_chats:
-        chatfile += "{} - ({})\n".format(chat.chat_name, chat.chat_id)
+        try:
+            curr_chat = context.bot.getChat(chat.chat_id)
+            bot_member = curr_chat.get_member(context.bot.id)
+            chat_members = curr_chat.get_members_count(context.bot.id)
+            if bot_member.can_invite_users:
+                invitelink = context.bot.exportChatInviteLink(chat.chat_id)
+            else:
+                invitelink = "0"
+            chatfile += "{}. {} | {} | {} | {}\n".format(
+                P, chat.chat_name, chat.chat_id, chat_members, invitelink)
+            P = P + 1
+        except:
+            pass
+
 
     with BytesIO(str.encode(chatfile)) as output:
         output.name = "chatlist.txt"
