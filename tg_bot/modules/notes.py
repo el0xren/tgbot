@@ -143,7 +143,8 @@ def save(update: Update, context: CallbackContext):
     
     if len(text.strip()) == 0:
         text = note_name
-        
+    
+    note_name = note_name.lower()
     sql.add_note_to_db(chat_id, note_name, text, data_type, buttons=buttons, file=content)
 
     msg.reply_text(
