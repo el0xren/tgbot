@@ -1,14 +1,15 @@
 import logging
 import os
 import sys
-
 import telegram.ext as tg
 from configparser import ConfigParser
 
 
-def get_user_list(__init__, key):
-    with open("{}/tg_bot/{}".format(os.getcwd(), __init__), "r") as json_file:
-        return json.load(json_file)[key]
+def get_user_list(key):
+    # Import here to evade a circular import
+    from tg_bot.modules.sql import super_users_sql
+    superusers = super_users_sql.get_superusers(key)
+    return [a.user_id for a in superusers]
 
 
 # enable logging
@@ -43,10 +44,10 @@ NO_LOAD = ahegaoconfig.get("NO_LOAD").split()
 NO_LOAD = list(map(str, NO_LOAD))
 WEBHOOK = ahegaoconfig.getboolean("WEBHOOK", False)
 URL = ahegaoconfig.get("URL", None)
-DEV_USERS = get_user_list("elevated_users.json", "devs")
-SUDO_USERS = get_user_list("elevated_users.json", "sudos")
-SUPPORT_USERS = get_user_list("elevated_users.json", "supports")
-WHITELIST_USERS = get_user_list("elevated_users.json", "whitelists")
+DEV_USERS = [OWNER_ID] + get_user_list("devs")
+SUDO_USERS = [OWNER_ID] + get_user_list("sudos")
+SUPPORT_USERS = get_user_list("supports")
+WHITELIST_USERS = get_user_list("whitelists")
 CERT_PATH = ahegaoconfig.get("CERT_PATH", None)
 PORT = ahegaoconfig.getint("PORT", None)
 INFOPIC = ahegaoconfig.getboolean("INFOPIC", False)
@@ -62,18 +63,11 @@ LOGS = ahegaoconfig.getfloat("LOGS", None)
 BACKUP_PASS = ahegaoconfig.get("BACKUP_PASS")
 IGNORE_PENDING_REQUESTS = ahegaoconfig.getboolean("IGNORE_PENDING_REQUESTS", False)
 
-DEV_USERS.append(OWNER_ID)
-SUDO_USERS.append(OWNER_ID)
-
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
 dispatcher = updater.dispatcher
 
 CallbackContext = tg.CallbackContext
-
-SUDO_USERS = list(SUDO_USERS)
-WHITELIST_USERS = list(WHITELIST_USERS)
-SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
 from tg_bot.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler, CustomMessageHandler

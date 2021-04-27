@@ -12,6 +12,7 @@ from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS,
 from tg_bot.modules.helper_funcs.chat_status import dev_plus, sudo_plus, support_plus, whitelist_plus
 from tg_bot.modules.log_channel import gloggable
 from tg_bot.modules.helper_funcs.extraction import extract_user
+from tg_bot.modules.sql import super_users_sql as sql
 
 
 def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
@@ -39,26 +40,18 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in SUDO_USERS:
         message.reply_text("This member is already sudo")
         return ""
     if user_id in SUPPORT_USERS:
         message.reply_text(
             "This user is already a support user. Promoting to sudo.")
-        data['supports'].remove(user_id)
         SUPPORT_USERS.remove(user_id)
     if user_id in WHITELIST_USERS:
         message.reply_text(
             "This user is already a whitelisted user. Promoting to sudo.")
-        data['whitelists'].remove(user_id)
         WHITELIST_USERS.remove(user_id)
-    data['sudos'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'w') as outfile:
-        json.dump(data, outfile, indent=4)
+    sql.set_royal_role(user_id, "sudos")
     SUDO_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to sudo!".format(
@@ -84,9 +77,6 @@ def addsupport(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in DEV_USERS:
         message.reply_text("Huh? he is more than support!")
         return ""
@@ -94,7 +84,6 @@ def addsupport(update: Update, context: CallbackContext) -> str:
         if user.id in DEV_USERS:
             message.reply_text(
                 "This member is a sudo user. Demoting to support.")
-            data["sudos"].remove(user_id)
             SUDO_USERS.remove(user_id)
         else:
             message.reply_text("This user is already sudo")
@@ -105,12 +94,8 @@ def addsupport(update: Update, context: CallbackContext) -> str:
     if user_id in WHITELIST_USERS:
         message.reply_text(
             "This user is already a whitelisted user. Promoting to support.")
-        data['whitelists'].remove(user_id)
         WHITELIST_USERS.remove(user_id)
-    data['supports'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'w') as outfile:
-        json.dump(data, outfile, indent=4)
+    sql.set_royal_role(user_id, "supports")
     SUPPORT_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to support!".format(
@@ -136,9 +121,6 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in DEV_USERS:
         message.reply_text("Huh? he is more than whitelist!")
         return ""
@@ -146,7 +128,6 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
         if user.id in DEV_USERS:
             message.reply_text(
                 "This member is a sudo user. Demoting to whitelist.")
-            data["sudos"].remove(user_id)
             SUDO_USERS.remove(user_id)
         else:
             message.reply_text("This user is already sudo")
@@ -154,15 +135,11 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     if user_id in SUPPORT_USERS:
         message.reply_text(
             "This user is already a support user. Demoting to whitelist.")
-        data['supports'].remove(user_id)
         SUPPORT_USERS.remove(user_id)
     if user_id in WHITELIST_USERS:
         message.reply_text("This user is already a whitelisted user.")
         return ""
-    data['whitelists'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'w') as outfile:
-        json.dump(data, outfile, indent=4)
+    sql.set_royal_role(user_id, "whitelists")
     WHITELIST_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to whitelist!".format(
@@ -188,16 +165,10 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in SUDO_USERS:
         message.reply_text("Demoting to normal user")
         SUDO_USERS.remove(user_id)
-        data['sudos'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-                  'w') as outfile:
-            json.dump(data, outfile, indent=4)
+        sql.set_royal_role(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNSUDO" \
            "\n<b>Admin:</b> {}" \
@@ -222,16 +193,10 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in SUPPORT_USERS:
         message.reply_text("Demoting to normal user")
         SUPPORT_USERS.remove(user_id)
-        data['supports'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-                  'w') as outfile:
-            json.dump(data, outfile, indent=4)
+        sql.set_royal_role(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNSUPPORT" \
            "\n<b>Admin:</b> {}" \
@@ -256,16 +221,10 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
     if user_id in WHITELIST_USERS:
         message.reply_text("Demoting to normal user")
         WHITELIST_USERS.remove(user_id)
-        data['whitelists'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-                  'w') as outfile:
-            json.dump(data, outfile, indent=4)
+        sql.set_royal_role(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNWHITELIST" \
            "\n<b>Admin:</b> {}" \
