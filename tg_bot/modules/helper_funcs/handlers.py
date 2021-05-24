@@ -13,6 +13,7 @@ class CustomCommandHandler(tg.CommandHandler):
     def __init__(self, command, callback, run_async=True, **kwargs):
         if "admin_ok" in kwargs:
             del kwargs["admin_ok"]
+        kwargs["filters"] = kwargs.get("filters", tg.Filters.update.message) & ~tg.Filters.update.edited_message
         super().__init__(command, callback, **kwargs)
 
         self.run_async = run_async
@@ -43,8 +44,15 @@ class CustomCommandHandler(tg.CommandHandler):
                     else:
                         return False
 
+        return False
+
+
+class CustomMessageHandler(tg.MessageHandler):
+    def __init__(self, filters, callback, run_async=False, **kwargs):
+        filters = (filters or tg.Filters.update) & ~tg.Filters.update.edited_message
+        super().__init__(filters, callback, run_async=run_async, **kwargs)
+
 
 class CustomRegexHandler(tg.MessageHandler):
-
     def __init__(self, pattern, callback, friendly="", **kwargs):
         super().__init__(tg.Filters.regex(pattern), callback, **kwargs)
