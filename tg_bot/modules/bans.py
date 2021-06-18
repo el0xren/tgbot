@@ -9,7 +9,7 @@ from telegram.utils.helpers import mention_html
 from tg_bot import dispatcher, CallbackContext, BAN_STICKER, LOGGER
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
-    is_user_admin, is_user_in_chat
+    is_user_admin, is_user_in_chat, can_delete
 from tg_bot.modules.helper_funcs.extraction import extract_user_and_text
 from tg_bot.modules.helper_funcs.string_handling import extract_time
 from tg_bot.modules.log_channel import loggable
@@ -206,19 +206,32 @@ def kick(update: Update, context: CallbackContext):
 
     res = chat.unban_member(user_id)  # unban on current user = kick
     if res:
-        bot.send_sticker(chat.id, BAN_STICKER)
-        message.reply_text("Kicked!")
-        log = "<b>{}:</b>" \
-              "\n#KICKED" \
-              "\n<b>Admin:</b> {}" \
-              "\n<b>User:</b> {} (<code>{}</code>)".format(html.escape(chat.title),
-                                                           mention_html(user.id, user.first_name),
-                                                           mention_html(member.user.id, member.user.first_name),
-                                                           member.user.id)
-        if reason:
-            log += "\n<b>Reason:</b> {}".format(reason)
+        if message.text.startswith("/s"):
+            silent = True
+            if not can_delete(chat, context.bot.id):
+                return ""
+        else:
+            silent = False
 
-        return log
+        if silent:
+            if message.reply_to_message:
+                message.reply_to_message.delete()
+            message.delete()
+
+        else:
+            bot.send_sticker(chat.id, BAN_STICKER)
+            message.reply_text("Kicked!")
+            log = "<b>{}:</b>" \
+                  "\n#KICKED" \
+                  "\n<b>Admin:</b> {}" \
+                  "\n<b>User:</b> {} (<code>{}</code>)".format(html.escape(chat.title),
+                                                               mention_html(user.id, user.first_name),
+                                                               mention_html(member.user.id, member.user.first_name),
+                                                               member.user.id)
+            if reason:
+                log += "\n<b>Reason:</b> {}".format(reason)
+
+            return log
 
     else:
         message.reply_text("Well damn, I can't kick that user.")
@@ -384,7 +397,7 @@ __mod_name__ = "Bans"
 
 BAN_HANDLER = CommandHandler(["ban", "dban"], ban, filters=Filters.chat_type.groups, run_async=True)
 TEMPBAN_HANDLER = CommandHandler(["tban", "tempban"], temp_ban, filters=Filters.chat_type.groups, run_async=True)
-KICK_HANDLER = CommandHandler("kick", kick, filters=Filters.chat_type.groups, run_async=True)
+KICK_HANDLER = CommandHandler(["kick", "skick"], kick, filters=Filters.chat_type.groups, run_async=True)
 UNBAN_HANDLER = CommandHandler("unban", unban, filters=Filters.chat_type.groups, run_async=True)
 KICKME_HANDLER = DisableAbleCommandHandler("kickme", kickme, filters=Filters.chat_type.groups, run_async=True)
 BANME_HANDLER = DisableAbleCommandHandler("banme", banme, filters=Filters.chat_type.groups, run_async=True)
