@@ -10,7 +10,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryH
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, updater, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
+from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
@@ -119,16 +119,17 @@ def send_help(chat_id, text, keyboard=None):
                                 reply_markup=keyboard)
 
 
-@run_async
-def test(bot: Bot, update: Update):
+def test(update: Update, context: CallbackContext):
+    bot = context.bot
     # pprint(eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
 
-@run_async
-def start(bot: Bot, update: Update, args: List[str]):
+def start(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
@@ -156,7 +157,9 @@ def start(bot: Bot, update: Update, args: List[str]):
 
 
 # for test purposes
-def error_callback(bot, update, error):
+def error_callback(update, context):
+    bot = context.bot
+    error = context.error
     try:
         raise error
     except Unauthorized:
@@ -184,8 +187,8 @@ def error_callback(bot, update, error):
         # handle all other telegram related errors
 
 
-@run_async
-def help_button(bot: Bot, update: Update):
+def help_button(update: Update, context: CallbackContext):
+    bot = context.bot
     query = update.callback_query
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
     prev_match = re.match(r"help_prev\((.+?)\)", query.data)
@@ -234,8 +237,8 @@ def help_button(bot: Bot, update: Update):
             LOGGER.exception("Exception in help buttons. %s", str(query.data))
 
 
-@run_async
-def get_help(bot: Bot, update: Update):
+def get_help(update: Update, context: CallbackContext):
+    bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
 
@@ -285,8 +288,8 @@ def send_settings(chat_id, user_id, user=False):
                                         parse_mode=ParseMode.MARKDOWN)
 
 
-@run_async
-def settings_button(bot: Bot, update: Update):
+def settings_button(update: Update, context: CallbackContext):
+    bot = context.bot
     query = update.callback_query
     user = update.effective_user
     mod_match = re.match(r"stngs_module\((.+?),(.+?)\)", query.data)
@@ -351,8 +354,8 @@ def settings_button(bot: Bot, update: Update):
             LOGGER.exception("Exception in settings buttons. %s", str(query.data))
 
 
-@run_async
-def get_settings(bot: Bot, update: Update):
+def get_settings(update: Update, context: CallbackContext):
+    bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     msg = update.effective_message  # type: Optional[Message]
@@ -374,8 +377,8 @@ def get_settings(bot: Bot, update: Update):
         send_settings(chat.id, user.id, True)
 
 
-@run_async
-def donate(bot: Bot, update: Update):
+def donate(update: Update, context: CallbackContext):
+    bot = context.bot
     user = update.effective_message.from_user
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -396,7 +399,8 @@ def donate(bot: Bot, update: Update):
             update.effective_message.reply_text("Contact me in PM first to get donation information.")
 
 
-def migrate_chats(bot: Bot, update: Update):
+def migrate_chats(update: Update, context: CallbackContext):
+    bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
@@ -475,7 +479,9 @@ def process_update(self, update):
         return
 
     now = datetime.datetime.utcnow()
-    cnt = CHATS_CNT.get(update.effective_chat.id, 0)
+    chat = update.effective_chat
+    if hasattr(chat, "id"):
+        cnt = CHATS_CNT.get(chat.id, 0)
 
     t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
     if t and now > t + datetime.timedelta(0, 1):
@@ -491,7 +497,9 @@ def process_update(self, update):
     for group in self.groups:
         try:
             for handler in (x for x in self.handlers[group] if x.check_update(update)):
-                handler.handle_update(update, self)
+                check = handler.check_update(update)
+                context = CallbackContext.from_update(update, self)
+                handler.handle_update(update, self, check, context)
                 break
 
         # Stop processing with any other handler.

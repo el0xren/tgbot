@@ -5,7 +5,7 @@ import telegram
 from telegram import Update, Bot
 from telegram.ext import run_async
 
-from tg_bot import dispatcher, LOGGER
+from tg_bot import dispatcher, CallbackContext, LOGGER
 from tg_bot.modules.disable import DisableAbleRegexHandler
 
 DELIMITERS = ("/", ":", "|", "_")
@@ -49,8 +49,7 @@ def separate_sed(sed_string):
         return replace, replace_with, flags.lower()
 
 
-@run_async
-def sed(bot: Bot, update: Update):
+def sed(update: Update, context: CallbackContext):
     sed_result = separate_sed(update.effective_message.text)
     if sed_result and update.effective_message.reply_to_message:
         if update.effective_message.reply_to_message.text:
@@ -112,6 +111,6 @@ eg: \\?.
 __mod_name__ = "Sed/Regex"
 
 
-SED_HANDLER = DisableAbleRegexHandler(r's([{}]).*?\1.*'.format("".join(DELIMITERS)), sed, friendly="sed")
+SED_HANDLER = DisableAbleRegexHandler(r's([{}]).*?\1.*'.format("".join(DELIMITERS)), sed, friendly="sed", run_async=True)
 
 dispatcher.add_handler(SED_HANDLER)

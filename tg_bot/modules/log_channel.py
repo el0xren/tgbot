@@ -8,18 +8,18 @@ FILENAME = __name__.rsplit(".", 1)[-1]
 if is_module_loaded(FILENAME):
     from telegram import Bot, Update, ParseMode, Message, Chat
     from telegram.error import BadRequest, Unauthorized
-    from telegram.ext import CommandHandler, run_async
+    from telegram.ext import CommandHandler, run_async, Filters
     from telegram.utils.helpers import escape_markdown
 
-    from tg_bot import dispatcher, LOGGER
+    from tg_bot import dispatcher, CallbackContext, LOGGER
     from tg_bot.modules.helper_funcs.chat_status import user_admin
     from tg_bot.modules.sql import log_channel_sql as sql
 
 
     def loggable(func):
         @wraps(func)
-        def log_action(bot: Bot, update: Update, *args, **kwargs):
-            result = func(bot, update, *args, **kwargs)
+        def log_action(update: Update, context: CallbackContext, *args, **kwargs):
+            result = func(update, context, *args, **kwargs)
             chat = update.effective_chat  # type: Optional[Chat]
             message = update.effective_message  # type: Optional[Message]
             if result:
@@ -39,7 +39,6 @@ if is_module_loaded(FILENAME):
 
         return log_action
 
-
     def send_log(bot: Bot, log_chat_id: str, orig_chat_id: str, result: str):
         try:
             bot.send_message(log_chat_id, result, parse_mode=ParseMode.HTML)
@@ -54,10 +53,9 @@ if is_module_loaded(FILENAME):
 
                 bot.send_message(log_chat_id, result + "\n\nFormatting has been disabled due to an unexpected error.")
 
-
-    @run_async
     @user_admin
-    def logging(bot: Bot, update: Update):
+    def logging(update: Update, context: CallbackContext):
+        bot = context.bot
         message = update.effective_message  # type: Optional[Message]
         chat = update.effective_chat  # type: Optional[Chat]
 
@@ -72,10 +70,9 @@ if is_module_loaded(FILENAME):
         else:
             message.reply_text("No log channel has been set for this group!")
 
-
-    @run_async
     @user_admin
-    def setlog(bot: Bot, update: Update):
+    def setlog(update: Update, context: CallbackContext):
+        bot = context.bot
         message = update.effective_message  # type: Optional[Message]
         chat = update.effective_chat  # type: Optional[Chat]
         if chat.type == chat.CHANNEL:
@@ -108,11 +105,10 @@ if is_module_loaded(FILENAME):
                                " - add bot to the desired channel\n"
                                " - send /setlog to the channel\n"
                                " - forward the /setlog to the group\n")
-
-
-    @run_async
+    
     @user_admin
-    def unsetlog(bot: Bot, update: Update):
+    def unsetlog(update: Update, context: CallbackContext):
+        bot = context.bot
         message = update.effective_message  # type: Optional[Message]
         chat = update.effective_chat  # type: Optional[Chat]
 
@@ -141,7 +137,6 @@ if is_module_loaded(FILENAME):
                                                                             log_channel)
         return "No log channel is set for this group!"
 
-
     __help__ = """
 *Admin only:*
 - /logchannel: get log channel info
@@ -156,9 +151,9 @@ Setting the log channel is done by:
 
     __mod_name__ = "Log Channels"
 
-    LOG_HANDLER = CommandHandler("logchannel", logging)
-    SET_LOG_HANDLER = CommandHandler("setlog", setlog)
-    UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog)
+    LOG_HANDLER = CommandHandler("logchannel", logging, run_async=True, filters=Filters.chat_type.groups)
+    SET_LOG_HANDLER = CommandHandler("setlog", setlog, run_async=True, filters=Filters.chat_type.groups)
+    UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog, run_async=True, filters=Filters.chat_type.groups)
 
     dispatcher.add_handler(LOG_HANDLER)
     dispatcher.add_handler(SET_LOG_HANDLER)

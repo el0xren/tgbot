@@ -5,14 +5,15 @@ import requests
 from telegram import Update, Bot
 from telegram.ext import CommandHandler
 
-from tg_bot import dispatcher
+from tg_bot import dispatcher, CallbackContext
 
 # Open API key
 API_KEY = "6ae0c3a0-afdc-4532-a810-82ded0054236"
 URL = "http://services.gingersoftware.com/Ginger/correct/json/GingerTheText"
 
 
-def translate(bot: Bot, update: Update):
+def translate(update: Update, context: CallbackContext):
+    bot = context.bot
     if update.effective_message.reply_to_message:
         msg = update.effective_message.reply_to_message
 

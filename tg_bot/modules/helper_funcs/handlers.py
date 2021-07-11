@@ -25,7 +25,7 @@ class CustomCommandHandler(tg.CommandHandler):
                     elif isinstance(self.filters, list):
                         res = any(func(message) for func in self.filters)
                     else:
-                        res = self.filters(message)
+                        res = self.filters(update)
 
                     return res and (command[0].lower() in self.command
                                     and command[1].lower() == message.bot.username.lower())
@@ -33,6 +33,6 @@ class CustomCommandHandler(tg.CommandHandler):
             return False
 
 
-class CustomRegexHandler(tg.RegexHandler):
+class CustomRegexHandler(tg.MessageHandler):
     def __init__(self, pattern, callback, friendly="", **kwargs):
-        super().__init__(pattern, callback, **kwargs)
+        super().__init__(tg.Filters.regex(pattern), callback, **kwargs)

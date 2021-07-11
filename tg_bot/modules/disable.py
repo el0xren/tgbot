@@ -5,7 +5,7 @@ from telegram import ParseMode, Update, Bot, Chat, User
 from telegram.ext import CommandHandler, RegexHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher
+from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.helper_funcs.handlers import CMD_STARTERS
 from tg_bot.modules.helper_funcs.misc import is_module_loaded
 
@@ -52,7 +52,6 @@ if is_module_loaded(FILENAME):
 
             return False
 
-
     class DisableAbleRegexHandler(RegexHandler):
         def __init__(self, pattern, callback, friendly="", **kwargs):
             super().__init__(pattern, callback, **kwargs)
@@ -63,10 +62,10 @@ if is_module_loaded(FILENAME):
             chat = update.effective_chat
             return super().check_update(update) and not sql.is_command_disabled(chat.id, self.friendly)
 
-
-    @run_async
     @user_admin
-    def disable(bot: Bot, update: Update, args: List[str]):
+    def disable(update: Update, context: CallbackContext):
+        bot = context.bot
+        args = context.args
         chat = update.effective_chat  # type: Optional[Chat]
         if len(args) >= 1:
             disable_cmd = args[0]
@@ -83,10 +82,10 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text("What should I disable?")
 
-
-    @run_async
     @user_admin
-    def enable(bot: Bot, update: Update, args: List[str]):
+    def enable(update: Update, context: CallbackContext):
+        bot = context.bot
+        args = context.args
         chat = update.effective_chat  # type: Optional[Chat]
         if len(args) >= 1:
             enable_cmd = args[0]
@@ -102,10 +101,9 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text("What should I enable?")
 
-
-    @run_async
     @user_admin
-    def list_cmds(bot: Bot, update: Update):
+    def list_cmds(update: Update, context: CallbackContext):
+        bot = context.bot
         if DISABLE_CMDS + DISABLE_OTHER:
             result = ""
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
@@ -114,7 +112,6 @@ if is_module_loaded(FILENAME):
                                                 parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text("No commands can be disabled.")
-
 
     # do not async
     def build_curr_disabled(chat_id: Union[str, int]) -> str:
@@ -126,25 +123,20 @@ if is_module_loaded(FILENAME):
         for cmd in disabled:
             result += " - `{}`\n".format(escape_markdown(cmd))
         return "The following commands are currently restricted:\n{}".format(result)
-
-
-    @run_async
-    def commands(bot: Bot, update: Update):
+    
+    def commands(update: Update, context: CallbackContext):
+        bot = context.bot
         chat = update.effective_chat
         update.effective_message.reply_text(build_curr_disabled(chat.id), parse_mode=ParseMode.MARKDOWN)
-
 
     def __stats__():
         return "{} disabled items, across {} chats.".format(sql.num_disabled(), sql.num_chats())
 
-
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)
 
-
     def __chat_settings__(chat_id, user_id):
         return build_curr_disabled(chat_id)
-
 
     __mod_name__ = "Command disabling"
 
@@ -157,10 +149,10 @@ if is_module_loaded(FILENAME):
  - /listcmds: list all possible toggleable commands
     """
 
-    DISABLE_HANDLER = CommandHandler("disable", disable, pass_args=True, filters=Filters.group)
-    ENABLE_HANDLER = CommandHandler("enable", enable, pass_args=True, filters=Filters.group)
-    COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"], commands, filters=Filters.group)
-    TOGGLE_HANDLER = CommandHandler("listcmds", list_cmds, filters=Filters.group)
+    DISABLE_HANDLER = CommandHandler("disable", disable, filters=Filters.chat_type.groups, run_async=True)
+    ENABLE_HANDLER = CommandHandler("enable", enable, filters=Filters.chat_type.groups, run_async=True)
+    COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"], commands, filters=Filters.chat_type.groups, run_async=True)
+    TOGGLE_HANDLER = CommandHandler("listcmds", list_cmds, filters=Filters.chat_type.groups, run_async=True)
 
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)

@@ -5,12 +5,12 @@ from typing import Optional, List
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
 from telegram import Message, Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, RegexHandler
+from telegram.ext import CommandHandler, RegexHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import escape_markdown
 
 import tg_bot.modules.sql.notes_sql as sql
-from tg_bot import dispatcher, MESSAGE_DUMP, LOGGER
+from tg_bot import dispatcher, CallbackContext, MESSAGE_DUMP, LOGGER
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
@@ -109,8 +109,9 @@ def get(bot, update, notename, show_none=True, no_format=False):
         message.reply_text("This note doesn't exist")
 
 
-@run_async
-def cmd_get(bot: Bot, update: Update, args: List[str]):
+def cmd_get(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     if len(args) >= 2 and args[1].lower() == "noformat":
         get(bot, update, args[0], show_none=True, no_format=True)
     elif len(args) >= 1:
@@ -119,17 +120,17 @@ def cmd_get(bot: Bot, update: Update, args: List[str]):
         update.effective_message.reply_text("Get rekt")
 
 
-@run_async
-def hash_get(bot: Bot, update: Update):
+def hash_get(update: Update, context: CallbackContext):
+    bot = context.bot
     message = update.effective_message.text
     fst_word = message.split()[0]
     no_hash = fst_word[1:]
     get(bot, update, no_hash, show_none=False)
 
 
-@run_async
 @user_admin
-def save(bot: Bot, update: Update):
+def save(update: Update, context: CallbackContext):
+    bot = context.bot
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
 
@@ -161,9 +162,10 @@ def save(bot: Bot, update: Update):
         return
 
 
-@run_async
 @user_admin
-def clear(bot: Bot, update: Update, args: List[str]):
+def clear(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     chat_id = update.effective_chat.id
     if len(args) >= 1:
         notename = args[0]
@@ -174,11 +176,10 @@ def clear(bot: Bot, update: Update, args: List[str]):
             update.effective_message.reply_text("That's not a note in my database!")
 
 
-@run_async
-def list_notes(bot: Bot, update: Update):
+def list_notes(update: Update, context: CallbackContext):
+    bot = context.bot
     chat_id = update.effective_chat.id
     note_list = sql.get_all_chat_notes(chat_id)
-
     msg = "*Notes in chat:*\n"
     for note in note_list:
         note_name = escape_markdown(" - {}\n".format(note.name))
@@ -247,13 +248,13 @@ A button can be added to a note by using standard markdown link syntax - the lin
 
 __mod_name__ = "Notes"
 
-GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True)
+GET_HANDLER = CommandHandler("get", cmd_get, run_async=True, filters=Filters.chat_type.groups)
 HASH_GET_HANDLER = RegexHandler(r"^#[^\s]+", hash_get)
 
-SAVE_HANDLER = CommandHandler("save", save)
-DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True)
+SAVE_HANDLER = CommandHandler("save", save, run_async=True, filters=Filters.chat_type.groups)
+DELETE_HANDLER = CommandHandler("clear", clear, run_async=True, filters=Filters.chat_type.groups)
 
-LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes, admin_ok=True)
+LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes, admin_ok=True, run_async=True, filters=Filters.chat_type.groups)
 
 dispatcher.add_handler(GET_HANDLER)
 dispatcher.add_handler(SAVE_HANDLER)
