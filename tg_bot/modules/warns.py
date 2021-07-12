@@ -24,7 +24,6 @@ WARN_HANDLER_GROUP = 9
 CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 
 
-# Not async
 def warn(user: User, chat: Chat, reason: str, message: Message, warner: User = None) -> str:
     if is_user_admin(chat, user.id):
         message.reply_text("Damn admins, can't even be warned!")
@@ -85,7 +84,6 @@ def warn(user: User, chat: Chat, reason: str, message: Message, warner: User = N
         message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     except BadRequest as excp:
         if excp.message == "Reply message not found":
-            # Do not reply
             message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False)
         else:
             raise

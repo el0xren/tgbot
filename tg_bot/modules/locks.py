@@ -61,7 +61,6 @@ class CustomCommandHandler(tg.CommandHandler):
 tg.CommandHandler = CustomCommandHandler
 
 
-# NOT ASYNC
 def restr_members(bot, chat_id, members, messages=False, media=False, other=False, previews=False):
     for mem in members:
         if mem.user in DEV_USER or mem.user in SUDO_USERS:
@@ -76,7 +75,6 @@ def restr_members(bot, chat_id, members, messages=False, media=False, other=Fals
             pass
 
 
-# NOT ASYNC
 def unrestr_members(bot, chat_id, members, messages=True, media=True, other=True, previews=True):
     for mem in members:
         try:

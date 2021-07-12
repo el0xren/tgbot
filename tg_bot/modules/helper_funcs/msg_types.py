@@ -78,7 +78,6 @@ def get_note_type(msg: Message):
     return note_name, text, data_type, content, buttons
 
 
-# note: add own args?
 def get_welcome_type(msg: Message):
     data_type = None
     content = None
@@ -88,7 +87,7 @@ def get_welcome_type(msg: Message):
 
     buttons = []
     if len(args) >= 2:
-        offset = len(args[1]) - len(msg.text)  # set correct offset relative to command + notename
+        offset = len(args[1]) - len(msg.text)
         text, buttons = button_markdown_parser(args[1], entities=msg.parse_entities(), offset=offset)
         if buttons:
             data_type = Types.BUTTON_TEXT

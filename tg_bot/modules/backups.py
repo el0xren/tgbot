@@ -29,13 +29,11 @@ def import_data(update: Update, context: CallbackContext):
             file.seek(0)
             data = json.load(file)
 
-        # only import one group
         if len(data) > 1 and str(chat.id) not in data:
             msg.reply_text("Theres more than one group here in this file, and none have the same chat id as this group "
                            "- how do I choose what to import?")
             return
 
-        # Select data source
         if str(chat.id) in data:
             data = data[str(chat.id)]['hashes']
         else:

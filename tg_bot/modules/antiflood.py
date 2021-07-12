@@ -24,7 +24,6 @@ def check_flood(update: Update, context: CallbackContext) -> str:
     if not user:
         return ""
 
-    # ignore admins
     if is_user_admin(chat, user.id):
         sql.update_flood(chat.id, None)
         return ""

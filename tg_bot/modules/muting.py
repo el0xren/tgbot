@@ -174,7 +174,6 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
-            # Do not reply
             message.reply_text("Muted for {}!".format(time_val), quote=False)
             return log
         else:

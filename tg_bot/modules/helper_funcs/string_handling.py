@@ -39,7 +39,6 @@ def _selective_escape(to_parse: str) -> str:
     return to_parse
 
 
-# This is a fun one.
 def _calc_emoji_offset(to_calc) -> int:
     emoticons = emoji.get_emoji_regexp().finditer(to_calc)
     return sum(len(e.group(0).encode('utf-16-le')) // 2 - 1 for e in emoticons)

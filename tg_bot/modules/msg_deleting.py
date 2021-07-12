@@ -29,7 +29,7 @@ def purge(update: Update, context: CallbackContext) -> str:
                 if new_del < delete_to:
                     delete_to = new_del
 
-            for m_id in range(delete_to, message_id - 1, -1):  # Reverse iteration over message ids
+            for m_id in range(delete_to, message_id - 1, -1):
                 try:
                     bot.deleteMessage(chat.id, m_id)
                 except BadRequest as err:

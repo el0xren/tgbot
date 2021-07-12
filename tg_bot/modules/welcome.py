@@ -246,7 +246,6 @@ def welcome(update: Update, context: CallbackContext):
             update.effective_message.reply_text("I'm sulking, not saying hello anymore.")
 
         else:
-            # idek what you're writing, say yes or no
             update.effective_message.reply_text("I understand 'on/yes' or 'off/no' only!")
 
 
