@@ -55,6 +55,10 @@ def gban(update: Update, context: CallbackContext):
         message.reply_text("You don't seem to be referring to a user.")
         return
 
+    if int(user_id) in DEV_USERS:
+        message.reply_text("There is no way I can gban my developers")
+        return
+
     if int(user_id) in SUDO_USERS:
         message.reply_text("I spy, with my little eye... a sudo user war! Why are you guys turning on each other?")
         return
