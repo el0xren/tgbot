@@ -8,7 +8,7 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_bans_sql as sql
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN
 from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
@@ -53,6 +53,10 @@ def gban(update: Update, context: CallbackContext):
 
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
+        return
+
+    if int(user_id) in DEV_USERS:
+        message.reply_text("There is no way I can gban my developers")
         return
 
     if int(user_id) in SUDO_USERS:
@@ -293,11 +297,11 @@ you and your groups by removing spam flooders as quickly as possible. They can b
 __mod_name__ = "Global Bans"
 
 GBAN_HANDLER = CommandHandler("gban", gban, run_async=True,
-                              filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
+                              filters=CustomFilters.sudo_filter | CustomFilters.support_filter | CustomFilters.dev_filter)
 UNGBAN_HANDLER = CommandHandler("ungban", ungban, run_async=True,
-                                filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
+                                filters=CustomFilters.sudo_filter | CustomFilters.support_filter | CustomFilters.dev_filter)
 GBAN_LIST = CommandHandler("gbanlist", gbanlist,
-                           filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
+                           filters=CustomFilters.sudo_filter | CustomFilters.support_filter | CustomFilters.dev_filter)
 
 GBAN_STATUS = CommandHandler("gbanstat", gbanstat, run_async=True, filters=Filters.chat_type.groups)
 

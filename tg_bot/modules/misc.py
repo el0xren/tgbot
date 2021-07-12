@@ -10,7 +10,7 @@ from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER
 from tg_bot.__main__ import GDPR
 from tg_bot.__main__ import STATS, USER_INFO
 from tg_bot.modules.disable import DisableAbleCommandHandler
@@ -249,17 +249,20 @@ def info(update: Update, context: CallbackContext):
     if user.id == OWNER_ID:
         text += "\n\nThis person is my owner - I would never do anything against them!"
     else:
-        if user.id in SUDO_USERS:
-            text += "\nThis person is one of my sudo users! " \
-                    "Nearly as powerful as my owner - so watch it."
+        if user.id in DEV_USERS:
+            text += "\nThis person is one of my developer users!"
         else:
-            if user.id in SUPPORT_USERS:
-                text += "\nThis person is one of my support users! " \
-                        "Not quite a sudo user, but can still gban you off the map."
+            if user.id in SUDO_USERS:
+                text += "\nThis person is one of my sudo users! " \
+                        "Nearly as powerful as my owner - so watch it."
+            else:
+                if user.id in SUPPORT_USERS:
+                    text += "\nThis person is one of my support users! " \
+                            "Not quite a sudo user, but can still gban you off the map."
 
-            if user.id in WHITELIST_USERS:
-                text += "\nThis person has been whitelisted! " \
-                        "That means I'm not allowed to ban/kick them."
+                if user.id in WHITELIST_USERS:
+                    text += "\nThis person has been whitelisted! " \
+                            "That means I'm not allowed to ban/kick them."
 
     for mod in USER_INFO:
         mod_info = mod.__user_info__(user.id).strip()
@@ -402,7 +405,7 @@ INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
 MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.chat_type.private, run_async=True)
 
-STATS_HANDLER = CommandHandler("stats", stats, filters=CustomFilters.sudo_filter, run_async=True)
+STATS_HANDLER = CommandHandler("stats", stats, filters=CustomFilters.sudo_filter | CustomFilters.dev_filter, run_async=True)
 GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.chat_type.private, run_async=True)
 
 dispatcher.add_handler(ID_HANDLER)
