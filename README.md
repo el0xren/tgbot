@@ -6,9 +6,9 @@ A modular telegram Python bot running on python3 with an sqlalchemy database.
 Originally a simple group management bot with multiple admin features, it has evolved into becoming a basis for modular
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
-Can be found on telegram as [sexlorge](https://t.me/el0xrenbot).
+Can be found on telegram as [PruhBruhBot](https://t.me/PruhBruhBot).
 
-For questions regarding creating your own bot, please head to [this chat](https://t.me/sexlorgesupport) where you'll find a
+For questions regarding creating your own bot, please head to [this chat](https://t.me/pruhsupport) where you'll find a
 group of volunteers to help. We'll also help when a database schema changes, and some table column needs to be
 modified/added (this info can also be found in the commit messages)
 
