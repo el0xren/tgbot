@@ -1,6 +1,6 @@
-![tgbot](https://i.ibb.co/ncy95zv/Photo-2021-07-11-17-46-13.jpg)
+![tgbot](https://i.ibb.co/s1h53xJ/Photo-2021-07-12-12-30-03.jpg)
 
-# sexlorgeBot
+# PruhBruhBot
 A modular telegram Python bot running on python3 with an sqlalchemy database.
 
 Originally a simple group management bot with multiple admin features, it has evolved into becoming a basis for modular
@@ -14,12 +14,14 @@ modified/added (this info can also be found in the commit messages)
 
 Note to maintainers that all schema changes will be found in the commit messages, and its their responsibility to read any new commits.
 
-## Starting the bot.
+# Steps to self Host
+<details>
+  <summary>Click to expand!</summary>
 
+## Starting the bot
 Once you've setup your database and your configuration (see below) is complete, simply run:
 
 `python3 -m tg_bot`
-
 
 ## Setting up the bot (Read this before trying to use!):
 Please make sure to use python3.8, as I cannot guarantee everything will work as expected on older python versions!
