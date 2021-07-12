@@ -30,7 +30,6 @@ ENUM_FUNC_MAP = {
 }
 
 
-# do not async
 def send(update, message, keyboard, backup_message):
     try:
         msg = update.effective_message.reply_text(message, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
@@ -85,21 +84,17 @@ def new_member(update: Update, context: CallbackContext):
         sent = None
         new_members = update.effective_message.new_chat_members
         for new_mem in new_members:
-            # Give the owner a special welcome
             if new_mem.id == OWNER_ID:
                 update.effective_message.reply_text("Master is in the houseeee, let's get this party started!")
                 continue
 
-            # Don't welcome yourself
             elif new_mem.id == bot.id:
                 continue
 
             else:
-                # If welcome message is media, send with appropriate function
                 if welc_type != sql.Types.TEXT and welc_type != sql.Types.BUTTON_TEXT:
                     ENUM_FUNC_MAP[welc_type](chat.id, cust_welcome)
                     return
-                # else, move on
                 first_name = new_mem.first_name or "PersonWithNoName"  # edge case of empty name - occurs for some bugs.
 
                 if cust_welcome:
@@ -148,16 +143,13 @@ def left_member(update: Update, context: CallbackContext):
     if should_goodbye:
         left_mem = update.effective_message.left_chat_member
         if left_mem:
-            # Ignore bot being kicked
             if left_mem.id == bot.id:
                 return
 
-            # Give the owner a special goodbye
             if left_mem.id == OWNER_ID:
                 update.effective_message.reply_text("RIP Master")
                 return
 
-            # if media goodbye, use appropriate function for it
             if goodbye_type != sql.Types.TEXT and goodbye_type != sql.Types.BUTTON_TEXT:
                 ENUM_FUNC_MAP[goodbye_type](chat.id, cust_goodbye)
                 return
@@ -197,7 +189,6 @@ def welcome(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
-    # if no args, show current replies.
     if len(args) == 0 or args[0].lower() == "noformat":
         noformat = args and args[0].lower() == "noformat"
         pref, welcome_m, welcome_type = sql.get_welc_pref(chat.id)
@@ -282,7 +273,6 @@ def goodbye(update: Update, context: CallbackContext):
             update.effective_message.reply_text("They leave, they're dead to me.")
 
         else:
-            # idek what you're writing, say yes or no
             update.effective_message.reply_text("I understand 'on/yes' or 'off/no' only!")
 
 

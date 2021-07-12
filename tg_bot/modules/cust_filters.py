@@ -43,13 +43,12 @@ def list_handlers(update: Update, context: CallbackContext):
         update.effective_message.reply_text(filter_list, parse_mode=telegram.ParseMode.MARKDOWN)
 
 
-# NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def filters(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
-    args = msg.text.split(None, 1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
+    args = msg.text.split(None, 1)
 
     if len(args) < 2:
         return
@@ -57,7 +56,6 @@ def filters(update: Update, context: CallbackContext):
     extracted = split_quotes(args[1])
     if len(extracted) < 1:
         return
-    # set trigger -> lower, so as to avoid adding duplicate filters with different cases
     keyword = extracted[0].lower()
 
     is_sticker = False
@@ -68,9 +66,8 @@ def filters(update: Update, context: CallbackContext):
     is_video = False
     buttons = []
 
-    # determine what the contents of the filter are - text, image, sticker, etc
     if len(extracted) >= 2:
-        offset = len(extracted[1]) - len(msg.text)  # set correct offset relative to command + notename
+        offset = len(extracted[1]) - len(msg.text)
         content, buttons = button_markdown_parser(extracted[1], entities=msg.parse_entities(), offset=offset)
         content = content.strip()
         if not content:
@@ -86,7 +83,7 @@ def filters(update: Update, context: CallbackContext):
         is_document = True
 
     elif msg.reply_to_message and msg.reply_to_message.photo:
-        content = msg.reply_to_message.photo[-1].file_id  # last elem = best quality
+        content = msg.reply_to_message.photo[-1].file_id
         is_image = True
 
     elif msg.reply_to_message and msg.reply_to_message.audio:
@@ -105,8 +102,6 @@ def filters(update: Update, context: CallbackContext):
         msg.reply_text("You didn't specify what to reply with!")
         return
 
-    # Add the filter
-    # Note: perhaps handlers can be removed somehow using sql.get_chat_filters
     for handler in dispatcher.handlers.get(HANDLER_GROUP, []):
         if handler.filters == (keyword, chat.id):
             dispatcher.remove_handler(handler, HANDLER_GROUP)
@@ -118,7 +113,6 @@ def filters(update: Update, context: CallbackContext):
     raise DispatcherHandlerStop
 
 
-# NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def stop_filter(update: Update, context: CallbackContext):
     bot = context.bot
@@ -193,7 +187,6 @@ def reply_filter(update: Update, context: CallbackContext):
                         LOGGER.exception("Could not parse filter %s in chat %s", str(filt.keyword), str(chat.id))
 
             else:
-                # LEGACY - all new filters will have has_markdown set to True.
                 message.reply_text(filt.reply)
             break
 

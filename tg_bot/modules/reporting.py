@@ -85,7 +85,7 @@ def report(update: Update, context: CallbackContext) -> str:
             should_forward = True
 
         for admin in admin_list:
-            if admin.user.is_bot:  # can't message bots
+            if admin.user.is_bot:
                 continue
 
             if sql.user_should_report(admin.user.id):
@@ -95,12 +95,12 @@ def report(update: Update, context: CallbackContext) -> str:
                     if should_forward:
                         message.reply_to_message.forward(admin.user.id)
 
-                        if len(message.text.split()) > 1:  # If user is giving a reason, send his message too
+                        if len(message.text.split()) > 1:
                             message.forward(admin.user.id)
 
                 except Unauthorized:
                     pass
-                except BadRequest as excp:  # TODO: cleanup exceptions
+                except BadRequest as excp:
                     LOGGER.exception("Exception while reporting user")
         return msg
 

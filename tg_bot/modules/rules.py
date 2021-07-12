@@ -18,7 +18,6 @@ def get_rules(update: Update, context: CallbackContext):
     send_rules(update, chat_id)
 
 
-# Do not async - not from a handler
 def send_rules(update, chat_id, from_pm=False):
     bot = dispatcher.bot
     user = update.effective_user  # type: Optional[User]
@@ -57,7 +56,7 @@ def set_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
     raw_text = msg.text
-    args = raw_text.split(None, 1)  # use python's maxsplit to separate cmd and args
+    args = raw_text.split(None, 1)
     if len(args) == 2:
         txt = args[1]
         offset = len(txt) - len(raw_text)  # set correct offset relative to command

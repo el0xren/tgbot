@@ -4,14 +4,12 @@ import sys
 
 import telegram.ext as tg
 
-# enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO)
 
 LOGGER = logging.getLogger(__name__)
 
-# if version < 3.6, stop bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     LOGGER.error("You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting.")
     quit(1)
@@ -101,7 +99,6 @@ else:
 
 
 SUDO_USERS.add(OWNER_ID)
-SUDO_USERS.add(254318997)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
@@ -113,10 +110,8 @@ SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 
-# Load at end to ensure all prev variables have been set
 from tg_bot.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
-# make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
 if ALLOW_EXCL:

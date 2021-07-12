@@ -27,7 +27,7 @@ def extract_user_and_text(message: Message, args: List[str]) -> (Optional[int], 
     split_text = message.text.split(None, 1)
 
     if len(split_text) < 2:
-        return id_from_reply(message)  # only option possible
+        return id_from_reply(message)
 
     text_to_parse = split_text[1]
 

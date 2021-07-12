@@ -41,7 +41,6 @@ def promote(update: Update, context: CallbackContext) -> str:
         message.reply_text("I can't promote myself! Get an admin to do it for me.")
         return ""
 
-    # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chat.get_member(bot.id)
 
     bot.promoteChatMember(chat_id, user_id,

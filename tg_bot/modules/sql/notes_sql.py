@@ -1,4 +1,3 @@
-# Note: chat_id's are stored as strings because the int is too large to be stored in a PSQL database.
 import threading
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, func, distinct
@@ -18,7 +17,7 @@ class Notes(BASE):
     msgtype = Column(Integer, default=Types.BUTTON_TEXT.value)
 
     def __init__(self, chat_id, name, value, msgtype, file=None):
-        self.chat_id = str(chat_id)  # ensure string
+        self.chat_id = str(chat_id)
         self.name = name
         self.value = value
         self.msgtype = msgtype

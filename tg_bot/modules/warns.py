@@ -50,7 +50,7 @@ def warn(user: User, chat: Chat, reason: str, message: Message, warner: User = N
         for warn_reason in reasons:
             reply += "\n - {}".format(html.escape(warn_reason))
 
-        message.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        message.bot.send_sticker(chat.id, BAN_STICKER)
         keyboard = []
         log_reason = "<b>{}:</b>" \
                      "\n#WARN_BAN" \
@@ -201,29 +201,25 @@ def warns(update: Update, context: CallbackContext):
         update.effective_message.reply_text("This user hasn't got any warnings!")
 
 
-# Dispatcher handler stop - do not async
 @user_admin
 def add_warn_filter(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
-    args = msg.text.split(None, 1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
-
+    args = msg.text.split(None, 1)
     if len(args) < 2:
         return
 
     extracted = split_quotes(args[1])
 
     if len(extracted) >= 2:
-        # set trigger -> lower, so as to avoid adding duplicate filters with different cases
         keyword = extracted[0].lower()
         content = extracted[1]
 
     else:
         return
 
-    # Note: perhaps handlers can be removed somehow using sql.get_chat_filters
     for handler in dispatcher.handlers.get(WARN_HANDLER_GROUP, []):
         if handler.filters == (keyword, chat.id):
             dispatcher.remove_handler(handler, WARN_HANDLER_GROUP)
@@ -240,7 +236,7 @@ def remove_warn_filter(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
-    args = msg.text.split(None, 1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
+    args = msg.text.split(None, 1)
 
     if len(args) < 2:
         return

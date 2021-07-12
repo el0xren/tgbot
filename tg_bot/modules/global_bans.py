@@ -108,7 +108,6 @@ def gban(update: Update, context: CallbackContext):
     for chat in chats:
         chat_id = chat.chat_id
 
-        # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
             continue
 
@@ -161,7 +160,6 @@ def ungban(update: Update, context: CallbackContext):
     for chat in chats:
         chat_id = chat.chat_id
 
-        # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
             continue
 
@@ -216,7 +214,6 @@ def check_and_ban(update, user_id, should_message=True):
 
 def enforce_gban(update: Update, context: CallbackContext):
     bot = context.bot
-    # Not using @restrict handler to avoid spamming - just ignore if cant gban.
     if sql.does_chat_gban(update.effective_chat.id) and update.effective_chat.get_member(bot.id).can_restrict_members:
         user = update.effective_user  # type: Optional[User]
         chat = update.effective_chat  # type: Optional[Chat]
@@ -311,5 +308,5 @@ dispatcher.add_handler(UNGBAN_HANDLER)
 dispatcher.add_handler(GBAN_LIST)
 dispatcher.add_handler(GBAN_STATUS)
 
-if STRICT_GBAN:  # enforce GBANS if this is set
+if STRICT_GBAN:
     dispatcher.add_handler(GBAN_ENFORCER, GBAN_ENFORCE_GROUP)

@@ -45,9 +45,7 @@ def add_url(tg_chat_id, tg_feed_link, tg_old_entry_link):
 
 def remove_url(tg_chat_id, tg_feed_link):
     with INSERTION_LOCK:
-        # this loops to delete any possible duplicates for the same TG User ID, TG Chat ID and link
         for row in check_url_availability(tg_chat_id, tg_feed_link):
-            # add the action to the DB query
             SESSION.delete(row)
 
         SESSION.commit()
@@ -71,8 +69,6 @@ def update_url(row_id, new_entry_links):
     with INSERTION_LOCK:
         row = SESSION.query(RSS).get(row_id)
 
-        # set the new old_entry_link with the latest update from the RSS Feed
         row.old_entry_link = new_entry_links[0]
 
-        # commit the changes to the DB
         SESSION.commit()

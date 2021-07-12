@@ -26,7 +26,6 @@ def purge(update: Update, context: CallbackContext) -> str:
             delete_to = msg.message_id - 1
             if args and args[0].isdigit():
                 new_del = message_id + int(args[0])
-                # No point deleting messages which haven't been written yet.
                 if new_del < delete_to:
                     delete_to = new_del
 

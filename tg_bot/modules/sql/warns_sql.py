@@ -31,7 +31,7 @@ class WarnFilters(BASE):
     reply = Column(UnicodeText, nullable=False)
 
     def __init__(self, chat_id, keyword, reply):
-        self.chat_id = str(chat_id)  # ensure string
+        self.chat_id = str(chat_id)
         self.keyword = keyword
         self.reply = reply
 
@@ -78,7 +78,7 @@ def warn_user(user_id, chat_id, reason=None):
 
         warned_user.num_warns += 1
         if reason:
-            warned_user.reasons = warned_user.reasons + [reason]  # TODO:: double check this wizardry
+            warned_user.reasons = warned_user.reasons + [reason]
 
         reasons = warned_user.reasons
         num = warned_user.num_warns
@@ -137,7 +137,7 @@ def add_warn_filter(chat_id, keyword, reply):
             WARN_FILTERS[str(chat_id)] = sorted(WARN_FILTERS.get(str(chat_id), []) + [keyword],
                                                 key=lambda x: (-len(x), x))
 
-        SESSION.merge(warn_filt)  # merge to avoid duplicate key issues
+        SESSION.merge(warn_filt)
         SESSION.commit()
 
 
@@ -145,7 +145,7 @@ def remove_warn_filter(chat_id, keyword):
     with WARN_FILTER_INSERTION_LOCK:
         warn_filt = SESSION.query(WarnFilters).get((str(chat_id), keyword))
         if warn_filt:
-            if keyword in WARN_FILTERS.get(str(chat_id), []):  # sanity check
+            if keyword in WARN_FILTERS.get(str(chat_id), []):
                 WARN_FILTERS.get(str(chat_id), []).remove(keyword)
 
             SESSION.delete(warn_filt)

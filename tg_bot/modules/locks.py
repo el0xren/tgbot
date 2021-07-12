@@ -42,7 +42,6 @@ PREVIEWS = Filters.entity("url")
 RESTRICTION_TYPES = {'messages': MESSAGES,
                      'media': MEDIA,
                      'other': OTHER,
-                     # 'previews': PREVIEWS, # NOTE: this has been removed cos its useless atm.
                      'all': Filters.all}
 
 PERM_GROUP = 1

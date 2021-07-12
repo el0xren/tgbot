@@ -29,7 +29,7 @@ def no_longer_afk(update: Update, context: CallbackContext):
     bot = context.bot
     user = update.effective_user  # type: Optional[User]
 
-    if not user:  # ignore channels
+    if not user:
         return
 
     res = sql.rm_afk(user.id)
@@ -50,7 +50,6 @@ def reply_afk(update: Update, context: CallbackContext):
             elif ent.type == MessageEntity.MENTION:
                 user_id = get_user_id(message.text[ent.offset:ent.offset + ent.length])
                 if not user_id:
-                    # Should never happen, since for a user to become AFK they must have spoken. Maybe changed username?
                     return
                 chat = bot.get_chat(user_id)
                 fst_name = chat.first_name

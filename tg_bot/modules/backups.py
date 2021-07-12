@@ -16,8 +16,6 @@ def import_data(update: Update, context: CallbackContext):
     bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
-    # TODO: allow uploading doc with command, not just as reply
-    # only work with a doc
     if msg.reply_to_message and msg.reply_to_message.document:
         try:
             file_info = bot.get_file(msg.reply_to_message.document.file_id)
@@ -54,8 +52,6 @@ def import_data(update: Update, context: CallbackContext):
             LOGGER.exception("Import for chatid %s with name %s failed.", str(chat.id), str(chat.title))
             return
 
-        # TODO: some of that link logic
-        # NOTE: consider default permissions stuff?
         msg.reply_text("Backup fully imported. Welcome back! :D")
 
 

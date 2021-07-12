@@ -16,7 +16,6 @@ USERS_GROUP = 4
 
 
 def get_user_id(username):
-    # ensure valid userid
     if len(username) <= 5:
         return None
 
@@ -118,7 +117,7 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-__help__ = ""  # no help string
+__help__ = ""
 
 __mod_name__ = "Users"
 

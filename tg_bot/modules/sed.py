@@ -89,7 +89,6 @@ def sed(update: Update, context: CallbackContext):
             update.effective_message.reply_text("Do you even sed? Apparently not.")
             return
 
-        # empty string errors -_-
         if len(text) >= telegram.MAX_MESSAGE_LENGTH:
             update.effective_message.reply_text("The result of the sed command was too long for \
                                                  telegram!")

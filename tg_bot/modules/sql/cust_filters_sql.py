@@ -18,12 +18,11 @@ class CustomFilters(BASE):
     is_video = Column(Boolean, nullable=False, default=False)
 
     has_buttons = Column(Boolean, nullable=False, default=False)
-    # NOTE: Here for legacy purposes, to ensure older filters don't mess up.
     has_markdown = Column(Boolean, nullable=False, default=False)
 
     def __init__(self, chat_id, keyword, reply, is_sticker=False, is_document=False, is_image=False, is_audio=False,
                  is_voice=False, is_video=False, has_buttons=False):
-        self.chat_id = str(chat_id)  # ensure string
+        self.chat_id = str(chat_id)
         self.keyword = keyword
         self.reply = reply
         self.is_sticker = is_sticker
@@ -112,7 +111,7 @@ def remove_filter(chat_id, keyword):
     with CUST_FILT_LOCK:
         filt = SESSION.query(CustomFilters).get((str(chat_id), keyword))
         if filt:
-            if keyword in CHAT_FILTERS.get(str(chat_id), []):  # Sanity check
+            if keyword in CHAT_FILTERS.get(str(chat_id), []):
                 CHAT_FILTERS.get(str(chat_id), []).remove(keyword)
 
             with BUTTON_LOCK:
@@ -181,7 +180,7 @@ def __load_chat_filters():
     global CHAT_FILTERS
     try:
         chats = SESSION.query(CustomFilters.chat_id).distinct().all()
-        for (chat_id,) in chats:  # remove tuple by ( ,)
+        for (chat_id,) in chats:
             CHAT_FILTERS[chat_id] = []
 
         all_filters = SESSION.query(CustomFilters).all()

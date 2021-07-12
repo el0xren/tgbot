@@ -143,10 +143,8 @@ def slap(update: Update, context: CallbackContext):
     bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
 
-    # reply to correct message
     reply_text = msg.reply_to_message.reply_text if msg.reply_to_message else msg.reply_text
 
-    # get user who sent message
     if msg.from_user.username:
         curr_user = "@" + escape_markdown(msg.from_user.username)
     else:
@@ -162,7 +160,6 @@ def slap(update: Update, context: CallbackContext):
             user2 = "[{}](tg://user?id={})".format(slapped_user.first_name,
                                                    slapped_user.id)
 
-    # if no target found, bot targets the sender
     else:
         user1 = "[{}](tg://user?id={})".format(bot.first_name, bot.id)
         user2 = curr_user

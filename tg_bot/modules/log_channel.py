@@ -160,6 +160,5 @@ Setting the log channel is done by:
     dispatcher.add_handler(UNSET_LOG_HANDLER)
 
 else:
-    # run anyway if module not loaded
     def loggable(func):
         return func

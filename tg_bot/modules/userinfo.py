@@ -40,7 +40,7 @@ def set_about_me(update: Update, context: CallbackContext):
     message = update.effective_message  # type: Optional[Message]
     user_id = message.from_user.id
     text = message.text
-    info = text.split(None, 1)  # use python's maxsplit to only remove the cmd, hence keeping newlines.
+    info = text.split(None, 1)
     if len(info) == 2:
         if len(info[1]) < MAX_MESSAGE_LENGTH // 4:
             sql.set_user_me_info(user_id, info[1])
@@ -88,7 +88,7 @@ def set_about_bio(update: Update, context: CallbackContext):
             return
 
         text = message.text
-        bio = text.split(None, 1)  # use python's maxsplit to only remove the cmd, hence keeping newlines.
+        bio = text.split(None, 1)
         if len(bio) == 2:
             if len(bio[1]) < MAX_MESSAGE_LENGTH // 4:
                 sql.set_user_bio(user_id, bio[1])

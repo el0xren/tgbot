@@ -9,7 +9,6 @@ from tg_bot.modules.sql import SESSION, BASE
 class Permissions(BASE):
     __tablename__ = "permissions"
     chat_id = Column(String(14), primary_key=True)
-    # Booleans are for "is this locked", _NOT_ "is this allowed"
     audio = Column(Boolean, default=False)
     voice = Column(Boolean, default=False)
     contact = Column(Boolean, default=False)
@@ -26,7 +25,7 @@ class Permissions(BASE):
     location = Column(Boolean, default=False)
 
     def __init__(self, chat_id):
-        self.chat_id = str(chat_id)  # ensure string
+        self.chat_id = str(chat_id)
         self.audio = False
         self.voice = False
         self.contact = False
@@ -49,14 +48,13 @@ class Permissions(BASE):
 class Restrictions(BASE):
     __tablename__ = "restrictions"
     chat_id = Column(String(14), primary_key=True)
-    # Booleans are for "is this restricted", _NOT_ "is this allowed"
     messages = Column(Boolean, default=False)
     media = Column(Boolean, default=False)
     other = Column(Boolean, default=False)
     preview = Column(Boolean, default=False)
 
     def __init__(self, chat_id):
-        self.chat_id = str(chat_id)  # ensure string
+        self.chat_id = str(chat_id)
         self.messages = False
         self.media = False
         self.other = False

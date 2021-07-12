@@ -33,7 +33,6 @@ def split_message(msg: str) -> List[str]:
                 result.append(small_msg)
                 small_msg = line
         else:
-            # Else statement at the end of the for loop, so append the leftover string.
             result.append(small_msg)
 
         return result
@@ -59,7 +58,6 @@ def paginate_modules(page_n: int, module_dict: Dict, prefix, chat=None) -> List:
     max_num_pages = ceil(len(pairs) / 7)
     modulo_page = page_n % max_num_pages
 
-    # can only have a certain amount of buttons side by side
     if len(pairs) > 7:
         pairs = pairs[modulo_page * 7:7 * (modulo_page + 1)] + [
             (EqInlineKeyboardButton("<", callback_data="{}_prev({})".format(prefix, modulo_page)),
@@ -80,7 +78,7 @@ def send_to_list(bot: Bot, send_to: list, message: str, markdown=False, html=Fal
             else:
                 bot.send_message(user_id, message)
         except TelegramError:
-            pass  # ignore users who fail
+            pass
 
 
 def build_keyboard(buttons):

@@ -61,7 +61,7 @@ def ban(update: Update, context: CallbackContext):
 
     try:
         chat.kick_member(user_id)
-        bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text("Banned!")
         return log
 
@@ -195,9 +195,9 @@ def kick(update: Update, context: CallbackContext):
         message.reply_text("Yeahhh I'm not gonna do that")
         return ""
 
-    res = chat.unban_member(user_id)  # unban on current user = kick
+    res = chat.unban_member(user_id)
     if res:
-        bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text("Kicked!")
         log = "<b>{}:</b>" \
               "\n#KICKED" \
@@ -226,7 +226,7 @@ def kickme(update: Update, context: CallbackContext):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
         return
 
-    res = update.effective_chat.unban_member(user_id)  # unban on current user = kick
+    res = update.effective_chat.unban_member(user_id)
     if res:
         update.effective_message.reply_text("No problem.")
     else:
