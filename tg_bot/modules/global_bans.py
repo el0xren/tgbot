@@ -8,7 +8,7 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_bans_sql as sql
-from tg_bot import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN
 from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
@@ -44,8 +44,9 @@ UNGBAN_ERRORS = {
 }
 
 
-@run_async
-def gban(bot: Bot, update: Update, args: List[str]):
+def gban(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
@@ -128,8 +129,9 @@ def gban(bot: Bot, update: Update, args: List[str]):
     message.reply_text("Person has been gbanned.")
 
 
-@run_async
-def ungban(bot: Bot, update: Update, args: List[str]):
+def ungban(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
@@ -185,8 +187,8 @@ def ungban(bot: Bot, update: Update, args: List[str]):
     message.reply_text("Person has been un-gbanned.")
 
 
-@run_async
-def gbanlist(bot: Bot, update: Update):
+def gbanlist(update: Update, context: CallbackContext):
+    bot = context.bot
     banned_users = sql.get_gban_list()
 
     if not banned_users:
@@ -212,8 +214,8 @@ def check_and_ban(update, user_id, should_message=True):
             update.effective_message.reply_text("This is a bad person, they shouldn't be here!")
 
 
-@run_async
-def enforce_gban(bot: Bot, update: Update):
+def enforce_gban(update: Update, context: CallbackContext):
+    bot = context.bot
     # Not using @restrict handler to avoid spamming - just ignore if cant gban.
     if sql.does_chat_gban(update.effective_chat.id) and update.effective_chat.get_member(bot.id).can_restrict_members:
         user = update.effective_user  # type: Optional[User]
@@ -234,9 +236,10 @@ def enforce_gban(bot: Bot, update: Update):
                 check_and_ban(update, user.id, should_message=False)
 
 
-@run_async
 @user_admin
-def gbanstat(bot: Bot, update: Update, args: List[str]):
+def gbanstat(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     if len(args) > 0:
         if args[0].lower() in ["on", "yes"]:
             sql.enable_gbans(update.effective_chat.id)
@@ -292,16 +295,16 @@ you and your groups by removing spam flooders as quickly as possible. They can b
 
 __mod_name__ = "Global Bans"
 
-GBAN_HANDLER = CommandHandler("gban", gban, pass_args=True,
+GBAN_HANDLER = CommandHandler("gban", gban, run_async=True,
                               filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
-UNGBAN_HANDLER = CommandHandler("ungban", ungban, pass_args=True,
+UNGBAN_HANDLER = CommandHandler("ungban", ungban, run_async=True,
                                 filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 GBAN_LIST = CommandHandler("gbanlist", gbanlist,
                            filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 
-GBAN_STATUS = CommandHandler("gbanstat", gbanstat, pass_args=True, filters=Filters.group)
+GBAN_STATUS = CommandHandler("gbanstat", gbanstat, run_async=True, filters=Filters.group)
 
-GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
+GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban, run_async=True)
 
 dispatcher.add_handler(GBAN_HANDLER)
 dispatcher.add_handler(UNGBAN_HANDLER)
