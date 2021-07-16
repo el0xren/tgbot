@@ -181,7 +181,6 @@ def list_notes(update: Update, context: CallbackContext):
     bot = context.bot
     chat_id = update.effective_chat.id
     chat = update.effective_chat
-    note_list = sql.get_all_chat_notes(chat_id)
 
     msg = "╒═══「 *Notes in {}* 」\n".format(chat.title)
     note_count = 0
