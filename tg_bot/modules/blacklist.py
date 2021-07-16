@@ -163,12 +163,12 @@ multiple triggers at once.
  - /rmblacklist <triggers>: Same as above.
 """
 
-BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", blacklist, filters=Filters.group, pass_args=True,
+BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", blacklist, filters=Filters.chat_type.groups, pass_args=True,
                                               admin_ok=True, run_async=True)
-ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist, filters=Filters.group, run_async=True)
-UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"], unblacklist, filters=Filters.group, run_async=True)
+ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist, filters=Filters.chat_type.groups, run_async=True)
+UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"], unblacklist, filters=Filters.chat_type.groups, run_async=True)
 BLACKLIST_DEL_HANDLER = MessageHandler(
-    (Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.group, del_blacklist, run_async=True)
+    (Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups, del_blacklist, run_async=True)
 
 dispatcher.add_handler(BLACKLIST_HANDLER)
 dispatcher.add_handler(ADD_BLACKLIST_HANDLER)

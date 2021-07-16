@@ -134,7 +134,7 @@ NOTE: neither of these will get triggered if used by admins
    - If in chat, toggles that chat's status.
 """
 
-REPORT_HANDLER = CommandHandler("report", report, filters=Filters.group, run_async=True)
+REPORT_HANDLER = CommandHandler("report", report, filters=Filters.chat_type.groups, run_async=True)
 SETTING_HANDLER = CommandHandler("reports", report_setting, run_async=True)
 ADMIN_REPORT_HANDLER = RegexHandler("(?i)@admin(s)?", report, run_async=True)
 

@@ -95,8 +95,8 @@ __help__ = """
 
 __mod_name__ = "Purges"
 
-DELETE_HANDLER = CommandHandler("del", del_message, filters=Filters.group, run_async=True)
-PURGE_HANDLER = CommandHandler("purge", purge, filters=Filters.group, run_async=True)
+DELETE_HANDLER = CommandHandler("del", del_message, filters=Filters.chat_type.groups, run_async=True)
+PURGE_HANDLER = CommandHandler("purge", purge, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(DELETE_HANDLER)
 dispatcher.add_handler(PURGE_HANDLER)

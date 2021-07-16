@@ -222,15 +222,15 @@ __help__ = """
 
 __mod_name__ = "Admin"
 
-PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.group, run_async=True)
-UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.group, run_async=True)
+PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.chat_type.groups, run_async=True)
 
-INVITE_HANDLER = CommandHandler(["invitelink", "link"], invite, filters=Filters.group, run_async=True)
+INVITE_HANDLER = CommandHandler(["invitelink", "link"], invite, filters=Filters.chat_type.groups, run_async=True)
 
-PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, filters=Filters.group, run_async=True)
-DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filters.group, run_async=True)
+PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"], adminlist, filters=Filters.group, run_async=True)
+ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"], adminlist, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)
