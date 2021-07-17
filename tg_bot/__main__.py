@@ -11,7 +11,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
 from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
-    ALLOW_EXCL
+    ALLOW_EXCL, SUPPORT_CHAT
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
@@ -129,9 +129,20 @@ def start(update: Update, context: CallbackContext):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_text(BOT_IMG,
+            update.effective_message.reply_photo(BOT_IMG,
                 PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
-                parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup([[
+                        InlineKeyboardButton(text="Source Code",
+                                             url="github.com/el0xren/tgbot")
+                        ], [
+                        InlineKeyboardButton(text="Support Group",
+                                             url=f"t.me/{SUPPORT_CHAT}")
+                        ], [
+                        InlineKeyboardButton(text="Add {} to your group".format(
+                                                   dispatcher.bot.first_name),
+                                                   url="t.me/{}?startgroup=true".format(
+                                                   context.bot.username))]]))
+
     else:
         update.effective_message.reply_text("Yo, whadup?")
 
