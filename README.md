@@ -1,4 +1,4 @@
-<img align="right" width="260" height="260" alt="Ava" src="https://i.ibb.co/s1h53xJ/Photo-2021-07-12-12-30-03.jpg">
+<img align="right" width="260" height="260" alt="PruhBruhBot" src="https://i.ibb.co/s1h53xJ/Photo-2021-07-12-12-30-03.jpg">
 
 # PruhBruhBot
 A modular telegram Python bot running on python3 with an sqlalchemy database.
