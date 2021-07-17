@@ -1,6 +1,7 @@
 import datetime
 import importlib
 import re
+import logging
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User
@@ -23,6 +24,7 @@ BOT_IMG = "https://telegra.ph/file/4c7f3b074544c1bceff40.jpg"
 PM_START_TEXT = """
 Hi {}, my name is {}!
 I'm a group manager bot built in python3, using the python-telegram-bot library.
+
 I'll help you manage your groups in an efficient way!
 
 You can find the list of available commands with /help.
@@ -422,6 +424,8 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
+        dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
+        logging.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15, read_latency=4)
 
