@@ -142,7 +142,6 @@ def start(update: Update, context: CallbackContext):
                                                    dispatcher.bot.first_name),
                                                    url="t.me/{}?startgroup=true".format(
                                                    context.bot.username))]]))
-
     else:
         update.effective_message.reply_text("Yo, whadup?")
 

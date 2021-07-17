@@ -421,15 +421,15 @@ def invite(update: Update, context: CallbackContext):
 def adminlist(update: Update, context: CallbackContext):
     bot = context.bot
     administrators = update.effective_chat.get_administrators()
-    text = "<b>Admins in {}</b>".format(update.effective_chat.title or "this chat")
+    text = "Admins in <b>{}</b>".format(update.effective_chat.title or "this chat")
     for admin in administrators:
         user = admin.user
         status = admin.status
         if user.first_name:
             name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
         if status == "creator":
-            text += "\n╒═══「 Creator 」\n"
-            text += "│ • {} \n╞══「 Admins 」".format(name)
+            text += "\n╒═══「 <b>Creator</b> 」\n"
+            text += "│ • {} \n╞══「 <b>Admins</b> 」".format(name)
     for admin in administrators:
         user = admin.user
         status = admin.status
@@ -439,7 +439,7 @@ def adminlist(update: Update, context: CallbackContext):
             name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
         if status == "administrator":
             text += "\n│ • {}".format(name)
-            admins = "\n╘══「 <b>Total Admins:</b> {} 」".format(len(admins_count))
+            admins = "\n╘══「 <b>Total Admins:</b> <code>{}</code> 」".format(len(admins_count))
 
     update.effective_message.reply_text(text + admins, parse_mode=ParseMode.HTML)
 
