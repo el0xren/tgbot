@@ -18,6 +18,8 @@ from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 
+BOT_IMG = "https://telegra.ph/file/4c7f3b074544c1bceff40.jpg"
+
 PM_START_TEXT = """
 Hi {}, my name is {}!
 I'm a group manager bot built in python3, using the python-telegram-bot library.
@@ -127,7 +129,7 @@ def start(update: Update, context: CallbackContext):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_text(
+            update.effective_message.reply_text(BOT_IMG,
                 PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
                 parse_mode=ParseMode.MARKDOWN)
     else:
