@@ -433,7 +433,6 @@ def adminlist(update: Update, context: CallbackContext):
     for admin in administrators:
         user = admin.user
         status = admin.status
-        chat = update.effective_chat
         chat_id = update.effective_chat.id
         admins_count = bot.getChatAdministrators(chat_id)
         if user.first_name:
