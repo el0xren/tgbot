@@ -395,7 +395,7 @@ def main():
     # dispatcher.add_error_handler(error_callback)
 
     # add antiflood processor
-    Dispatcher.process_update = process_update
+    #Dispatcher.process_update = process_update
 
     if WEBHOOK:
         LOGGER.info("Using webhooks.")
@@ -419,7 +419,7 @@ def main():
 CHATS_CNT = {}
 CHATS_TIME = {}
 
-
+"""
 def process_update(self, update):
     # An error happened while polling
     if isinstance(update, TelegramError):
@@ -471,7 +471,7 @@ def process_update(self, update):
 
         # Errors should not stop the thread.
         except Exception:
-            self.logger.exception('An uncaught error was raised while processing the update')
+            self.logger.exception('An uncaught error was raised while processing the update')"""
 
 
 if __name__ == '__main__':
