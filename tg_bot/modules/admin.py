@@ -421,15 +421,28 @@ def invite(update: Update, context: CallbackContext):
 def adminlist(update: Update, context: CallbackContext):
     bot = context.bot
     administrators = update.effective_chat.get_administrators()
-    text = "Admins in *{}*:".format(update.effective_chat.title or "this chat")
+    text = "<b>Admins in {}</b>".format(update.effective_chat.title or "this chat")
     for admin in administrators:
         user = admin.user
-        name = "[{}](tg://user?id={})".format(user.first_name + (user.last_name or ""), user.id)
-        if user.username:
-            name = escape_markdown("@" + user.username)
-        text += "\n - {}".format(name)
+        status = admin.status
+        if user.first_name:
+            name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
+        if status == "creator":
+            text += "\n╒═══「 Creator 」\n"
+            text += "│ • {} \n╞══「 Admins 」".format(name)
+    for admin in administrators:
+        user = admin.user
+        status = admin.status
+        chat = update.effective_chat
+        chat_id = update.effective_chat.id
+        admins_count = bot.getChatAdministrators(chat_id)
+        if user.first_name:
+            name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
+        if status == "administrator":
+            text += "\n│ • {}".format(name)
+            admins = "\n╘══「 <b>Total Admins:</b> {} 」".format(len(admins_count))
 
-    update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    update.effective_message.reply_text(text + admins, parse_mode=ParseMode.HTML)
 
 
 def __chat_settings__(chat_id, user_id):
@@ -465,7 +478,7 @@ INVITE_HANDLER = CommandHandler(["invitelink", "link"], invite, filters=Filters.
 PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"], adminlist, filters=Filters.chat_type.groups, run_async=True)
+ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "admins"], adminlist, filters=Filters.chat_type.groups, run_async=True)
 
 CHAT_PIC_HANDLER = CommandHandler("setgpic", setchatpic, filters=Filters.chat_type.groups, run_async=True)
 DEL_CHAT_PIC_HANDLER = CommandHandler("delgpic", rmchatpic, filters=Filters.chat_type.groups, run_async=True)
