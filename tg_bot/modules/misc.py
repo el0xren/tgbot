@@ -16,6 +16,7 @@ from tg_bot.__main__ import STATS, USER_INFO
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
+from tg_bot.modules.sql.afk_sql import is_afk, check_afk_status
 
 RUN_STRINGS = (
     "Where do you think you're going?",
@@ -221,6 +222,7 @@ def info(update: Update, context: CallbackContext):
     args = context.args
     msg = update.effective_message  # type: Optional[Message]
     user_id = extract_user(update.effective_message, args)
+    chat = update.effective_chat
 
     if user_id:
         user = bot.get_chat(user_id)
@@ -237,17 +239,35 @@ def info(update: Update, context: CallbackContext):
     else:
         return
 
-    text = "<b>User info</b>:" \
-           "\nID: <code>{}</code>" \
-           "\nFirst Name: {}".format(user.id, html.escape(user.first_name))
-
-    if user.last_name:
-        text += "\nLast Name: {}".format(html.escape(user.last_name))
+   text = "╒═══「 <b>User Info</b> 」" \
+           "\n│ • ID: <code>{}</code>" \
+           "\n│ • First Name: {}".format(user.id, html.escape(user.first_name))
 
     if user.username:
-        text += "\nUsername: @{}".format(html.escape(user.username))
+        text += "\n│ • Username: @{}".format(html.escape(user.username))
 
-    text += "\nPermanent user link: {}".format(mention_html(user.id, "link"))
+    text += "\n│ • Permalink: {}".format(mention_html(user.id, "link"))
+
+    if chat.type != "private" and user_id != bot.id:
+        _stext = "\n╘══「 Presence: <code>{}</code> 」"
+
+    if chat.type == "private":
+        text += "\n╘══「 Presence: <code>Detected</code> 」"
+    else:
+        afk_st = is_afk(user.id)
+        if afk_st:
+            text += _stext.format("AFK")
+        else:
+            status = status = bot.get_chat_member(chat.id, user.id).status
+            if status:
+                if status == "left":
+                    text += _stext.format("Not here")
+                if status == "kicked":
+                    text += _stext.format("Banned")
+                elif status == "member":
+                    text += _stext.format("Detected")
+                elif status in {"administrator", "creator"}:
+                    text += _stext.format("Admin")
 
     if user.id == OWNER_ID:
         text += "\n\nThis person is my owner - I would never do anything against them!"
