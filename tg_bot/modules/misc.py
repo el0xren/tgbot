@@ -239,7 +239,7 @@ def info(update: Update, context: CallbackContext):
     else:
         return
 
-   text = "╒═══「 <b>User Info</b> 」" \
+    text = "╒═══「 <b>User Info</b> 」" \
            "\n│ • ID: <code>{}</code>" \
            "\n│ • First Name: {}".format(user.id, html.escape(user.first_name))
 
