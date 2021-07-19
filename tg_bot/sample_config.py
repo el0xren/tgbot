@@ -36,6 +36,7 @@ class Config(object):
     BAN_STICKER = 'CAADAgADOwADPPEcAXkko5EB3YGYAg'  # banhammer marie sticker
     ALLOW_EXCL = False  # Allow ! commands as well as /
     SUPPORT_CHAT = None # Chat username without @
+    INFOPIC = True
 
 
 class Production(Config):

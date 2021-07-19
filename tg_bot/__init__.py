@@ -58,6 +58,7 @@ if ENV:
     BAN_STICKER = os.environ.get('BAN_STICKER', 'CAADAgADOwADPPEcAXkko5EB3YGYAg')
     ALLOW_EXCL = os.environ.get('ALLOW_EXCL', False)
     SUPPORT_CHAT = os.environ.get('SUPPORT_CHAT', None)
+    INFOPIC = bool(os.environ.get("INFOPIC", False))
 
 else:
     from tg_bot.config import Development as Config
@@ -100,6 +101,7 @@ else:
     BAN_STICKER = Config.BAN_STICKER
     ALLOW_EXCL = Config.ALLOW_EXCL
     SUPPORT_CHAT = Config.SUPPORT_CHAT
+    INFOPIC = Config.INFOPIC
 
 
 SUDO_USERS.add(OWNER_ID)
