@@ -1,6 +1,7 @@
 import html
 import json
 import random
+import os
 from datetime import datetime
 from typing import Optional, List
 
@@ -289,7 +290,29 @@ def info(update: Update, context: CallbackContext):
         if mod_info:
             text += "\n\n" + mod_info
 
-    update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
+    if INFOPIC:
+        try:
+            profile = context.bot.get_user_profile_photos(user.id).photos[0][-1]
+            _file = bot.get_file(profile["file_id"])
+            _file.download(f"{user.id}.png")
+
+            msg.reply_document(
+                document=open(f"{user.id}.png", "rb"),
+                caption=(text),
+                parse_mode=ParseMode.HTML,
+            )
+
+            os.remove(f"{user.id}.png")
+        # Incase user don't have profile pic, send normal text
+        except IndexError:
+            msg.reply_text(
+                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            )
+
+    else:
+        msg.reply_text(
+            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+        )
 
 
 def get_time(update: Update, context: CallbackContext):
