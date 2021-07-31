@@ -1,8 +1,11 @@
-if not __name__.endswith("sample_config"):
-    import sys
-    print("The README is there to be read. Extend this sample config to a config file, don't just rename and change "
-          "values here. Doing that WILL backfire on you.\nBot quitting.", file=sys.stderr)
-    quit(1)
+# Create a new config.py or rename this to config.py file in same dir and import, then extend this class.
+import json
+import os
+
+
+def get_user_list(config, key):
+    with open('{}/tg_bot/{}'.format(os.getcwd(), config), 'r') as json_file:
+        return json.load(json_file)[key]
 
 
 # Create a new config.py file in same dir and import, then extend this class.
