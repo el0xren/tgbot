@@ -161,12 +161,13 @@ def gban(update: Update, context: CallbackContext):
         except TelegramError:
             pass
 
-    message.reply_text("Done! Gbanned in <code>{}</code> chats.".format(gbanned_chats), parse_mode=ParseMode.HTML)
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
                  "{} has been gbanned in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
                                                                                      gbanned_chats),
 
                  html=True)
+
+    message.reply_text("Done! Gbanned in <code>{}</code> chats.".format(gbanned_chats), parse_mode=ParseMode.HTML)
     try:
         bot.send_message(user_id, f"You have been globally banned from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your ban here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:
@@ -233,12 +234,13 @@ def ungban(update: Update, context: CallbackContext):
 
     sql.ungban_user(user_id)
 
-    message.reply_text("Person has been un-gbanned in <code>{}</code> chats.".format(ungbanned_chats), parse_mode=ParseMode.HTML)
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
                  "{} has been un-gbanned in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
                                                                                         ungbanned_chats),
 
                  html=True)
+
+    message.reply_text("Person has been un-gbanned in <code>{}</code> chats.".format(ungbanned_chats), parse_mode=ParseMode.HTML)
 
 
 def gbanlist(update: Update, context: CallbackContext):
