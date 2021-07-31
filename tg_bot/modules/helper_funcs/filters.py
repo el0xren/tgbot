@@ -1,10 +1,16 @@
 from telegram import Message
 from telegram.ext import MessageFilter
 
-from tg_bot import SUPPORT_USERS, SUDO_USERS
+from tg_bot import DEV_USERS, SUDO_USERS, SUPPORT_USERS
 
 
 class CustomFilters(object):
+    class _Developers(MessageFilter):
+        def filter(self, message: Message):
+            return bool(message.from_user and message.from_user.id in DEV_USERS)
+
+    dev_filter = _Developers()
+
     class _Supporters(MessageFilter):
         def filter(self, message: Message):
             return bool(message.from_user and message.from_user.id in SUPPORT_USERS)
