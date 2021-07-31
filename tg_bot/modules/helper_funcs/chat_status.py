@@ -3,27 +3,7 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from tg_bot import CallbackContext, DEL_CMDS, DEV_USERS, SUDO_USERS, WHITELIST_USERS
-
-
-def dev_plus(func):
-    @wraps(func)
-    def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
-        user = update.effective_user  # type: Optional[User]
-        if user.id in DEV_USERS:
-            return func(update, context, *args, **kwargs)
-
-        elif not user:
-            pass
-
-        elif DEL_CMDS and " " not in update.effective_message.text:
-            update.effective_message.delete()
-
-        else:
-            update.effective_message.reply_text("This is a developer restricted command. You do not have permissions to run this.")
-
-    return is_admin
+from tg_bot import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
@@ -36,7 +16,6 @@ def can_change_info(chat: Chat, user: User, bot_id: int) -> bool:
 
 def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
-            or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
             or user_id in WHITELIST_USERS \
             or chat.all_members_are_administrators:
@@ -49,7 +28,6 @@ def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -
 
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
-            or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
             or chat.all_members_are_administrators:
         return True

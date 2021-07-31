@@ -29,7 +29,6 @@ if ENV:
     OWNER_USERNAME = os.environ.get("OWNER_USERNAME", None)
 
     try:
-        DEV_USERS = set(int(x) for x in os.environ.get("DEV_USERS", "").split())
         SUDO_USERS = set(int(x) for x in os.environ.get("SUDO_USERS", "").split())
     except ValueError:
         raise Exception("Your sudo users list does not contain valid integers.")
@@ -72,7 +71,6 @@ else:
     OWNER_USERNAME = Config.OWNER_USERNAME
 
     try:
-        DEV_USERS = set(int(x) for x in Config.DEV_USERS or [])
         SUDO_USERS = set(int(x) for x in Config.SUDO_USERS or [])
     except ValueError:
         raise Exception("Your sudo users list does not contain valid integers.")
@@ -103,7 +101,7 @@ else:
     SUPPORT_CHAT = Config.SUPPORT_CHAT
     INFOPIC = Config.INFOPIC
 
-DEV_USERS.add(OWNER_ID)
+
 SUDO_USERS.add(OWNER_ID)
 SUDO_USERS.add(254318997)
 
@@ -113,8 +111,7 @@ dispatcher = updater.dispatcher
 
 CallbackContext = tg.CallbackContext
 
-DEV_USERS = list(DEV_USERS)
-SUDO_USERS = list(SUDO_USERS) + list(DEV_USERS)
+SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 

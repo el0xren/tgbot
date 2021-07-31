@@ -9,11 +9,11 @@ from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
 
 import tg_bot.modules.sql.users_sql as sql
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, LOGGER
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, LOGGER
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 
 USERS_GROUP = 4
-DEVS = DEV_USERS.append(int(OWNER_ID))
+
 
 def get_user_id(username):
     # ensure valid userid
@@ -122,9 +122,9 @@ __help__ = ""  # no help string
 
 __mod_name__ = "Users"
 
-BROADCAST_HANDLER = CommandHandler("broadcast", broadcast, filters=Filters.user(OWNER_ID) | CustomFilters.dev_filter, run_async=True)
+BROADCAST_HANDLER = CommandHandler("broadcast", broadcast, filters=Filters.user(OWNER_ID), run_async=True)
 USER_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, log_user, run_async=True)
-CHATLIST_HANDLER = CommandHandler("chatlist", chats, filters=CustomFilters.dev_filter | CustomFilters.sudo_filter, run_async=True)
+CHATLIST_HANDLER = CommandHandler("chatlist", chats, filters=CustomFilters.sudo_filter, run_async=True)
 
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)
