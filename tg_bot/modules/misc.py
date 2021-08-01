@@ -439,7 +439,7 @@ __help__ = """
 __mod_name__ = "Misc"
 
 ID_HANDLER = DisableAbleCommandHandler("id", get_id, run_async=True)
-IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.chat(OWNER_ID), run_async=True)
+IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.user(OWNER_ID), run_async=True)
 
 TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
 
