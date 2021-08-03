@@ -235,6 +235,80 @@ def kickme(update: Update, context: CallbackContext):
 
 @bot_admin
 @can_restrict
+def banme(update: Update, context: CallbackContext):
+    bot = context.bot
+    user_id = update.effective_message.from_user.id
+    chat = update.effective_chat
+    user = update.effective_user
+    if is_user_admin(update.effective_chat, user_id):
+        update.effective_message.reply_text("I wish I could... but you're an admin.")
+        return
+
+    res = update.effective_chat.kick_member(user_id)  
+    if res:
+        update.effective_message.reply_text("No problem.")
+    else:
+        update.effective_message.reply_text("Huh? I can't :/")
+
+
+@bot_admin
+@can_restrict
+@user_admin
+@loggable
+def sban(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
+
+    update.effective_message.delete()
+
+    user_id, reason = extract_user_and_text(message, args)
+
+    if not user_id:
+        return ""
+
+    try:
+        member = chat.get_member(user_id)
+    except BadRequest as excp:
+        if excp.message == "User not found":
+            return ""
+        else:
+            raise
+
+    if is_user_ban_protected(chat, user_id, member):
+        return ""
+
+    if user_id == bot.id:
+        return ""
+
+    log = "<b>{}:</b>" \
+          "\n#SILENTBAN" \
+          "\n<b>Admin:</b> {}" \
+          "\n<b>User:</b> {}".format(html.escape(chat.title),
+                                    mention_html(user.id, user.first_name), 
+                                    mention_html(member.user.id, member.user.first_name),
+                                    member.user.id)
+    if reason:
+        log += "\n<b>• Reason:</b> {}".format(reason)
+
+    try:
+        chat.kick_member(user_id)
+        return log
+
+    except BadRequest as excp:
+        if excp.message == "Reply message not found":
+            return log
+        else:
+            LOGGER.warning(update)
+            LOGGER.exception("ERROR banning user %s in chat %s (%s) due to %s", user_id, chat.title, chat.id, excp.message)       
+    
+    return ""
+
+
+@bot_admin
+@can_restrict
 @user_admin
 @loggable
 def unban(update: Update, context: CallbackContext):
@@ -283,9 +357,11 @@ def unban(update: Update, context: CallbackContext):
 
 
 __help__ = """
+ - /banme: bans the user who issues the command
  - /kickme: kicks the user who issued the command
 
 *Admin only:*
+ - /sban <userhandle>: silently bans a user. (via handle, or reply)
  - /ban <userhandle>: bans a user. (via handle, or reply)
  - /tban <userhandle> x(m/h/d): bans a user for x time. (via handle, or reply). m = minutes, h = hours, d = days.
  - /unban <userhandle>: unbans a user. (via handle, or reply)
@@ -299,9 +375,13 @@ TEMPBAN_HANDLER = CommandHandler(["tban", "tempban"], temp_ban, filters=Filters.
 KICK_HANDLER = CommandHandler("kick", kick, filters=Filters.chat_type.groups, run_async=True)
 UNBAN_HANDLER = CommandHandler("unban", unban, filters=Filters.chat_type.groups, run_async=True)
 KICKME_HANDLER = DisableAbleCommandHandler("kickme", kickme, filters=Filters.chat_type.groups, run_async=True)
+BANME_HANDLER = DisableAbleCommandHandler("banme", banme, filters=Filters.chat_type.groups, run_async=True)
+SBAN_HANDLER = CommandHandler("sban", sban, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(BAN_HANDLER)
 dispatcher.add_handler(TEMPBAN_HANDLER)
 dispatcher.add_handler(KICK_HANDLER)
 dispatcher.add_handler(UNBAN_HANDLER)
 dispatcher.add_handler(KICKME_HANDLER)
+dispatcher.add_handler(BANME_HANDLER)
+dispatcher.add_handler(SBAN_HANDLER)
