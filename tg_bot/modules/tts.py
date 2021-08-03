@@ -1,3 +1,4 @@
+"""
 import os
 from datetime import datetime
 import yaml
@@ -34,4 +35,4 @@ def tts(update: Update, context: CallbackContext):
 
 TTS_HANDLER = CommandHandler("tts", tts, run_async=True)
 
-dispatcher.add_handler(TTS_HANDLER)
+dispatcher.add_handler(TTS_HANDLER)"""
