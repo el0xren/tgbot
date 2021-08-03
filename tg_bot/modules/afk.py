@@ -57,14 +57,22 @@ def reply_afk(update: Update, context: CallbackContext):
             else:
                 return
 
-            if sql.is_afk(user_id):
-                valid, reason = sql.check_afk_status(user_id)
-                if valid:
-                    if not reason:
-                        res = "{} is AFK!".format(fst_name)
-                    else:
-                        res = "{} is AFK! says its because of:\n{}".format(fst_name, reason)
-                    message.reply_text(res)
+            check_afk(update, context, user_id, fst_name)
+
+    elif message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        fst_name = message.reply_to_message.from_user.first_name
+        check_afk(update, context, user_id, fst_name)
+
+
+def check_afk(update: Update, context: CallbackContext, user_id, fst_name):
+    if sql.is_afk(user_id):
+        user = sql.check_afk_status(user_id)
+        if not user.reason:
+            res = "{} is AFK!".format(fst_name)
+        else:
+            res = "{} is AFK! says its because of: \n{}".format(fst_name, user.reason)
+        update.effective_message.reply_text(res)
 
 
 def __gdpr__(user_id):
@@ -82,9 +90,8 @@ __mod_name__ = "AFK"
 
 AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
 AFK_REGEX_HANDLER = DisableAbleRegexHandler("(?i)brb", afk, friendly="afk")
-NO_AFK_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, no_longer_afk, run_async=True)
-AFK_REPLY_HANDLER = MessageHandler(Filters.entity(MessageEntity.MENTION) | Filters.entity(MessageEntity.TEXT_MENTION),
-                                   reply_afk, run_async=True)
+NO_AFK_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups , no_longer_afk, run_async=True)
+AFK_REPLY_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups , reply_afk, run_async=True)
 
 dispatcher.add_handler(AFK_HANDLER, AFK_GROUP)
 dispatcher.add_handler(AFK_REGEX_HANDLER, AFK_GROUP)
