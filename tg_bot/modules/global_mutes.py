@@ -117,7 +117,7 @@ def gmute(update: Update, context: CallbackContext):
                                                                        user_chat.id, new_reason),
                          html=True)
 
-            message.reply_text("This user is already gbanned, but had no reason set; I've gone and updated it!")
+            message.reply_text("This user is already gmuted, but had no reason set; I've gone and updated it!")
 
         return
 
@@ -167,7 +167,7 @@ def gmute(update: Update, context: CallbackContext):
 
                  html=True)
 
-    message.reply_text("Done! Gbanned in <code>{}</code> chats.".format(gmuted_chats), parse_mode=ParseMode.HTML)
+    message.reply_text("Done! Gmuted in <code>{}</code> chats.".format(gmuted_chats), parse_mode=ParseMode.HTML)
     try:
         bot.send_message(user_id, f"You have been globally muted from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your mute here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:
