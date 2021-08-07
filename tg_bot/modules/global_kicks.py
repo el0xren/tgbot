@@ -61,6 +61,7 @@ def gkick(update: Update, context: CallbackContext):
 
     if user_id == bot.id:
         message.reply_text("-_- So funny, lets gkick myself why don't I? Nice try.")
+        return
 
     message.reply_text("*Snaps with fingers* 😉")
 
