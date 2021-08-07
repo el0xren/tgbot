@@ -6,10 +6,78 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from tg_bot import dispatcher, CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
+from tg_bot import dispatcher, CallbackContext, DEL_CMDS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10, timer=perf_counter)
 THREAD_LOCK = RLock()
+
+
+def is_sudo_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+    return user_id in SUDO_USERS
+
+
+def is_support_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+    return user_id in SUPPORT_USERS or user_id in SUDO_USERS
+
+
+def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+    return any(user_id in user for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS])
+
+
+def sudo_plus(func):
+    @wraps(func)
+    def is_sudo_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+        chat = update.effective_chat
+
+        if user and is_sudo_plus(chat, user.id):
+            return func(update, context, *args, **kwargs)
+        elif not user:
+            pass
+        elif DEL_CMDS and " " not in update.effective_message.text:
+            try:
+                update.effective_message.delete()
+            except:
+                pass
+        else:
+            update.effective_message.reply_text("Who dis non-admin telling me what to do?")
+
+    return is_sudo_plus_func
+
+
+def support_plus(func):
+    @wraps(func)
+    def is_support_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+        chat = update.effective_chat
+
+        if user and is_support_plus(chat, user.id):
+            return func(update, context, *args, **kwargs)
+        elif DEL_CMDS and " " not in update.effective_message.text:
+            try:
+                update.effective_message.delete()
+            except:
+                pass
+
+    return is_support_plus_func
+
+
+def whitelist_plus(func):
+    @wraps(func)
+    def is_whitelist_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+        chat = update.effective_chat
+
+        if user and is_whitelist_plus(chat, user.id):
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text(
+                f"You don't have access to use this.\nVisit @{SUPPORT_CHAT}")
+
+    return is_whitelist_plus_func
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
