@@ -12,7 +12,7 @@ from telegram.utils.helpers import escape_markdown, mention_html
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS
 from tg_bot.modules.disable import DisableAbleCommandHandler
-from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info
+from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info, ADMIN_CACHE
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.log_channel import loggable
 
@@ -628,6 +628,16 @@ def adminlist(update: Update, context: CallbackContext):
     update.effective_message.reply_text(text + admins, parse_mode=ParseMode.HTML)
 
 
+@user_admin
+def refresh_admin(update, _):
+    try:
+        ADMIN_CACHE.pop(update.effective_chat.id)
+    except KeyError:
+        pass
+
+    update.effective_message.reply_text("Admins cache refreshed!")
+
+
 def __chat_settings__(chat_id, user_id):
     return "You are *admin*: `{}`".format(
         dispatcher.bot.get_chat_member(chat_id, user_id).status in ("administrator", "creator"))
@@ -676,6 +686,8 @@ SETCHAT_TITLE_HANDLER = CommandHandler("setgtitle", setchat_title, filters=Filte
 SETSTICKET_HANDLER = CommandHandler("setsticker", set_sticker, filters=Filters.chat_type.groups, run_async=True)
 SETDESC_HANDLER = CommandHandler("setdescription", set_desc, filters=Filters.chat_type.groups, run_async=True)
 
+ADMIN_REFRESH_HANDLER = CommandHandler("admincache", refresh_admin, filters=Filters.chat_type.groups)
+
 dispatcher.add_handler(SUDO_HANDLER)
 dispatcher.add_handler(UNSUDO_HANDLER)
 dispatcher.add_handler(SUPPORT_HANDLER)
@@ -689,9 +701,9 @@ dispatcher.add_handler(INVITE_HANDLER)
 dispatcher.add_handler(PROMOTE_HANDLER)
 dispatcher.add_handler(DEMOTE_HANDLER)
 dispatcher.add_handler(ADMINLIST_HANDLER)
-
 dispatcher.add_handler(CHAT_PIC_HANDLER)
 dispatcher.add_handler(DEL_CHAT_PIC_HANDLER)
 dispatcher.add_handler(SETCHAT_TITLE_HANDLER)
 dispatcher.add_handler(SETSTICKET_HANDLER)
 dispatcher.add_handler(SETDESC_HANDLER)
+dispatcher.add_handler(ADMIN_REFRESH_HANDLER)

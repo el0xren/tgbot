@@ -1,9 +1,15 @@
+from time import perf_counter
 from functools import wraps
+from cachetools import TTLCache
+from threading import RLock
 from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
 from tg_bot import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
+
+ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10, timer=perf_counter)
+THREAD_LOCK = RLock()
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
@@ -33,8 +39,17 @@ def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
         return True
 
     if not member:
-        member = chat.get_member(user_id)
-    return member.status in ('administrator', 'creator')
+       with THREAD_LOCK:
+            try:
+                return user_id in ADMIN_CACHE[chat.id]
+            except KeyError:
+                chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
+                admin_list = [x.user.id for x in chat_admins]
+                ADMIN_CACHE[chat.id] = admin_list
+
+                return user_id in admin_list
+    else:
+        return member.status in ("administrator", "creator")
 
 
 def is_bot_admin(chat: Chat, bot_id: int, bot_member: ChatMember = None) -> bool:
