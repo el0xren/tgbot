@@ -369,6 +369,23 @@ def echo(update: Update, context: CallbackContext):
     message.delete()
 
 
+def recho(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+    message = update.effective_message
+    try:
+        chat_id = str(args[0])
+        del args[0]
+    except TypeError as excp:
+        message.reply_text("Please give me a chat ID.")
+    to_send = " ".join(args)
+    if len(to_send) >= 2:
+        try:
+            bot.sendMessage(int(chat_id), str(to_send))
+        except TelegramError:
+            message.reply_text("Couldn't send the message. Perhaps I'm not part of that group?")
+
+
 def gdpr(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -448,6 +465,7 @@ SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
 
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
+RECHO_HANDLER = CommandHandler("recho", recho, filters=Filters.user(OWNER_ID), run_async=True)
 MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.private, run_async=True)
 
 STATS_HANDLER = CommandHandler("stats", stats, filters=CustomFilters.sudo_filter, run_async=True)
@@ -460,6 +478,7 @@ dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
 dispatcher.add_handler(ECHO_HANDLER)
+dispatcher.add_handler(RECHO_HANDLER)
 dispatcher.add_handler(MD_HELP_HANDLER)
 dispatcher.add_handler(STATS_HANDLER)
 dispatcher.add_handler(GDPR_HANDLER)
