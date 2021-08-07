@@ -18,7 +18,6 @@ def whitelistlist(update: Update, context: CallbackContext):
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
-
             msg += f"• {mention_html(user_id, html.escape(user.first_name))}\n"
         except TelegramError:
             pass
