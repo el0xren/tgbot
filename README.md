@@ -7,6 +7,8 @@ Originally a simple group management bot with multiple admin features, it has ev
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
 Can be found on telegram as [MissAhegaoBot](https://t.me/MissAhegaoBot).
+For any queries report at [AhegaoBotSupport](https://t.me/AhegaoBotSupport).
+News channel at [AhegaoBotNews](https://t.me/AhegaoBotNews)
 
 `I don't support forks so solve your problems by yourself.`
 
