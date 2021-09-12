@@ -229,24 +229,30 @@ def promote(update: Update, context: CallbackContext) -> str:
     # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chat.get_member(bot.id)
 
-    bot.promoteChatMember(chat_id, user_id,
-                          can_change_info=bot_member.can_change_info,
-                          can_post_messages=bot_member.can_post_messages,
-                          can_edit_messages=bot_member.can_edit_messages,
-                          can_delete_messages=bot_member.can_delete_messages,
-                          # can_invite_users=bot_member.can_invite_users,
-                          can_restrict_members=bot_member.can_restrict_members,
-                          can_pin_messages=bot_member.can_pin_messages,
-                          can_promote_members=bot_member.can_promote_members)
-
-    message.reply_text("Successfully promoted!")
-    return "<b>{}:</b>" \
-           "\n#PROMOTED" \
-           "\n<b>Admin:</b> {}" \
-           "\n<b>User:</b> {}".format(html.escape(chat.title),
-                                      mention_html(user.id, user.first_name),
-                                      mention_html(user_member.user.id, user_member.user.first_name))
-
+    try:
+        bot.promoteChatMember(chat_id, user_id,
+                              can_change_info=bot_member.can_change_info,
+                              can_post_messages=bot_member.can_post_messages,
+                              can_edit_messages=bot_member.can_edit_messages,
+                              can_delete_messages=bot_member.can_delete_messages,
+                              # can_invite_users=bot_member.can_invite_users,
+                              can_restrict_members=bot_member.can_restrict_members,
+                              can_pin_messages=bot_member.can_pin_messages,
+                              can_promote_members=bot_member.can_promote_members)
+        message.reply_text("Successfully promoted!")
+        # refresh admin cache
+        try:
+            ADMIN_CACHE.pop(update.effective_chat.id)
+        except KeyError:
+            pass
+        return "<b>{}:</b>" \
+               "\n#PROMOTED" \
+               "\n<b>Admin:</b> {}" \
+               "\n<b>User:</b> {}".format(html.escape(chat.title),
+                                          mention_html(user.id, user.first_name),
+                                          mention_html(user_member.user.id, user_member.user.first_name))
+    except BadRequest:
+        return message.reply_text("Could not promote. I am not an admin, promote me first then i can promote others.")
 
 @bot_admin
 @can_promote
@@ -288,6 +294,11 @@ def demote(update: Update, context: CallbackContext) -> str:
                               can_pin_messages=False,
                               can_promote_members=False)
         message.reply_text("Successfully demoted!")
+        # refresh admin cache
+        try:
+            ADMIN_CACHE.pop(update.effective_chat.id)
+        except KeyError:
+            pass
         return "<b>{}:</b>" \
                "\n#DEMOTED" \
                "\n<b>Admin:</b> {}" \
