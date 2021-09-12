@@ -1,4 +1,4 @@
-<img align="right" width="260" height="260" alt="PruhBruhBot" src="https://i.ibb.co/s1h53xJ/Photo-2021-07-12-12-30-03.jpg">
+<img align="right" width="260" height="260" alt="MissAhegaoBot" src="https://ibb.co/bPhsRmT">
 
 # PruhBruhBot
 A modular telegram Python bot running on python3 with an sqlalchemy database.
@@ -6,7 +6,7 @@ A modular telegram Python bot running on python3 with an sqlalchemy database.
 Originally a simple group management bot with multiple admin features, it has evolved into becoming a basis for modular
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
-Can be found on telegram as [PruhBruhBot](https://t.me/PruhBruhBot).
+Can be found on telegram as [MissAhegaoBot](https://t.me/MissAhegaoBot).
 
 `I don't support forks so solve your problems by yourself.`
 
