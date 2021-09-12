@@ -1,6 +1,6 @@
 <img align="right" width="260" height="260" alt="MissAhegaoBot" src="https://i.ibb.co/QfBPjQL/Avatars-Xyju6-Oujg-Jzzrbp9-bg6-Ny-A-t500x500.jpg">
 
-# PruhBruhBot
+# MissAhegaoBot
 A modular telegram Python bot running on python3 with an sqlalchemy database.
 
 Originally a simple group management bot with multiple admin features, it has evolved into becoming a basis for modular
