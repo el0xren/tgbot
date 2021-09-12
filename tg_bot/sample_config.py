@@ -41,6 +41,7 @@ class Config(object):
     ALLOW_EXCL = False  # Allow ! commands as well as /
     SUPPORT_CHAT = None # Chat username without @
     INFOPIC = True
+    START_STICKER = 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE'
 
 
 class Production(Config):

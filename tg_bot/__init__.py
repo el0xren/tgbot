@@ -59,6 +59,7 @@ if ENV:
     ALLOW_EXCL = os.environ.get('ALLOW_EXCL', False)
     SUPPORT_CHAT = os.environ.get('SUPPORT_CHAT', None)
     INFOPIC = bool(os.environ.get("INFOPIC", False))
+    START_STICKER = os.environ.get('START_STICKER', 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE')
 
 else:
     from tg_bot.config import Development as Config
@@ -102,6 +103,7 @@ else:
     ALLOW_EXCL = Config.ALLOW_EXCL
     SUPPORT_CHAT = Config.SUPPORT_CHAT
     INFOPIC = Config.INFOPIC
+    START_STICKER = Config.START_STICKER
 
 
 SUDO_USERS.add(OWNER_ID)
