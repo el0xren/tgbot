@@ -10,7 +10,7 @@ Can be found on telegram as [MissAhegaoBot](https://t.me/MissAhegaoBot).
 
 For any queries report at [AhegaoBotSupport](https://t.me/AhegaoBotSupport).
 
-News channel at [AhegaoBotNews](https://t.me/AhegaoBotNews)
+News channel at [AhegaoBotNews](https://t.me/AhegaoBotNews).
 
 `I don't support forks so solve your problems by yourself.`
 
