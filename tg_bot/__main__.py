@@ -19,7 +19,7 @@ from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 
-BOT_IMG = "https://telegra.ph/file/4c7f3b074544c1bceff40.jpg"
+BOT_IMG = "https://telegra.ph/file/572f1989b04f0eefa53b0.jpg"
 
 PM_START_TEXT = """
 Hi {}, my name is {}!
