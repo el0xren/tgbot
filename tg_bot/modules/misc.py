@@ -241,19 +241,13 @@ def info(update: Update, context: CallbackContext):
         return
 
     text = "╒═══「 <b>User Info</b> 」" \
-           "\n│ • ID: <code>{}</code>" \
-           "\n│ • First Name: {}".format(user.id, html.escape(user.first_name))
-
-    if user.username:
-        text += "\n│ • Username: @{}".format(html.escape(user.username))
-
-    text += "\n│ • Permalink: {}".format(mention_html(user.id, "link"))
+           "\n│ • First Name: {}".format(mention_html(user.id, user.first_name))
 
     if chat.type != "private" and user_id != bot.id:
-        _stext = "\n╘══「 Presence: <code>{}</code> 」"
+        _stext = "\n│ • Presence: <code>{}</code>"
 
     if chat.type == "private":
-        text += "\n╘══「 Presence: <code>Detected</code> 」"
+        text += "\n│ • Presence: <code>Detected</code>"
     else:
         afk_st = is_afk(user.id)
         if afk_st:
@@ -270,20 +264,12 @@ def info(update: Update, context: CallbackContext):
                 elif status in {"administrator", "creator"}:
                     text += _stext.format("Admin")
 
-    if user.id == OWNER_ID:
-        text += "\n\nThis person is my owner - I would never do anything against them!"
+    if user.username:
+        text += "\n│ • Username: @{}".format(html.escape(user.username))
     else:
-        if user.id in SUDO_USERS:
-            text += "\n\nThis person is one of my sudo users! " \
-                    "Nearly as powerful as my owner - so watch it."
-        else:
-            if user.id in SUPPORT_USERS:
-                text += "\n\nThis person is one of my support users! " \
-                        "Not quite a sudo user, but can still gban you off the map."
+        text += "\n│ • Lastname: {}".format(html.escape(user.last_name or ""))
 
-            if user.id in WHITELIST_USERS:
-                text += "\n\nThis person has been whitelisted! " \
-                        "That means I'm not allowed to ban/kick them."
+    text += "\n╘══「 <b>ID:</b> <code>{}</code> 」".format(user.id)
 
     for mod in USER_INFO:
         mod_info = mod.__user_info__(user.id).strip()
