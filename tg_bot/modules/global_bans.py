@@ -139,7 +139,6 @@ def gban(update: Update, context: CallbackContext):
     sql.gban_user(user_id, user_chat.username or user_chat.first_name, reason)
 
     chats = get_all_chats()
-    gbanned_chats = 0
     for chat in chats:
         chat_id = chat.chat_id
 
@@ -149,7 +148,6 @@ def gban(update: Update, context: CallbackContext):
 
         try:
             bot.kick_chat_member(chat_id, user_id)
-            gbanned_chats += 1
         except BadRequest as excp:
             if excp.message in GBAN_ERRORS:
                 pass
@@ -162,12 +160,11 @@ def gban(update: Update, context: CallbackContext):
             pass
 
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                 "{} has been gbanned in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                                     gbanned_chats),
+                 "{} has been gbanned.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account")),
 
                  html=True)
 
-    message.reply_text("Done! Gbanned in <code>{}</code> chats.".format(gbanned_chats), parse_mode=ParseMode.HTML)
+    message.reply_text("Done! Gbanned.")
     try:
         bot.send_message(user_id, f"You have been globally banned from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your ban here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:
@@ -209,7 +206,6 @@ def ungban(update: Update, context: CallbackContext):
                  html=True)
 
     chats = get_all_chats()
-    ungbanned_chats = 0
     for chat in chats:
         chat_id = chat.chat_id
 
@@ -221,7 +217,6 @@ def ungban(update: Update, context: CallbackContext):
             member = bot.get_chat_member(chat_id, user_id)
             if member.status == 'kicked':
                 bot.unban_chat_member(chat_id, user_id)
-                ungbanned_chats += 1
         except BadRequest as excp:
             if excp.message in UNGBAN_ERRORS:
                 pass
@@ -235,12 +230,11 @@ def ungban(update: Update, context: CallbackContext):
     sql.ungban_user(user_id)
 
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                 "{} has been un-gbanned in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                                        ungbanned_chats),
+                 "{} has been un-gbanned.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account")),
 
                  html=True)
 
-    message.reply_text("Person has been un-gbanned in <code>{}</code> chats.".format(ungbanned_chats), parse_mode=ParseMode.HTML)
+    message.reply_text("Person has been un-gbanned.")
 
 
 def gbanlist(update: Update, context: CallbackContext):
