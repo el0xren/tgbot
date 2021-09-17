@@ -15,6 +15,7 @@ from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
 from tg_bot.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets
 from tg_bot.modules.log_channel import loggable
+from tg_bot.modules.sql.global_bans_sql import is_user_gbanned
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
 
@@ -85,6 +86,10 @@ def new_member(update: Update, context: CallbackContext):
         sent = None
         new_members = update.effective_message.new_chat_members
         for new_mem in new_members:
+
+            if is_user_gbanned(new_mem.id):
+                return
+
             # Give the owner a special welcome
             if new_mem.id == OWNER_ID:
                 update.effective_message.reply_text("Master is in the houseeee, let's get this party started!")
@@ -148,6 +153,10 @@ def left_member(update: Update, context: CallbackContext):
     if should_goodbye:
         left_mem = update.effective_message.left_chat_member
         if left_mem:
+
+            if is_user_gbanned(left_mem.id):
+                return
+
             # Ignore bot being kicked
             if left_mem.id == bot.id:
                 return
