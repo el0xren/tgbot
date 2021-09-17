@@ -323,18 +323,15 @@ def __stats__():
 
 def __user_info__(user_id):
     is_gmuted = sql.is_user_gmuted(user_id)
-
-    if int(user_id) in SUDO_USERS or int(user_id) in SUPPORT_USERS:
-        text = "Globally muted: <b>Immortal</b>"
-    else:
-        text = "Globally muted: <b>{}</b>"
+    
     if is_gmuted:
-        text = text.format("Yes")
+        text = "Globally muted: <b>Yes</b>"
         user = sql.get_gmuted_user(user_id)
         if user.reason:
             text += "\nReason: {}".format(html.escape(user.reason))
     else:
-        text = text.format("No")
+        text = ""
+
     return text
 
 
