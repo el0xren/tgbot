@@ -49,6 +49,9 @@ def ban(update: Update, context: CallbackContext):
         message.reply_text("I'm not gonna BAN myself, are you crazy?")
         return ""
 
+    if message.text.startswith("/d") and message.reply_to_message:
+        message.reply_to_message.delete()
+
     log = "<b>{}:</b>" \
           "\n#BANNED" \
           "\n<b>Admin:</b> {}" \
@@ -362,6 +365,7 @@ __help__ = """
 
 *Admin only:*
  - /sban <userhandle>: silently bans a user. (via handle, or reply)
+ - /dban <userhandle>: bans a user and deletes the message which is replied to.
  - /ban <userhandle>: bans a user. (via handle, or reply)
  - /tban <userhandle> x(m/h/d): bans a user for x time. (via handle, or reply). m = minutes, h = hours, d = days.
  - /unban <userhandle>: unbans a user. (via handle, or reply)
@@ -370,7 +374,7 @@ __help__ = """
 
 __mod_name__ = "Bans"
 
-BAN_HANDLER = CommandHandler("ban", ban, filters=Filters.chat_type.groups, run_async=True)
+BAN_HANDLER = CommandHandler(["ban", "dban"], ban, filters=Filters.chat_type.groups, run_async=True)
 TEMPBAN_HANDLER = CommandHandler(["tban", "tempban"], temp_ban, filters=Filters.chat_type.groups, run_async=True)
 KICK_HANDLER = CommandHandler("kick", kick, filters=Filters.chat_type.groups, run_async=True)
 UNBAN_HANDLER = CommandHandler("unban", unban, filters=Filters.chat_type.groups, run_async=True)
