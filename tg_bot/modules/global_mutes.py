@@ -139,7 +139,6 @@ def gmute(update: Update, context: CallbackContext):
     sql.gmute_user(user_id, user_chat.username or user_chat.first_name, reason)
 
     chats = get_all_chats()
-    gmuted_chats = 0
     for chat in chats:
         chat_id = chat.chat_id
 
@@ -149,7 +148,6 @@ def gmute(update: Update, context: CallbackContext):
 
         try:
             bot.restrict_chat_member(chat_id, user_id, permissions=ChatPermissions(can_send_messages=False))
-            gmuted_chats += 1
         except BadRequest as excp:
             if excp.message in GKICK_ERRORS:
                 pass
@@ -162,12 +160,11 @@ def gmute(update: Update, context: CallbackContext):
             pass
 
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                 "{} has been gmuted in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                                    gmuted_chats),
+                 "{} has been gmuted.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account")),
 
                  html=True)
 
-    message.reply_text("Done! Gmuted in <code>{}</code> chats.".format(gmuted_chats), parse_mode=ParseMode.HTML)
+    message.reply_text("Done! Gmuted.")
     try:
         bot.send_message(user_id, f"You have been globally muted from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your mute here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:
@@ -209,7 +206,6 @@ def ungmute(update: Update, context: CallbackContext):
                  html=True)
 
     chats = get_all_chats()
-    ungmuted_chats = 0
     for chat in chats:
         chat_id = chat.chat_id
 
@@ -226,7 +222,6 @@ def ungmute(update: Update, context: CallbackContext):
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
                                      can_add_web_page_previews=True))
-                ungmuted_chats += 1
 
         except BadRequest as excp:
             if excp.message in UNGKICK_ERRORS:
@@ -241,12 +236,11 @@ def ungmute(update: Update, context: CallbackContext):
     sql.ungmute_user(user_id)
 
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                 "{} has been un-gmuted in <code>{}</code> chats.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                                       ungmuted_chats),
+                 "{} has been un-gmuted.".format(mention_html(user_chat.id, user_chat.first_name or "Deleted Account")),
 
                  html=True)
 
-    message.reply_text("Person has been un-gmuted in <code>{}</code> chats.".format(ungmuted_chats), parse_mode=ParseMode.HTML)
+    message.reply_text("Person has been un-gmuted.")
 
 
 def gmutelist(update: Update, context: CallbackContext):
