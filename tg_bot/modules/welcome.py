@@ -80,7 +80,7 @@ def send(update, message, keyboard, backup_message):
 def new_member(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
-
+    reply = update.message.message_id
     should_welc, cust_welcome, welc_type = sql.get_welc_pref(chat.id)
     if should_welc:
         sent = None
@@ -95,8 +95,9 @@ def new_member(update: Update, context: CallbackContext):
                 update.effective_message.reply_text("Master is in the houseeee, let's get this party started!")
                 continue
 
-            # Don't welcome yourself
+            # Welcome yourself
             elif new_mem.id == bot.id:
+                update.effective_message.reply_text("Hewwo! Thanks for adding me >.<", reply_to_message_id=reply)
                 continue
 
             else:
