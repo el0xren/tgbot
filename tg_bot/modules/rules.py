@@ -10,6 +10,7 @@ import tg_bot.modules.sql.rules_sql as sql
 from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.string_handling import markdown_parser
+from tg_bot.modules.disable import DisableAbleCommandHandler
 
 
 def get_rules(update: Update, context: CallbackContext):
@@ -102,7 +103,7 @@ __help__ = """
 
 __mod_name__ = "Rules"
 
-GET_RULES_HANDLER = CommandHandler("rules", get_rules, filters=Filters.chat_type.groups, run_async=True)
+GET_RULES_HANDLER = DisableAbleCommandHandler("rules", get_rules, filters=Filters.chat_type.groups, run_async=True)
 SET_RULES_HANDLER = CommandHandler("setrules", set_rules, filters=Filters.chat_type.groups, run_async=True)
 RESET_RULES_HANDLER = CommandHandler("clearrules", clear_rules, filters=Filters.chat_type.groups, run_async=True)
 
