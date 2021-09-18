@@ -392,6 +392,20 @@ def gdpr(update: Update, context: CallbackContext):
                                         parse_mode=ParseMode.MARKDOWN)
 
 
+def leave(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+    if args:
+        chat_id = str(args[0])
+        del args[0]
+        try:
+            bot.leave_chat(int(chat_id))
+        except telegram.TelegramError:
+            update.effective_message.reply_text("Couldn't leave group.")
+    else:
+        update.effective_message.reply_text("Send a valid chat id.")
+
+
 MARKDOWN_HELP = """
 Markdown is a very powerful formatting tool supported by telegram. {} has some enhancements, to make sure that \
 saved messages are correctly parsed, and to allow you to create buttons.
@@ -460,6 +474,8 @@ MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.
 STATS_HANDLER = CommandHandler("stats", stats, filters=CustomFilters.sudo_filter, run_async=True)
 GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.private, run_async=True)
 
+LEAVE_HANDLER = CommandHandler("leave", leave, filters=Filters.user(OWNER_ID), run_async=True)
+
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
 # dispatcher.add_handler(TIME_HANDLER)
@@ -471,3 +487,4 @@ dispatcher.add_handler(RECHO_HANDLER)
 dispatcher.add_handler(MD_HELP_HANDLER)
 dispatcher.add_handler(STATS_HANDLER)
 dispatcher.add_handler(GDPR_HANDLER)
+dispatcher.add_handler(LEAVE_HANDLER)
