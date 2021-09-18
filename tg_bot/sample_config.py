@@ -40,7 +40,7 @@ class Config(object):
     BAN_STICKER = 'CAADAgADOwADPPEcAXkko5EB3YGYAg'  # banhammer marie sticker
     ALLOW_EXCL = False  # Allow ! commands as well as /
     SUPPORT_CHAT = None # Chat username without @
-    INFOPIC = True
+    INFOPIC = False
     START_STICKER = 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE'
 
 
