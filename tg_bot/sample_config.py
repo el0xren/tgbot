@@ -28,9 +28,9 @@ class Config(object):
     URL = None
 
     # OPTIONAL
-    SUDO_USERS = []  # List of id's (not usernames) for users which have sudo access to the bot.
-    SUPPORT_USERS = []  # List of id's (not usernames) for users which are allowed to gban, but can also be banned.
-    WHITELIST_USERS = []  # List of id's (not usernames) for users which WONT be banned/kicked by the bot.
+    SUDO_USERS = get_user_list("elevated_users.json", "sudos")  # List of id's (not usernames) for users which have sudo access to the bot.
+    SUPPORT_USERS = get_user_list("elevated_users.json", "supports")  # List of id's (not usernames) for users which are allowed to gban, but can also be banned.
+    WHITELIST_USERS = get_user_list("elevated_users.json", "whitelists")  # List of id's (not usernames) for users which WONT be banned/kicked by the bot.
     CERT_PATH = None
     PORT = 5000
     DEL_CMDS = False  # Whether or not you should delete "blue text must click" commands
