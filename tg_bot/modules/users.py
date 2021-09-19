@@ -3,7 +3,7 @@ from time import sleep
 from typing import Optional
 
 from telegram import TelegramError, Chat, Message
-from telegram import Update, Bot
+from telegram import Update, Bot, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
@@ -103,7 +103,7 @@ def __user_info__(user_id):
     if user_id == dispatcher.bot.id:
         return """I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."""
     num_chats = sql.get_user_num_chats(user_id)
-    return """I've seen them in <code>{}</code> chats in total.""".format(num_chats)
+    return """<b>Common Groups:</b> <code>{}</code>""".format((num_chats), parse_mode=ParseMode.HTML)
 
 
 def __stats__():

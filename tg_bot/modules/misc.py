@@ -10,10 +10,11 @@ from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
+from telegram.error import BadRequest
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
 from tg_bot.__main__ import GDPR
-from tg_bot.__main__ import STATS, USER_INFO
+from tg_bot.__main__ import STATS, USER_INFO, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
@@ -240,41 +241,50 @@ def info(update: Update, context: CallbackContext):
     else:
         return
 
-    text = "╒═══「 <b>User Info</b> 」" \
-           "\n│ • First Name: {}".format(mention_html(user.id, user.first_name))
+    text = "<b>General:</b>" \
+           "\nㅤID: <code>{}</code>" \
+           "\nㅤFirst Name: {}".format(user.id, mention_html(user.id, user.first_name))
 
-    if chat.type != "private" and user_id != bot.id:
-        _stext = "\n│ • Presence: <code>{}</code>"
-
-    if chat.type == "private":
-        text += "\n│ • Presence: <code>Detected</code>"
-    else:
-        afk_st = is_afk(user.id)
-        if afk_st:
-            text += _stext.format("AFK")
-        else:
-            status = status = bot.get_chat_member(chat.id, user.id).status
-            if status:
-                if status == "left":
-                    text += _stext.format("Not here")
-                if status == "kicked":
-                    text += _stext.format("Banned")
-                elif status == "member":
-                    text += _stext.format("Detected")
-                elif status in {"administrator", "creator"}:
-                    text += _stext.format("Admin")
+    if user.id == OWNER_ID:
+        text += "\nㅤUser level: <b>Owner</b>"
+    elif user.id in SUDO_USERS:
+        text += "\nㅤUser level: <b>Sudo</b>"
+    elif user.id in SUPPORT_USERS:
+        text += "\nㅤUser level: <b>Support</b>"
+    elif user.id in WHITELIST_USERS:
+        text += "\nㅤUser level: <b>Whitelist</b>"
 
     if user.username:
-        text += "\n│ • Username: @{}".format(html.escape(user.username))
+        text += "\nㅤUsername: @{}".format(html.escape(user.username))
     else:
-        text += "\n│ • Lastname: {}".format(html.escape(user.last_name or ""))
+        text += "\nㅤLastname: {}".format(html.escape(user.last_name or ""))
 
-    text += "\n╘══「 <b>ID:</b> <code>{}</code> 」".format(user.id)
+    if chat.type != "private":
+        text += "\n<b>Admin Status:</b>"
+
+    try:
+        user_member = chat.get_member(user.id)
+
+        if user_member.status == "left":
+                text += f"\nㅤPresence: <b>Not here</b>"
+        if user_member.status == "kicked":
+                text += f"\nㅤPresence: <b>Banned</b>"
+        elif user_member.status == "member":
+                text += f"\nㅤPresence: <b>Detected</b>"
+        elif user_member.status == "administrator" or "creator":
+            text += f"\nㅤPresence: <b>Admin</b>"
+            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
+            result = result.json()["result"]
+            if "custom_title" in result.keys():
+                custom_title = result["custom_title"]
+                text += f"\nㅤTitle: <code>{custom_title}</code>"
+    except BadRequest:
+        pass
 
     for mod in USER_INFO:
         mod_info = mod.__user_info__(user.id).strip()
         if mod_info:
-            text += "\n\n" + mod_info
+            text += "\n" + mod_info
 
     if INFOPIC:
         try:
