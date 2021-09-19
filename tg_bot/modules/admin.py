@@ -623,8 +623,8 @@ def adminlist(update: Update, context: CallbackContext):
         if user.first_name:
             name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
         if status == "creator":
-            text += "\n╒═══「 <b>Creator</b> 」\n"
-            text += "│ • {} \n╞══「 <b>Admins</b> 」".format(name)
+            text += "\n<b>Creator:</b>\n"
+            text += "ㅤ• {} \n<b>Admins:</b>".format(name)
     for admin in administrators:
         user = admin.user
         status = admin.status
@@ -633,8 +633,8 @@ def adminlist(update: Update, context: CallbackContext):
         if user.first_name:
             name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
         if status == "administrator":
-            text += "\n│ • {}".format(name)
-            admins = "\n╘══「 <b>Total Admins:</b> <code>{}</code> 」".format(len(admins_count))
+            text += "\nㅤ• {}".format(name)
+            admins = "\n<b>Total Admins:</b> <code>{}</code>".format(len(admins_count))
 
     update.effective_message.reply_text(text + admins, parse_mode=ParseMode.HTML)
 
