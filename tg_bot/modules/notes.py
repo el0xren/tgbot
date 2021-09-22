@@ -183,11 +183,11 @@ def list_notes(update: Update, context: CallbackContext):
     chat = update.effective_chat
     note_list = sql.get_all_chat_notes(chat_id)
 
-    msg = "Notes in *{}:*\n".format(chat.title)
+    msg = "╒═══「 *Notes in {}* 」\n".format(chat.title)
     note_count = 0
     for note in note_list:
         note_count += 1
-        note_name = ("ㅤ• `#{}`\n".format(note.name))
+        note_name = ("│ • `#{}`\n".format(note.name))
         if len(msg) + len(note_name) > MAX_MESSAGE_LENGTH:
             update.effective_message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
             msg = ""
@@ -197,7 +197,7 @@ def list_notes(update: Update, context: CallbackContext):
         update.effective_message.reply_text("No notes in this chat!")
 
     elif note_count != 0:
-        msg += "*Total Notes:* `{}`\n\n".format(note_count)
+        msg += "╘══「 *Total Notes:* `{}` 」\n\n".format(note_count)
         msg += "You can retrieve these notes by using `/get notename`, or `#notename`."
         update.effective_message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
