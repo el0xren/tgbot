@@ -13,7 +13,7 @@ from tg_bot.modules.helper_funcs.chat_status import sudo_plus, support_plus, whi
 def whitelistlist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    msg = "ㅤ<b>Whitelist users:</b>\n"
+    msg = "<b>Whitelist users:</b>\n"
     for each_user in WHITELIST_USERS:
         user_id = int(each_user)
         try:
@@ -28,7 +28,7 @@ def whitelistlist(update: Update, context: CallbackContext):
 def supportlist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    msg = "ㅤ<b>Support users:</b>\n"
+    msg = "<b>Support users:</b>\n"
     for each_user in SUPPORT_USERS:
         user_id = int(each_user)
         try:
@@ -44,7 +44,7 @@ def sudolist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
     true_sudo = list(set(SUDO_USERS))
-    msg = "ㅤ<b>Sudo users:</b>\n"
+    msg = "<b>Sudo users:</b>\n"
     for each_user in true_sudo:
         user_id = int(each_user)
         try:
