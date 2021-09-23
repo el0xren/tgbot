@@ -42,6 +42,7 @@ class Config(object):
     SUPPORT_CHAT = None # Chat username without @
     INFOPIC = False
     START_STICKER = 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE'
+    LOGS = None
 
 
 class Production(Config):

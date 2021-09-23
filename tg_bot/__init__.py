@@ -60,6 +60,7 @@ if ENV:
     SUPPORT_CHAT = os.environ.get('SUPPORT_CHAT', None)
     INFOPIC = bool(os.environ.get("INFOPIC", False))
     START_STICKER = os.environ.get('START_STICKER', 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE')
+    LOGS = os.environ.get('LOGS', None)
 
 else:
     from tg_bot.config import Development as Config
@@ -104,6 +105,7 @@ else:
     SUPPORT_CHAT = Config.SUPPORT_CHAT
     INFOPIC = Config.INFOPIC
     START_STICKER = Config.START_STICKER
+    LOGS = Config.LOGS
 
 
 SUDO_USERS.add(OWNER_ID)
