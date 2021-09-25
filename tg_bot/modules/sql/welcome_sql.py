@@ -1,4 +1,5 @@
 import threading
+from typing import Union
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, BigInteger
 
@@ -62,13 +63,27 @@ class GoodbyeButtons(BASE):
         self.same_line = same_line
 
 
+class CleanServiceSetting(BASE):
+    __tablename__ = "clean_service"
+    chat_id = Column(String(14), primary_key=True)
+    clean_service = Column(Boolean, default=True)
+
+    def __init__(self, chat_id):
+        self.chat_id = str(chat_id)
+
+    def __repr__(self):
+        return "<Chat used clean service ({})>".format(self.chat_id)
+
+
 Welcome.__table__.create(checkfirst=True)
 WelcomeButtons.__table__.create(checkfirst=True)
 GoodbyeButtons.__table__.create(checkfirst=True)
+CleanServiceSetting.__table__.create(checkfirst=True)
 
 INSERTION_LOCK = threading.RLock()
 WELC_BTN_LOCK = threading.RLock()
 LEAVE_BTN_LOCK = threading.RLock()
+CS_LOCK = threading.RLock()
 
 
 def get_welc_pref(chat_id):
@@ -251,4 +266,37 @@ def migrate_chat(old_chat_id, new_chat_id):
             for btn in chat_buttons:
                 btn.chat_id = str(new_chat_id)
 
+        SESSION.commit()
+
+
+def clean_service(chat_id: Union[str, int]) -> bool:
+    try:
+        chat_setting = SESSION.query(CleanServiceSetting).get(str(chat_id))
+        if chat_setting:
+            return chat_setting.clean_service
+        return False
+    finally:
+        SESSION.close()
+
+
+def set_clean_service(chat_id: Union[int, str], setting: bool):
+    with CS_LOCK:
+        chat_setting = SESSION.query(CleanServiceSetting).get(str(chat_id))
+        if not chat_setting:
+            chat_setting = CleanServiceSetting(chat_id)
+
+        chat_setting.clean_service = setting
+        SESSION.add(chat_setting)
+        SESSION.commit()
+
+
+def set_clean_welcome(chat_id, clean_welcome):
+    with INSERTION_LOCK:
+        curr = SESSION.query(Welcome).get(str(chat_id))
+        if not curr:
+            curr = Welcome(str(chat_id))
+
+        curr.clean_welcome = int(clean_welcome)
+
+        SESSION.add(curr)
         SESSION.commit()

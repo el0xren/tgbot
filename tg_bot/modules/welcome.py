@@ -33,8 +33,21 @@ ENUM_FUNC_MAP = {
 
 # do not async
 def send(update, message, keyboard, backup_message):
+    chat = update.effective_chat
+    cleanserv = sql.clean_service(chat.id)
+    reply = update.message.message_id
+    # Clean service welcome
+    if cleanserv:
+        try:
+            dispatcher.bot.delete_message(chat.id, update.message.message_id)
+        except BadRequest:
+            pass
+        reply = False
     try:
-        msg = update.effective_message.reply_text(message, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
+        msg = update.effective_message.reply_text(message, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard, reply_to_message_id=reply)
+    except BadRequest as excp:
+        if excp.message == "Reply message not found":
+            msg = update.effective_message.reply_text(message, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard, quote=False)
     except IndexError:
         msg = update.effective_message.reply_text(markdown_parser(backup_message +
                                                                   "\nNote: the current message was "
@@ -84,6 +97,15 @@ def new_member(update: Update, context: CallbackContext):
     should_welc, cust_welcome, welc_type = sql.get_welc_pref(chat.id)
     if should_welc:
         sent = None
+        reply = update.message.message_id
+        cleanserv = sql.clean_service(chat.id)
+        # Clean service welcome
+        if cleanserv:
+            try:
+                dispatcher.bot.delete_message(chat.id, update.message.message_id)
+            except BadRequest:
+                pass
+            reply = False
         new_members = update.effective_message.new_chat_members
         for new_mem in new_members:
 
@@ -152,6 +174,15 @@ def left_member(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     should_goodbye, cust_goodbye, goodbye_type = sql.get_gdbye_pref(chat.id)
     if should_goodbye:
+        reply = update.message.message_id
+        cleanserv = sql.clean_service(chat.id)
+        # Clean service welcome
+        if cleanserv:
+            try:
+                dispatcher.bot.delete_message(chat.id, update.message.message_id)
+            except BadRequest:
+                pass
+            reply = False
         left_mem = update.effective_message.left_chat_member
         if left_mem:
 
@@ -410,6 +441,31 @@ def clean_welcome(update: Update, context: CallbackContext) -> str:
         return ""
 
 
+@user_admin
+def cleanservice(update: Update, context: CallbackContext) -> str:
+    args = context.args
+    chat = update.effective_chat  # type: Optional[Chat]
+    if chat.type != chat.PRIVATE:
+        if len(args) >= 1:
+            var = args[0]
+            if var in ("no", "off"):
+                sql.set_clean_service(chat.id, False)
+                update.effective_message.reply_text("Welcome clean service is off")
+            elif var in ("yes", "on"):
+                sql.set_clean_service(chat.id, True)
+                update.effective_message.reply_text("Welcome clean service is on")
+            else:
+                update.effective_message.reply_text("Invalid option", parse_mode=ParseMode.HTML)
+        else:
+            update.effective_message.reply_text("I understand 'on/yes' or 'off/no' only!")
+    else:
+        curr = sql.clean_service(chat.id)
+        if curr:
+            update.effective_message.reply_text("Welcome clean service is: <code>on</code>", parse_mode=ParseMode.HTML)
+        else:
+            update.effective_message.reply_text("Welcome clean service is: <code>off</code>", parse_mode=ParseMode.HTML)
+
+
 WELC_HELP_TXT = "Your group's welcome/goodbye messages can be personalised in multiple ways. If you want the messages" \
                 " to be individually generated, like the default welcome message is, you can use *these* variables:\n" \
                 " - `{{first}}`: this represents the user's *first* name\n" \
@@ -477,7 +533,7 @@ __help__ = """
  - /resetwelcome: reset to the default welcome message.
  - /resetgoodbye: reset to the default goodbye message.
  - /cleanwelcome <on/off>: On new member, try to delete the previous welcome message to avoid spamming the chat.
-
+ - /cleanservice <on/off: deletes telegrams welcome/left service messages. 
  - /welcomehelp: view more formatting information for custom welcome/goodbye messages.
 """.format(WELC_HELP_TXT)
 
@@ -492,6 +548,7 @@ SET_GOODBYE = CommandHandler("setgoodbye", set_goodbye, filters=Filters.chat_typ
 RESET_WELCOME = CommandHandler("resetwelcome", reset_welcome, filters=Filters.chat_type.groups, run_async=True)
 RESET_GOODBYE = CommandHandler("resetgoodbye", reset_goodbye, filters=Filters.chat_type.groups, run_async=True)
 CLEAN_WELCOME = CommandHandler("cleanwelcome", clean_welcome, run_async=True, filters=Filters.chat_type.groups)
+CLEAN_SERVICE_HANDLER = CommandHandler("cleanservice", cleanservice, filters=Filters.chat_type.groups, run_async=True)
 WELCOME_HELP = CommandHandler("welcomehelp", welcome_help, run_async=True)
 
 dispatcher.add_handler(NEW_MEM_HANDLER)
@@ -503,4 +560,5 @@ dispatcher.add_handler(SET_GOODBYE)
 dispatcher.add_handler(RESET_WELCOME)
 dispatcher.add_handler(RESET_GOODBYE)
 dispatcher.add_handler(CLEAN_WELCOME)
+dispatcher.add_handler(CLEAN_SERVICE_HANDLER)
 dispatcher.add_handler(WELCOME_HELP)
