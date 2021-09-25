@@ -11,7 +11,7 @@ if is_module_loaded(FILENAME):
     from telegram.ext import CommandHandler, run_async, Filters
     from telegram.utils.helpers import escape_markdown
 
-    from tg_bot import dispatcher, CallbackContext, LOGGER
+    from tg_bot import dispatcher, CallbackContext, LOGGER, LOGS
     from tg_bot.modules.helper_funcs.chat_status import user_admin
     from tg_bot.modules.sql import log_channel_sql as sql
 
@@ -40,9 +40,34 @@ if is_module_loaded(FILENAME):
         return log_action
 
 
-    def send_log(bot: Bot, log_chat_id: str, orig_chat_id: str, result: str):
+    def gloggable(func):
+        @wraps(func)
+        def log_action(update: Update, context: CallbackContext, *args, **kwargs):
+            result = func(update, context, *args, **kwargs)
+            chat = update.effective_chat  # type: Optional[Chat]
+            message = update.effective_message  # type: Optional[Message]
+            if result:
+                if chat.type == chat.SUPERGROUP and chat.username:
+                    result += "\n<b>Link:</b> " \
+                              "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username,
+                                                                                           message.message_id)
+                log_chat = str(LOGS)
+                if log_chat:
+                    send_log(context, log_chat, chat.id, result)
+            elif result == "":
+                pass
+            else:
+                LOGGER.warning("%s was set as loggable to gbanlogs, but had no return statement.", func)
+
+            return result
+
+        return log_action
+
+
+    def send_log(context: CallbackContext, log_chat_id: str, orig_chat_id: str, result: str):
+        bot = context.bot
         try:
-            bot.send_message(log_chat_id, result, parse_mode=ParseMode.HTML)
+            bot.send_message(log_chat_id, result, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
         except BadRequest as excp:
             if excp.message == "Chat not found":
                 bot.send_message(orig_chat_id, "This log channel has been deleted - unsetting.")

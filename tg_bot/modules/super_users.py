@@ -1,5 +1,6 @@
 import html
 import json
+import os
 
 from telegram import Message, Update, Bot, User, Chat, ParseMode
 from telegram.error import BadRequest, TelegramError
@@ -8,9 +9,11 @@ from telegram.utils.helpers import mention_html
 
 from tg_bot import dispatcher, CallbackContext, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, OWNER_ID
 from tg_bot.modules.helper_funcs.chat_status import sudo_plus, support_plus, whitelist_plus
+from tg_bot.modules.log_channel import gloggable
+from tg_bot.modules.helper_funcs.extraction import extract_user
 
 
-@loggable
+@gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -44,7 +47,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
-@loggable
+@gloggable
 def removesudo(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -71,7 +74,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@loggable
+@gloggable
 def addsupport(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -105,7 +108,7 @@ def addsupport(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
-@loggable
+@gloggable
 def removesupport(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -132,7 +135,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@loggable
+@gloggable
 def addwhitelist(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -166,7 +169,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
-@loggable
+@gloggable
 def removewhitelist(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
