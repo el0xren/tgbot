@@ -13,7 +13,7 @@ from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
-from tg_bot.modules.sql.users_sql import get_all_chats
+from tg_bot.modules.sql.users_sql import get_user_com_chats
 
 GBAN_ENFORCE_GROUP = 6
 
@@ -147,9 +147,9 @@ def gban(update: Update, context: CallbackContext):
 
     sql.gban_user(user_id, user_chat.username or user_chat.first_name, reason)
 
-    chats = get_all_chats()
+    chats = get_user_com_chats(user_id)
     for chat in chats:
-        chat_id = chat.chat_id
+        chat_id = int(chat)
 
         # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
@@ -215,9 +215,9 @@ def ungban(update: Update, context: CallbackContext):
         send_to_list(bot, SUDO_USERS + SUPPORT_USERS, log,
           html=True)
 
-    chats = get_all_chats()
+    chats = get_user_com_chats(user_id)
     for chat in chats:
-        chat_id = chat.chat_id
+        chat_id = int(chat)
 
         # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
