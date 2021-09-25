@@ -240,9 +240,15 @@ def whitelistlist(update: Update, context: CallbackContext):
 
 
 __help__ = """
-- /sudolist lists all users which have sudo access to the bot
-- /supportlist lists all users which are allowed to gban, but can also be banned
-- /whitelistlist lists all users which cannot be banned, muted flood or kicked but can be manually banned by admins
+- /addsudo: adds a user as sudo
+- /addsupport: adds a user as support
+- /addwhitelist: adds a user as whitelist
+- /removesudo: remove a sudo user
+- /removesupport: remove support user
+- /removewhitelist: remove a whitelist user
+- /sudolist: lists all users which have sudo access to the bot
+- /supportlist: lists all users which are allowed to gban, but can also be banned
+- /whitelistlist: lists all users which cannot be banned, muted flood or kicked but can be manually banned by admins
 """
 
 __mod_name__ = "Super Users"
