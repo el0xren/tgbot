@@ -12,7 +12,7 @@ from telegram.utils.helpers import escape_markdown, mention_html
 from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info, ADMIN_CACHE
-from tg_bot.modules.helper_funcs.extraction import extract_user
+from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.log_channel import loggable
 
 
@@ -501,6 +501,7 @@ DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filter
 
 ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"], adminlist, filters=Filters.chat_type.groups, run_async=True)
 
+SET_TITLE_HANDLER = CommandHandler(["title", "settitle"], set_title, run_async=True)
 CHAT_PIC_HANDLER = CommandHandler("setgpic", setchatpic, filters=Filters.chat_type.groups, run_async=True)
 DEL_CHAT_PIC_HANDLER = CommandHandler("delgpic", rmchatpic, filters=Filters.chat_type.groups, run_async=True)
 SETCHAT_TITLE_HANDLER = CommandHandler("setgtitle", setchat_title, filters=Filters.chat_type.groups, run_async=True)
@@ -516,6 +517,7 @@ dispatcher.add_handler(INVITE_HANDLER)
 dispatcher.add_handler(PROMOTE_HANDLER)
 dispatcher.add_handler(DEMOTE_HANDLER)
 dispatcher.add_handler(ADMINLIST_HANDLER)
+dispatcher.add_handler(SET_TITLE_HANDLER)
 dispatcher.add_handler(CHAT_PIC_HANDLER)
 dispatcher.add_handler(DEL_CHAT_PIC_HANDLER)
 dispatcher.add_handler(SETCHAT_TITLE_HANDLER)
