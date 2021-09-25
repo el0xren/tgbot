@@ -282,7 +282,10 @@ def info(update: Update, context: CallbackContext):
         pass
 
     for mod in USER_INFO:
-        mod_info = mod.__user_info__(user.id).strip()
+        try:
+            mod_info = mod.__user_info__(user.id).strip()
+        except TypeError:
+            mod_info = mod.__user_info__(user.id, chat.id).strip()
         if mod_info:
             text += "\n" + mod_info
 
