@@ -194,11 +194,12 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
 
 
 @whitelist_plus
-def whitelistlist(update: Update, context: CallbackContext):
+def sudolist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    msg = "<b>Whitelist users:</b>\n"
-    for each_user in WHITELIST_USERS:
+    true_sudo = list(set(SUDO_USERS))
+    msg = "<b>Sudo users:</b>\n"
+    for each_user in true_sudo:
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
@@ -224,12 +225,11 @@ def supportlist(update: Update, context: CallbackContext):
 
 
 @whitelist_plus
-def sudolist(update: Update, context: CallbackContext):
+def whitelistlist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    true_sudo = list(set(SUDO_USERS))
-    msg = "<b>Sudo users:</b>\n"
-    for each_user in true_sudo:
+    msg = "<b>Whitelist users:</b>\n"
+    for each_user in WHITELIST_USERS:
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
