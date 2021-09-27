@@ -154,7 +154,6 @@ def remove_warns(update: Update, context: CallbackContext) -> str:
         message.reply_text("No user has been designated!")
     return ""
 
-@run_async
 @user_admin
 @can_restrict
 @loggable
