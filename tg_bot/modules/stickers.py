@@ -108,6 +108,11 @@ def kang(update: Update, context: CallbackContext):
         os.remove("kangsticker.png")
     else:
         msg.reply_text("Please reply to a sticker for me to kang it.")
+    try:
+        if os.path.isfile("kangsticker.png"):
+            os.remove("kangsticker.png")
+    except:
+        pass
 
 
 def makepack_internal(update, context, msg, user, png_sticker, emoji):
