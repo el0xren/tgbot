@@ -110,7 +110,7 @@ def kang(update: Update, context: CallbackContext):
         msg.reply_text("Please reply to a sticker for me to kang it.")
 
 
-def makepack_internal(update, context, msg, user, png_sticker=None, emoji):
+def makepack_internal(update, context, msg, user, png_sticker, emoji):
     name = user.first_name
     name = name[:50]
     hash = hashlib.sha1(bytearray(user.id)).hexdigest()
