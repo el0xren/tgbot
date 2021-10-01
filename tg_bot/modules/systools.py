@@ -19,6 +19,14 @@ def shell(update: Update, context: CallbackContext):
         parse_mode="HTML")
 
 
+def logs(update: Update, context: CallbackContext):
+    user = update.effective_user
+    with open("log.txt", "rb") as f:
+        context.bot.send_document(document=f, filename=f.name, chat_id=user.id)
+
+
 SHELL_HANDLER = CommandHandler(["sh", "shell"], shell, filters=Filters.user(OWNER_ID), run_async=True)
+LOG_HANDLER = CommandHandler("logs", logs, filters=Filters.user(OWNER_ID), run_async=True)
 
 dispatcher.add_handler(SHELL_HANDLER)
+dispatcher.add_handler(LOG_HANDLER)

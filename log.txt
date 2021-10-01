@@ -1,0 +1,5 @@
+2021-10-01 19:52:50,861 - tg_bot - INFO - Modules to load: ['admin', 'afk', 'antiflood', 'backups', 'bans', 'blacklist', 'cust_filters', 'disable', 'global_bans', 'global_kicks', 'global_mutes', 'locks', 'log_channel', 'misc', 'msg_deleting', 'muting', 'notes', 'ping', 'reporting', 'rules', 'stickers', 'super_users', 'systools', 'tts', 'userinfo', 'users', 'warns', 'welcome']
+2021-10-01 19:53:21,837 - tg_bot - INFO - Successfully loaded modules: ['admin', 'afk', 'antiflood', 'backups', 'bans', 'blacklist', 'cust_filters', 'disable', 'global_bans', 'global_kicks', 'global_mutes', 'locks', 'log_channel', 'misc', 'msg_deleting', 'muting', 'notes', 'ping', 'reporting', 'rules', 'stickers', 'super_users', 'systools', 'tts', 'userinfo', 'users', 'warns', 'welcome']
+2021-10-01 19:53:22,041 - root - INFO - Bot username: @MissAhegaoBot
+2021-10-01 19:53:22,042 - tg_bot - INFO - Using long polling.
+2021-10-01 19:53:22,043 - apscheduler.scheduler - INFO - Scheduler started
