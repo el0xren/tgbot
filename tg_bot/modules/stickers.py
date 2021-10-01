@@ -60,7 +60,7 @@ def kang(update: Update, context: CallbackContext):
                             parse_mode=ParseMode.MARKDOWN)
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
-                makepack_internal(msg, user, open('kangsticker.png', 'rb'), sticker_emoji, bot)
+                makepack_internal(update, context, msg, user, sticker_emoji, packname, png_sticker=open("kangsticker.png", "rb"))
             elif e.message == "Sticker_png_dimensions":
                 msg.reply_text("Invalid sticker dimensions.")
             elif e.message == "Invalid sticker emojis":
@@ -115,7 +115,8 @@ def kang(update: Update, context: CallbackContext):
         pass
 
 
-def makepack_internal(update, context, msg, user, png_sticker, emoji):
+def makepack_internal(update, context, msg, user, emoji, packname, png_sticker=None):
+    bot = context.bot
     name = user.first_name
     name = name[:50]
     hash = hashlib.sha1(bytearray(user.id)).hexdigest()
