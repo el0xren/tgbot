@@ -62,7 +62,16 @@ def kang(update: Update, context: CallbackContext):
             if e.message == "Stickerset_invalid":
                 makepack_internal(update, context, msg, user, sticker_emoji, packname, png_sticker=open("kangsticker.png", "rb"))
             elif e.message == "Sticker_png_dimensions":
-                msg.reply_text("Invalid sticker dimensions.")
+                    im.save(kangsticker, "PNG")
+                    context.bot.add_sticker_to_set(
+                        user_id=user.id,
+                        name=packname,
+                        png_sticker=open("kangsticker.png", "rb"),
+                        emojis=sticker_emoji,)
+                    msg.reply_text(
+                        f"Sticker successfully added to [pack](t.me/addstickers/{packname})"
+                        + f"\nEmoji is: {sticker_emoji}",
+                        parse_mode=ParseMode.MARKDOWN)
             elif e.message == "Invalid sticker emojis":
                 msg.reply_text("Invalid emoji(s).")
             elif e.message == "Stickers_too_much":
