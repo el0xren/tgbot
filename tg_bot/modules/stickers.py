@@ -75,7 +75,7 @@ def kang(update: Update, context: CallbackContext):
             elif e.message == "Invalid sticker emojis":
                 msg.reply_text("Invalid emoji(s).")
             elif e.message == "Stickers_too_much":
-                msg.reply_text("Max packsize reached. Press F to pay respecc.")
+                msg.reply_text("Max packsize reached. Press F to pay respect.")
             print(e)
     elif args:
         try:
