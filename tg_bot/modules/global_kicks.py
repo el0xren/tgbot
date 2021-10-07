@@ -51,6 +51,10 @@ def gkick(update: Update, context: CallbackContext):
         message.reply_text("You do not seems to be referring to a user")
         return
 
+    if int(user_id) in DEV_USERS:
+        message.reply_text("OOOF! Try again later XoXo >.<")
+        return
+
     if int(user_id) in SUDO_USERS or int(user_id) in SUPPORT_USERS:
         message.reply_text("OHHH! Someone's trying to gkick a sudo/support user! *Grabs popcorn*")
         return
