@@ -272,12 +272,12 @@ __help__ = """
 
 __mod_name__ = "Super Users"
 
-SUDO_HANDLER = CommandHandler("addsudo", addsudo, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
-UNSUDO_HANDLER = CommandHandler("removesudo", removesudo, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
-SUPPORT_HANDLER = CommandHandler("addsupport", addsupport, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
-UNSUPPORT_HANDLER = CommandHandler("removesupport", removesupport, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
-WHITELIST_HANDLER = CommandHandler("addwhitelist", addwhitelist, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
-UNWHITELIST_HANDLER = CommandHandler("removewhitelist", removewhitelist, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
+SUDO_HANDLER = CommandHandler("addsudo", addsudo, filters=Filters.user(OWNER_ID), run_async=True)
+UNSUDO_HANDLER = CommandHandler("removesudo", removesudo, filters=Filters.user(OWNER_ID), run_async=True)
+SUPPORT_HANDLER = CommandHandler("addsupport", addsupport, filters=Filters.user(OWNER_ID), run_async=True)
+UNSUPPORT_HANDLER = CommandHandler("removesupport", removesupport, filters=Filters.user(OWNER_ID), run_async=True)
+WHITELIST_HANDLER = CommandHandler("addwhitelist", addwhitelist, filters=Filters.user(OWNER_ID), run_async=True)
+UNWHITELIST_HANDLER = CommandHandler("removewhitelist", removewhitelist, filters=Filters.user(OWNER_ID), run_async=True)
 
 DEVLIST_HANDLER = CommandHandler(("devlist"), devlist, run_async=True)
 SUDOLIST_HANDLER = CommandHandler(("sudolist"), sudolist, run_async=True)
