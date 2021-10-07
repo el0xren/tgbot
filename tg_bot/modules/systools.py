@@ -1,9 +1,11 @@
 import requests
 import re
+import time
 
+from datetime import datetime
 from subprocess import Popen, PIPE
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
@@ -70,14 +72,24 @@ def get_bot_ip(update: Update, context: CallbackContext):
     update.message.reply_text(res.text)
 
 
+def ping(update: Update, context: CallbackContext):
+    before = datetime.now()
+    message = update.message.reply_text("Pinging..")
+    now =  datetime.now()
+    res = (now-before).microseconds / 1000
+    update.message.bot.edit_message_text(f"<b>PONG!</b>\nTime taken: <code>{res}ms</code>", update.message.chat_id, message.message_id, parse_mode=ParseMode.HTML)
+
+
 SHELL_HANDLER = CommandHandler(["sh", "shell"], shell, filters=Filters.user(OWNER_ID), run_async=True)
 LOG_HANDLER = CommandHandler("logs", logs, filters=Filters.user(OWNER_ID), run_async=True)
 LEAVE_HANDLER = CommandHandler("leave", leave, run_async=True)
 LEAVE_CALLBACK = CallbackQueryHandler(leave_cb, pattern=r"leavechat_cb_", run_async=True)
 IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.user(OWNER_ID), run_async=True)
+PING_HANDLER = CommandHandler("ping", ping, run_async=True)
 
 dispatcher.add_handler(SHELL_HANDLER)
 dispatcher.add_handler(LOG_HANDLER)
 dispatcher.add_handler(LEAVE_HANDLER)
 dispatcher.add_handler(LEAVE_CALLBACK)
 dispatcher.add_handler(IP_HANDLER)
+dispatcher.add_handler(PING_HANDLER)
