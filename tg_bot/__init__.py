@@ -30,9 +30,10 @@ if ENV:
     OWNER_USERNAME = os.environ.get("OWNER_USERNAME", None)
 
     try:
+        DEV_USERS = set(int(x) for x in os.environ.get("DEV_USERS", "").split())
         SUDO_USERS = set(int(x) for x in os.environ.get("SUDO_USERS", "").split())
     except ValueError:
-        raise Exception("Your sudo users list does not contain valid integers.")
+        raise Exception("Your dev or sudo users list does not contain valid integers.")
 
     try:
         SUPPORT_USERS = set(int(x) for x in os.environ.get("SUPPORT_USERS", "").split())
@@ -75,9 +76,10 @@ else:
     OWNER_USERNAME = Config.OWNER_USERNAME
 
     try:
+        DEV_USERS = set(int(x) for x in Config.DEV_USERS or [])
         SUDO_USERS = set(int(x) for x in Config.SUDO_USERS or [])
     except ValueError:
-        raise Exception("Your sudo users list does not contain valid integers.")
+        raise Exception("Your dev or sudo users list does not contain valid integers.")
 
     try:
         SUPPORT_USERS = set(int(x) for x in Config.SUPPORT_USERS or [])
@@ -109,6 +111,7 @@ else:
     LOGS = Config.LOGS
 
 
+DEV_USERS.add(OWNER_ID)
 SUDO_USERS.add(OWNER_ID)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)

@@ -28,6 +28,7 @@ class Config(object):
     URL = None
 
     # OPTIONAL
+    DEV_USERS = get_user_list("elevated_users.json", "devs") # List of id's - (not usernames) for developers who will have almost full control of the bot.
     SUDO_USERS = get_user_list("elevated_users.json", "sudos")  # List of id's (not usernames) for users which have sudo access to the bot.
     SUPPORT_USERS = get_user_list("elevated_users.json", "supports")  # List of id's (not usernames) for users which are allowed to gban, but can also be banned.
     WHITELIST_USERS = get_user_list("elevated_users.json", "whitelists")  # List of id's (not usernames) for users which WONT be banned/kicked by the bot.
