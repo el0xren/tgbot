@@ -200,7 +200,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
 def devlist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    true_dev = list(set(DEV_USERS))
+    true_dev = list(set(DEV_USERS) - {OWNER_ID})
     msg = "<b>Dev users:</b>\n"
     for each_user in true_dev:
         user_id = int(each_user)
@@ -216,7 +216,7 @@ def devlist(update: Update, context: CallbackContext):
 def sudolist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
-    true_sudo = list(set(SUDO_USERS))
+    true_sudo = list(set(SUDO_USERS) - set(DEV_USERS))
     msg = "<b>Sudo users:</b>\n"
     for each_user in true_sudo:
         user_id = int(each_user)
