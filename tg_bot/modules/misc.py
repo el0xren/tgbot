@@ -12,7 +12,7 @@ from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
 from tg_bot.__main__ import GDPR
 from tg_bot.__main__ import STATS, USER_INFO, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
@@ -239,6 +239,8 @@ def info(update: Update, context: CallbackContext):
 
     if user.id == OWNER_ID:
         text += "\nㅤUser level: <b>Owner</b>"
+    elif user.id in DEV_USERS:
+        text += "\nㅤUser level: <b>Developer</b>"
     elif user.id in SUDO_USERS:
         text += "\nㅤUser level: <b>Sudo</b>"
     elif user.id in SUPPORT_USERS:
