@@ -7,7 +7,7 @@ from telegram.error import BadRequest, TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
-from tg_bot import dispatcher, CallbackContext, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, OWNER_ID
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS
 from tg_bot.modules.helper_funcs.chat_status import sudo_plus, support_plus, whitelist_plus
 from tg_bot.modules.log_channel import gloggable
 from tg_bot.modules.helper_funcs.extraction import extract_user
@@ -197,6 +197,22 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
 
 
 @whitelist_plus
+def devlist(update: Update, context: CallbackContext):
+    bot = context.bot
+    message = update.effective_message
+    true_dev = list(set(DEV_USERS))
+    msg = "<b>Dev users:</b>\n"
+    for each_user in true_dev:
+        user_id = int(each_user)
+        try:
+            user = bot.get_chat(user_id)
+            msg += f"• {mention_html(user_id, user.first_name)}\n"
+        except TelegramError:
+            pass
+    message.reply_text(msg, parse_mode=ParseMode.HTML)
+
+
+@whitelist_plus
 def sudolist(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
@@ -263,6 +279,7 @@ UNSUPPORT_HANDLER = CommandHandler("removesupport", removesupport, pass_args=Tru
 WHITELIST_HANDLER = CommandHandler("addwhitelist", addwhitelist, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
 UNWHITELIST_HANDLER = CommandHandler("removewhitelist", removewhitelist, pass_args=True, filters=Filters.user(OWNER_ID), run_async=True)
 
+DEVLIST_HANDLER = CommandHandler(("devlist"), devlist, run_async=True)
 SUDOLIST_HANDLER = CommandHandler(("sudolist"), sudolist, run_async=True)
 SUPPORTLIST_HANDLER = CommandHandler(("supportlist"), supportlist, run_async=True)
 WHITELISTLIST_HANDLER = CommandHandler(("whitelistlist"), whitelistlist, run_async=True)
@@ -274,6 +291,7 @@ dispatcher.add_handler(UNSUPPORT_HANDLER)
 dispatcher.add_handler(WHITELIST_HANDLER)
 dispatcher.add_handler(UNWHITELIST_HANDLER)
 
+dispatcher.add_handler(DEVLIST_HANDLER)
 dispatcher.add_handler(SUDOLIST_HANDLER)
 dispatcher.add_handler(SUPPORTLIST_HANDLER)
 dispatcher.add_handler(WHITELISTLIST_HANDLER)
