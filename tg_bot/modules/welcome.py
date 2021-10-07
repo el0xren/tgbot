@@ -8,7 +8,7 @@ from telegram.ext import MessageHandler, Filters, CommandHandler, run_async
 from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
 
 import tg_bot.modules.sql.welcome_sql as sql
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
@@ -118,6 +118,11 @@ def new_member(update: Update, context: CallbackContext):
                 update.effective_message.reply_text("Master is in the houseeee, let's get this party started!")
                 continue
 
+            # Give the devs a special welcome
+            elif new_mem.id in DEV_USERS:
+                update.effective_message.reply_text("Naisu! One of developers just jumped in >.<")
+                continue
+
             # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text("Hewwo! Thanks for adding me >.<", reply_to_message_id=reply)
@@ -200,6 +205,11 @@ def left_member(update: Update, context: CallbackContext):
             # Give the owner a special goodbye
             if left_mem.id == OWNER_ID:
                 update.effective_message.reply_text("RIP Master")
+                return
+
+            # Give the devs a special goodbye
+            elif left_mem.id in DEV_USERS:
+                update.effective_message.reply_text("See you later developer!")
                 return
 
             # if media goodbye, use appropriate function for it
