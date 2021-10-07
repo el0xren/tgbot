@@ -10,7 +10,7 @@ from tg_bot import dispatcher, CallbackContext
 
 def ping(update: Update, context: CallbackContext):
     before = datetime.now()
-    message = update.message.reply_text("Appraising..")
+    message = update.message.reply_text("Pinging..")
     now =  datetime.now()
     res = (now-before).microseconds / 1000
     update.message.bot.edit_message_text(f"<b>PONG!</b>\nTime taken: <code>{res}ms</code>", update.message.chat_id, message.message_id, parse_mode=ParseMode.HTML)
