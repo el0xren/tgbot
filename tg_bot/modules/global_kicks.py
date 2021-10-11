@@ -53,21 +53,21 @@ def gkick(update: Update, context: CallbackContext):
         return
 
     if user_id == sender_id:
-        message.reply_text("No. You're not going to gmute yourself.")
+        message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) in DEV_USERS:
             message.reply_text("OOOF! Try again later XoXo >.<")
             return
 
     if user_id == sender_id:
-        message.reply_text("No. You're not going to gmute yourself.")
+        message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) in SUDO_USERS or int(user_id) in SUPPORT_USERS:
             message.reply_text("OHHH! Someone's trying to gkick a sudo/support user! *Grabs popcorn*")
             return
 
     if user_id == sender_id:
-        message.reply_text("No. You're not going to gmute yourself.")
+        message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) == OWNER_ID:
             message.reply_text("Wow! Someone's so noob that he want to gkick my owner! *Grabs Potato Chips*")
