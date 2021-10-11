@@ -50,22 +50,32 @@ def gban(update: Update, context: CallbackContext):
     message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
+    sender_id = update.effective_user.id
 
     if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return
 
-    if int(user_id) in DEV_USERS:
-        message.reply_text("OOOF! Try again later XoXo >.<")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gban yourself.")
         return
+    elif int(user_id) in DEV_USERS:
+            message.reply_text("OOOF! Try again later XoXo >.<")
+            return
 
-    if int(user_id) in SUDO_USERS:
-        message.reply_text("I spy, with my little eye... a sudo user war! Why are you guys turning on each other?")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gban yourself.")
         return
+    elif int(user_id) in SUDO_USERS:
+            message.reply_text("I spy, with my little eye... a sudo user war! Why are you guys turning on each other?")
+            return
 
-    if int(user_id) in SUPPORT_USERS:
-        message.reply_text("OOOH someone's trying to gban a support user! *grabs popcorn*")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gban yourself.")
         return
+    elif int(user_id) in SUPPORT_USERS:
+            message.reply_text("OOOH someone's trying to gban a support user! *grabs popcorn*")
+            return
 
     if user_id == bot.id:
         message.reply_text("-_- So funny, lets gban myself why don't I? Nice try.")
