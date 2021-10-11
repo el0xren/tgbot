@@ -59,6 +59,13 @@ def gban(update: Update, context: CallbackContext):
     if user_id == sender_id:
         message.reply_text("No. You're not going to gban yourself.")
         return
+    elif int(user_id) == OWNER_ID:
+            message.reply_text("Wow! Someone's so noob that he want to gban my owner! *Grabs Potato Chips*")
+            return
+
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gban yourself.")
+        return
     elif int(user_id) in DEV_USERS:
             message.reply_text("OOOF! Try again later XoXo >.<")
             return
