@@ -36,6 +36,7 @@ def gkick(update: Update, context: CallbackContext):
     message = update.effective_message
 
     user_id = extract_user(message, args)
+    sender_id = update.effective_user.id
     try:
         user_chat = bot.get_chat(user_id)
     except BadRequest as excp:
@@ -51,17 +52,26 @@ def gkick(update: Update, context: CallbackContext):
         message.reply_text("You do not seems to be referring to a user")
         return
 
-    if int(user_id) in DEV_USERS:
-        message.reply_text("OOOF! Try again later XoXo >.<")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gmute yourself.")
         return
+    elif int(user_id) in DEV_USERS:
+            message.reply_text("OOOF! Try again later XoXo >.<")
+            return
 
-    if int(user_id) in SUDO_USERS or int(user_id) in SUPPORT_USERS:
-        message.reply_text("OHHH! Someone's trying to gkick a sudo/support user! *Grabs popcorn*")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gmute yourself.")
         return
+    elif int(user_id) in SUDO_USERS or int(user_id) in SUPPORT_USERS:
+            message.reply_text("OHHH! Someone's trying to gkick a sudo/support user! *Grabs popcorn*")
+            return
 
-    if int(user_id) == OWNER_ID:
-        message.reply_text("Wow! Someone's so noob that he want to gkick my owner! *Grabs Potato Chips*")
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to gmute yourself.")
         return
+    elif int(user_id) == OWNER_ID:
+            message.reply_text("Wow! Someone's so noob that he want to gkick my owner! *Grabs Potato Chips*")
+            return
 
     if user_id == bot.id:
         message.reply_text("-_- So funny, lets gkick myself why don't I? Nice try.")
