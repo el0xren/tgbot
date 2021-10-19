@@ -157,7 +157,7 @@ def slap(update: Update, context: CallbackContext):
         curr_user = "[{}](tg://user?id={})".format(msg.from_user.first_name, msg.from_user.id)
 
     user_id = extract_user(update.effective_message, args)
-    if user_id:
+    if user_id == bot.id or user_id == 777000 or user_id == 1087968824:
         slapped_user = bot.get_chat(user_id)
         user1 = curr_user
         if slapped_user.username:
@@ -218,7 +218,7 @@ def info(update: Update, context: CallbackContext):
     user_id = extract_user(update.effective_message, args)
     chat = update.effective_chat
 
-    if user_id:
+    if user_id and int(user_id) != 777000 and int(user_id) != 1087968824:
         user = bot.get_chat(user_id)
 
     elif not msg.reply_to_message and not args:

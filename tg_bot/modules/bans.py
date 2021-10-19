@@ -28,7 +28,7 @@ def ban(update: Update, context: CallbackContext):
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -95,7 +95,7 @@ def temp_ban(update: Update, context: CallbackContext):
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -178,7 +178,8 @@ def kick(update: Update, context: CallbackContext):
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     try:
@@ -269,7 +270,8 @@ def sban(update: Update, context: CallbackContext):
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     try:
@@ -323,7 +325,8 @@ def unban(update: Update, context: CallbackContext):
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     try:

@@ -29,7 +29,7 @@ def promote(update: Update, context: CallbackContext) -> str:
     user = update.effective_user  # type: Optional[User]
 
     user_id = extract_user(message, args)
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -87,7 +87,7 @@ def demote(update: Update, context: CallbackContext) -> str:
         return
 
     user_id = extract_user(message, args)
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -149,7 +149,7 @@ def set_title(update: Update, context: CallbackContext):
     except:
         return
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text(
             "You don't seem to be referring to a user or the ID specified is incorrect.."
         )

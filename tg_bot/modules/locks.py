@@ -67,6 +67,8 @@ def restr_members(bot, chat_id, members, messages=False, media=False, other=Fals
     for mem in members:
         if mem.user in DEV_USERS or mem.user in SUDO_USERS:
             pass
+        elif mem.user == 777000 or mem.user == 1087968824:
+            pass
         try:
             bot.restrict_chat_member(chat_id, mem.user,
                                      can_send_messages=messages,
@@ -196,6 +198,10 @@ def del_lockables(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user
+
+    if int(user.id) == 777000 or int(user.id) == 1087968824:
+        return
 
     for lockable, filter in LOCK_TYPES.items():
         if filter(update) and sql.is_locked(chat.id, lockable) and can_delete(chat, bot.id):

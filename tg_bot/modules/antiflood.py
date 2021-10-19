@@ -21,7 +21,7 @@ def check_flood(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
-    if not user:  # ignore channels
+    if int(user.id) == 777000 or int(user.id) == 1087968824 or not user:  # ignore channels
         return ""
 
     # ignore admins
