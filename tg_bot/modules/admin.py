@@ -434,6 +434,7 @@ def invite(update: Update, context: CallbackContext):
         update.effective_message.reply_text("I can only give you invite links for supergroups and channels, sorry!")
 
 
+@user_admin
 def adminlist(update: Update, context: CallbackContext):
     bot = context.bot
     administrators = update.effective_chat.get_administrators()
