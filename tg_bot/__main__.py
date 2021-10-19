@@ -428,7 +428,7 @@ def main():
         dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
         logging.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
-        updater.start_polling(timeout=15, read_latency=4)
+        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
 
     updater.idle()
 
