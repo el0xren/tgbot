@@ -25,8 +25,8 @@ def mute(update: Update, context: CallbackContext) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
-    if not user_id:
-        message.reply_text("You'll need to either give me a username to mute, or reply to someone to be muted.")
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     if user_id == bot.id:
@@ -68,8 +68,8 @@ def unmute(update: Update, context: CallbackContext) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
-    if not user_id:
-        message.reply_text("You'll need to either give me a username to unmute, or reply to someone to be unmuted.")
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     member = chat.get_member(int(user_id))
@@ -117,7 +117,7 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 

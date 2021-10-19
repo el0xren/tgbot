@@ -198,7 +198,7 @@ def ungmute(update: Update, context: CallbackContext):
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
-    if not user_id:
+    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You don't seem to be referring to a user.")
         return
 
