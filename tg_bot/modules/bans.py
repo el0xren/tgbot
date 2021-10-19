@@ -32,6 +32,10 @@ def ban(update: Update, context: CallbackContext):
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to ban yourself.")
+        return
+
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:

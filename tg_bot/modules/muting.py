@@ -29,6 +29,10 @@ def mute(update: Update, context: CallbackContext) -> str:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
+    if user_id == sender_id:
+        message.reply_text("No. You're not going to mute yourself.")
+        return
+
     if user_id == bot.id:
         message.reply_text("I'm not muting myself!")
         return ""
