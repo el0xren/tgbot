@@ -53,8 +53,9 @@ def promote(update: Update, context: CallbackContext) -> str:
                               can_delete_messages=bot_member.can_delete_messages,
                               can_invite_users=bot_member.can_invite_users,
                               can_restrict_members=bot_member.can_restrict_members,
-                              can_pin_messages=bot_member.can_pin_messages)
+                              can_pin_messages=bot_member.can_pin_messages,
                               #can_promote_members=bot_member.can_promote_members)
+                              can_manage_voice_chats=bot_member.can_manage_voice_chats)
         message.reply_text("Successfully promoted!")
         # refresh admin cache
         try:
@@ -69,6 +70,7 @@ def promote(update: Update, context: CallbackContext) -> str:
                                           mention_html(user_member.user.id, user_member.user.first_name))
     except BadRequest:
         return message.reply_text("Could not promote. I am not an admin, promote me first then i can promote others.")
+
 
 @bot_admin
 @can_promote
@@ -113,7 +115,8 @@ def demote(update: Update, context: CallbackContext) -> str:
                               can_invite_users=False,
                               can_restrict_members=False,
                               can_pin_messages=False,
-                              can_promote_members=False)
+                              can_promote_members=False,
+                              can_manage_voice_chats=False)
         message.reply_text("Successfully demoted!")
         # refresh admin cache
         try:
