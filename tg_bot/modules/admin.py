@@ -485,11 +485,12 @@ __help__ = """
  - /invitelink: gets invitelink
  - /promote: promotes the user replied to
  - /demote: demotes the user replied to
- - /setgtitle: Sets new chat title in group
+ - /title & /settitle <title>: sets a custom title for an admin that the bot promoted
  - /setgpic: As a reply to file or photo to set group profile pic
  - /delgpic: Remove group profile pic
+ - /setgtitle <newtitle>: Sets new chat title in group
  - /setsticker: As a reply to some sticker to set it as group sticker set
- - /setdescription: Sets new chat description in group
+ - /setdescription <description>: Sets new chat description in group
 """
 
 __mod_name__ = "Admin"
