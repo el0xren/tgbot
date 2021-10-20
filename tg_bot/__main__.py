@@ -11,13 +11,14 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryH
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, CERT_PATH, PORT, URL, LOGGER, \
+from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL, SUPPORT_CHAT, START_STICKER
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
+from tg_bot.modules.helper_funcs.misc import send_to_list
 
 BOT_IMG = "https://telegra.ph/file/572f1989b04f0eefa53b0.jpg"
 
@@ -426,6 +427,7 @@ def main():
 
     else:
         dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
+        send_to_list(dispatcher.bot, SUDO_USERS + SUPPORT_USERS, "I'm awake now!")
         logging.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
