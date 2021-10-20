@@ -477,9 +477,8 @@ def __chat_settings__(chat_id, user_id):
 
 
 __help__ = """
- - /adminlist & /staff: list of admins in the chat
-
 *Admin only:*
+ - /adminlist & /staff: list of admins in the chat
  - /pin: silently pins the message replied to - add 'loud' or 'notify' to give notifs to users.
  - /unpin: unpins the currently pinned message
  - /unpinall: unpins all currently pinned messages
