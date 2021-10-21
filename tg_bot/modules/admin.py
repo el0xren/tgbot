@@ -9,7 +9,7 @@ from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import escape_markdown, mention_html
 
-from tg_bot import dispatcher, CallbackContext
+from tg_bot import dispatcher, CallbackContext, SUDO_USERS
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info, ADMIN_CACHE
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
@@ -27,6 +27,11 @@ def promote(update: Update, context: CallbackContext) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
+    promoter = chat.get_member(user.id)
+
+    if (not (user_member.can_promote_members or user_member.status == "creator") and not user.id in SUDO_USERS):
+        message.reply_text("You don't have enough permissions!")
+        return ""
 
     user_id = extract_user(message, args)
     if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:

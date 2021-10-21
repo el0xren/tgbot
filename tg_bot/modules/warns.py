@@ -34,10 +34,6 @@ def warn(user: User, chat: Chat, reason: str, message: Message, warner: User = N
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
-    if user.id == sender.id:
-        message.reply_text("No. You're not going to warn yourself.")
-        return ""
-
     if warner:
         warner_tag = mention_html(warner.id, warner.first_name)
     else:
