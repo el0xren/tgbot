@@ -13,9 +13,35 @@ from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
+<<<<<<< HEAD
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
 from tg_bot.__main__ import GDPR
+=======
+from telegram.ext import Filters, CallbackContext
+from telegram.utils.helpers import mention_html, escape_markdown
+from subprocess import Popen, PIPE
+from tg_bot.modules import dev
+
+from tg_bot.modules.debug import ANTISPAM_TOGGLE
+from tg_bot import (
+    MESSAGE_DUMP,
+    MOD_USERS,
+    KigyoINIT,
+    dispatcher,
+    OWNER_ID,
+    SUDO_USERS,
+    SUPPORT_USERS,
+    DEV_USERS,
+    WHITELIST_USERS,
+    INFOPIC,
+    spamcheck,
+    sw,
+    StartTime,
+    SYS_ADMIN,
+    KInit
+)
+>>>>>>> c6e5f9d8... misc: use bot method to get profile pic
 from tg_bot.__main__ import STATS, USER_INFO, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
@@ -302,7 +328,7 @@ def info(update: Update, context: CallbackContext):
                 text += f"\nㅤPresence: <b>Detected</b>"
         elif user_member.status == "administrator" or "creator":
             text += f"\nㅤPresence: <b>Admin</b>"
-            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
+            result = bot.get_chat_member(chat.id, user.id).to_json()
             result = result.json()["result"]
             if "custom_title" in result.keys():
                 custom_title = result["custom_title"]
@@ -376,6 +402,7 @@ def ginfo(update: Update, context: CallbackContext):
         msg.reply_text(text, disable_web_page_preview=True, parse_mode=ParseMode.HTML)
 
 
+<<<<<<< HEAD
 def get_time(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -384,6 +411,26 @@ def get_time(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Its always banhammer time for me!")
         bot.send_sticker(update.effective_chat.id, BAN_STICKER)
         return
+=======
+    try:
+        user_member = chat.get_member(user.id)
+        if user_member.status == "left":
+                text += f"\nㅤ<b>Presence:</b> Not here"
+        if user_member.status == "kicked":
+                text += f"\nㅤ<b>Presence:</b> Banned"
+        elif user_member.status == "member":
+                text += f"\nㅤ<b>Presence:</b> Detected"
+        elif user_member.status == "administrator":
+            result = bot.get_chat_member(chat.id, user.id).to_json()
+            result = result.json()["result"]
+            if "custom_title" in result.keys():
+                custom_title = result["custom_title"]
+                text += f"\nㅤ<b>Title:</b> '<code>{custom_title}</code>'"
+            else:
+                text += f"\nㅤ<b>Presence:</b> Admin"
+    except BadRequest:
+        pass
+>>>>>>> c6e5f9d8... misc: use bot method to get profile pic
 
     res = requests.get(GMAPS_LOC, params=dict(address=location))
 
