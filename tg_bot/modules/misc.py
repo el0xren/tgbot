@@ -366,11 +366,9 @@ def getuser(update: Update, context: CallbackContext):
                 text += f"\n<b>Presence</b>: <code>Detected</code>"
         elif user_member.status == "administrator" or "creator":
             text += f"\n<b>Presence</b>: <code>Admin</code>"
-            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
-            result = result.json()["result"]
-            if "custom_title" in result.keys():
-                custom_title = result["custom_title"]
-                text += f"\n<b>Title</b>: <code>{custom_title}</code>"
+            result = bot.get_chat_member(chat.id, user.id)
+            if result.custom_title:
+                text += f"\n<b>Title</b>: <code>{result.custom_title}</code>"
     except BadRequest:
         pass
 
