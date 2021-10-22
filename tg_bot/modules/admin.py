@@ -29,7 +29,7 @@ def promote(update: Update, context: CallbackContext) -> str:
     user = update.effective_user  # type: Optional[User]
     promoter = chat.get_member(user.id)
 
-    if (not (user_member.can_promote_members or user_member.status == "creator") and not user.id in SUDO_USERS):
+    if (not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS):
         message.reply_text("You don't have enough permissions!")
         return ""
 
