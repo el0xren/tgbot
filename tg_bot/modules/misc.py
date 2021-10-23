@@ -150,6 +150,9 @@ FLASH_STRINGS = (
     "try again later",
     "yumi protection",
     "sdcard corrupted",
+    "verizon locked carrier",
+    "emmc died",
+    "nusantara recovery not supported",
 )
 
 
@@ -404,10 +407,10 @@ def flash(update: Update, context: CallbackContext):
         string = message.reply_to_message.text.lower().replace(" ", " ")
 
     if args:
-        string = " ".join(args).lower()
+        string = " ".join(args).replace(" ", "_").lower()
 
     if not string:
-        message.reply_text("Usage: <code>/flash <text></code>`", parse_mode=ParseMode.HTML)
+        message.reply_text("Usage: `/flash <text>`", parse_mode=ParseMode.MARKDOWN)
         return
 
     if len(string) > 30:
