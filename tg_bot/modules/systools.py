@@ -15,7 +15,7 @@ from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS
 def shell(update: Update, context: CallbackContext):
     command = update.message.text.split(' ', 1)
     if len(command) == 1:
-        message.reply_text('No command to execute was given.')
+        update.message.reply_text('No command to execute was given.')
         return
     command = command[1]
     msg = update.message.reply_text(f"~$ {command}")
