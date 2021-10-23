@@ -379,6 +379,27 @@ def recho(update: Update, context: CallbackContext):
             message.reply_text("Couldn't send the message. Perhaps I'm not part of that group?")
 
 
+def flash(update: Update, context: CallbackContext):
+    args = context.args
+    message = update.effective_message
+    string = ""
+
+    if message.reply_to_message:
+        string = message.reply_to_message.text.lower().replace(" ", " ")
+
+    if args:
+        string = " ".join(args).lower()
+
+    if not string:
+        message.reply_text("Usage:\n`/flash <text>`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    if message.reply_to_message:
+        message.reply_to_message.reply_text(f"Flashing `{string}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+    else:
+        message.reply_text(f"Flashing `{string}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+
+
 def gdpr(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -455,6 +476,7 @@ TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, run_async=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
+FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
 RECHO_HANDLER = CommandHandler("recho", recho, filters=Filters.user(OWNER_ID), run_async=True)
@@ -468,6 +490,7 @@ dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
+dispatcher.add_handler(FLASH_HANDLER)
 dispatcher.add_handler(ECHO_HANDLER)
 dispatcher.add_handler(RECHO_HANDLER)
 dispatcher.add_handler(MD_HELP_HANDLER)
