@@ -426,8 +426,10 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
-        dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
-        send_to_list(dispatcher.bot, SUDO_USERS + SUPPORT_USERS, "I'm awake now!")
+        if SUPPORT_CHAT:
+            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
+        else:
+            send_to_list(dispatcher.bot, SUDO_USERS + SUPPORT_USERS, "I'm awake now!")
         logging.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
