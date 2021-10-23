@@ -394,10 +394,13 @@ def flash(update: Update, context: CallbackContext):
         message.reply_text("Usage:\n`/flash <text>`", parse_mode=ParseMode.MARKDOWN)
         return
 
+    if len(string) > 15:
+        message.reply_text("Your message exceeded limit.\nShortening it to 15 characters.")
+
     if message.reply_to_message:
-        message.reply_to_message.reply_text(f"Flashing `{string}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+        message.reply_to_message.reply_text(f"Flashing `{string[:10]}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
     else:
-        message.reply_text(f"Flashing `{string}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+        message.reply_text(f"Flashing `{string[:15]}` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
 
 
 def gdpr(update: Update, context: CallbackContext):
