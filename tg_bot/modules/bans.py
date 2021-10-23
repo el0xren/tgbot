@@ -35,7 +35,7 @@ def ban(update: Update, context: CallbackContext):
 
     if user_id == sender_id:
         message.reply_text("No. You're not going to ban yourself.")
-        return
+        return ""
 
     try:
         member = chat.get_member(user_id)
