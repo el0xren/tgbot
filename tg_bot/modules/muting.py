@@ -23,6 +23,7 @@ def mute(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    sender_id = update.effective_user.id
 
     user_id = extract_user(message, args)
     if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:

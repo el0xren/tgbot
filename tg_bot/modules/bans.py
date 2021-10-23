@@ -25,6 +25,7 @@ def ban(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    sender_id = update.effective_user.id
 
     user_id, reason = extract_user_and_text(message, args)
 
