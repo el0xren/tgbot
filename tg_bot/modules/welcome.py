@@ -126,7 +126,7 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text("Hewwo! Thanks for adding me >.<", reply_to_message_id=reply)
-                msg = "I have been added to {}\nID: <pre>{}</pre>".format(chat.title, chat.id)
+                msg = "I have been added to {}\nID: <code>{}</code>".format(chat.title, chat.id)
                 send_to_list(bot, SUDO_USERS + SUPPORT_USERS, msg, 
                     html=True)
                 continue
