@@ -12,7 +12,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
 from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
-    ALLOW_EXCL, SUPPORT_CHAT, START_STICKER
+    ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
@@ -432,7 +432,7 @@ def main():
             send_to_list(dispatcher.bot, SUDO_USERS + SUPPORT_USERS, "I'm awake now!")
         logging.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
-        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
+        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=IGNORE_PENDING_REQUESTS)
 
     updater.idle()
 

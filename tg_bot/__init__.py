@@ -45,6 +45,11 @@ if ENV:
     except ValueError:
         raise Exception("Your whitelisted users list does not contain valid integers.")
 
+    try:
+        IGNORE_PENDING_REQUESTS = int(os.environ.get('IGNORE_PENDING_REQUESTS', True))
+    except KeyError:
+        IGNORE_PENDING_REQUESTS = int(os.environ.get('IGNORE_PENDING_REQUESTS', False))
+
     WEBHOOK = bool(os.environ.get('WEBHOOK', False))
     URL = os.environ.get('URL', "")  # Does not contain token
     PORT = int(os.environ.get('PORT', 5000))
@@ -109,6 +114,7 @@ else:
     INFOPIC = Config.INFOPIC
     START_STICKER = Config.START_STICKER
     LOGS = Config.LOGS
+    IGNORE_PENDING_REQUESTS = Config.IGNORE_PENDING_REQUESTS
 
 
 DEV_USERS.add(OWNER_ID)

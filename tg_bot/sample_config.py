@@ -44,6 +44,7 @@ class Config(object):
     INFOPIC = False
     START_STICKER = 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE'
     LOGS = None
+    IGNORE_PENDING_REQUESTS = False
 
 
 class Production(Config):
