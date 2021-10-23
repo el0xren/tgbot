@@ -4,6 +4,8 @@ import random
 import os
 from datetime import datetime
 from typing import Optional, List
+from random import randint
+from time import sleep
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
@@ -135,6 +137,20 @@ HIT = (
 
 GMAPS_LOC = "https://maps.googleapis.com/maps/api/geocode/json"
 GMAPS_TIME = "https://maps.googleapis.com/maps/api/timezone/json"
+
+FLASH_STRINGS = (
+    "bootloop",
+    "error 7",
+    "zip corrupted",
+    "battery died",
+    "virus",
+    "not enough space",
+    "locked bootloader",
+    "knox 0x0",
+    "try again later",
+    "yumi protection",
+    "sdcard corrupted",
+)
 
 
 def runs(update: Update, context: CallbackContext):
@@ -391,16 +407,20 @@ def flash(update: Update, context: CallbackContext):
         string = " ".join(args).lower()
 
     if not string:
-        message.reply_text("Usage:\n`/flash <text>`", parse_mode=ParseMode.MARKDOWN)
+        message.reply_text("Usage: <code>/flash <text></code>`", parse_mode=ParseMode.HTML)
         return
 
-    if len(string) > 15:
-        message.reply_text("Your message exceeded limit.\nShortening it to 15 characters.")
+    if len(string) > 30:
+        message.reply_text("Your message exceeded limit.\nShortening it to 30 characters.")
 
     if message.reply_to_message:
-        message.reply_to_message.reply_text(f"Flashing `{string[:15]}.zip` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+        flash = message.reply_to_message.reply_text("<code>Flashing...</code>", parse_mode=ParseMode.HTML)
+        sleep(randint(1,3))
+        flash.edit_text(f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>", parse_mode=ParseMode.HTML)
     else:
-        message.reply_text(f"Flashing `{string[:15]}.zip` succesfully failed!", parse_mode=ParseMode.MARKDOWN)
+        flash = message.reply_text("<code>Flashing...</code>", parse_mode=ParseMode.HTML)
+        sleep(randint(1,3))
+        flash.edit_text(f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>", parse_mode=ParseMode.HTML)
 
 
 def gdpr(update: Update, context: CallbackContext):
