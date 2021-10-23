@@ -52,7 +52,7 @@ def send_rules(update, chat_id, from_pm=False):
                                             reply_markup=InlineKeyboardMarkup(
                                                 [[InlineKeyboardButton(text="Rules",
                                                                        url="t.me/{}?start={}".format(bot.username,
-                                                                                              chat_id))]]))
+                                                                                                     chat_id))]]))
     else:
         update.effective_message.reply_text("The group admins haven't set any rules for this chat yet. "
                                             "This probably doesn't mean it's lawless though...!")
