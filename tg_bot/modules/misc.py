@@ -272,8 +272,11 @@ def info(update: Update, context: CallbackContext):
     else:
         text += "\nㅤLastname: {}".format(html.escape(user.last_name or ""))
 
+    status = status = bot.get_chat_member(chat.id, user.id).status
     if chat.type != "private":
-        text += "\n<b>Admin Status:</b>"
+        if status:
+            if status in {"administrator", "creator"}:
+                text += "\n<b>Admin Status:</b>"
 
     try:
         user_member = chat.get_member(user.id)
