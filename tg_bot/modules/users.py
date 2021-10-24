@@ -4,7 +4,7 @@ from typing import Optional
 
 from telegram import TelegramError, Chat, Message
 from telegram import Update, Bot, ParseMode
-from telegram.error import BadRequest
+from telegram.error import BadRequest, Unauthorized
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
 
@@ -111,6 +111,15 @@ def chats(update: Update, context: CallbackContext):
         output.name = "chatlist.txt"
         update.effective_message.reply_document(document=output, filename="chatlist.txt",
                                                 caption="Here is the list of chats in my database.")
+
+
+def chat_checker(update: Update, context: CallbackContext):
+    bot = context.bot
+    try:
+        if update.effective_message.chat.get_member(bot.id).can_send_messages is False:
+            bot.leaveChat(update.effective_message.chat.id)
+    except Unauthorized:
+        pass
 
 
 def __user_info__(user_id):
