@@ -185,7 +185,7 @@ def gmute(update: Update, context: CallbackContext):
 
                  html=True)
 
-    message.reply_text("Done! Gmuted.")
+    message.reply_text("Done! Gmuted.\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
     try:
         bot.send_message(user_id, f"You have been globally muted from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your mute here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:

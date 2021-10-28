@@ -70,7 +70,7 @@ def ban(update: Update, context: CallbackContext):
     try:
         chat.kick_member(user_id)
         bot.send_sticker(chat.id, BAN_STICKER)
-        message.reply_text("Banned!")
+        message.reply_text("Banned!\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
         return log
 
     except BadRequest as excp:

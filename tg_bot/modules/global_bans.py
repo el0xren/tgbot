@@ -192,7 +192,7 @@ def gban(update: Update, context: CallbackContext):
         except TelegramError:
             pass
 
-    message.reply_text("Done! Gbanned.")
+    message.reply_text("Done! Gbanned.\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
     try:
         bot.send_message(user_id, f"You have been globally banned from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your ban here: @{SUPPORT_CHAT}", parse_mode=ParseMode.HTML)
     except:

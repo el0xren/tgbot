@@ -99,7 +99,7 @@ def gkick(update: Update, context: CallbackContext):
                                                                     user_chat.id),
                 html=True)
 
-    message.reply_text("Done! Gkicked.")
+    message.reply_text("Done! Gkicked.\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
     for chat in chats:
         try:
              bot.unban_chat_member(chat.chat_id, user_id)
