@@ -441,7 +441,7 @@ def flash(update: Update, context: CallbackContext):
     string = ""
 
     if message.reply_to_message:
-        string = message.reply_to_message.text.lower().replace(" ", " ")
+        string = message.reply_to_message.text.lower().replace(" ", "_")
 
     if args:
         string = " ".join(args).replace(" ", "_").lower()
