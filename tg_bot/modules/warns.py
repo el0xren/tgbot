@@ -631,6 +631,7 @@ __help__ = """
 
 *Admin only:*
  - /warn <userhandle>: warn a user. After 3 warns, the user will be banned from the group. Can also be used as a reply.
+ - /swarn <userhandle>: warns a user silently.
  - /dwarn <userhandle>: warns a user and deletes the message which is replied to.
  - /resetwarn <userhandle>: reset the warnings for a user. Can also be used as a reply.
  - /addwarn <keyword> <reply message>: set a warning filter on a certain keyword. If you want your keyword to \
