@@ -154,6 +154,18 @@ FLASH_STRINGS = (
     "verizon locked carrier",
     "emmc died",
     "nusantara recovery not supported",
+    "battery corruption",
+    "failed to mount system",
+    "failed to mount system_ext",
+    "failed to mount product",
+    "failed to mount vendor",
+    "failed to mount partitions",
+    "system is mounted as read-only",
+    "system_ext is mounted as read-only",
+    "product is mounted as read-only",
+    "vendor is mounted as read-only",
+    "beep bop... something wrong",
+    "your opinion rejected",
 )
 
 
