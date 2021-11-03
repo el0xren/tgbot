@@ -302,7 +302,7 @@ def info(update: Update, context: CallbackContext):
                 text += f"\nㅤPresence: <b>Detected</b>"
         elif user_member.status == "administrator" or "creator":
             text += f"\nㅤPresence: <b>Admin</b>"
-            result = bot.get_chat_member(chat.id, user.id).to_json()
+            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
             result = result.json()["result"]
             if "custom_title" in result.keys():
                 custom_title = result["custom_title"]
