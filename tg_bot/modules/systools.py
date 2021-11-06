@@ -11,6 +11,7 @@ from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS
+from tg_bot.modules.sql.systools_sql import last_speedtest
 
 
 def shell(update: Update, context: CallbackContext):
@@ -86,6 +87,12 @@ def ping(update: Update, context: CallbackContext):
 
 
 def speedtest(update: Update, context: CallbackContext):
+    now = datetime.now()
+    if last_speedtest.date is not None and (now - last_speedtest.date).seconds < 5 * 60:
+        update.message.reply_text(f"<b>Download:</b> <code>{last_speedtest.download}</code> mbps\n"
+                                  f"<b>Upload:</b> <code>{last_speedtest.upload}</code> mbps\n\n"
+                                  f"Cached results from {last_speedtest.date.strftime('<code>%m/%d/%Y</code>, <code>%H:%M:%S</code>')}", parse_mode=ParseMode.HTML)
+        return
     message_id = update.message.reply_text("<code>Running speedtest...</code>", parse_mode=ParseMode.HTML).message_id
     speedtest = Speedtest()
     speedtest.get_best_server()
@@ -95,6 +102,7 @@ def speedtest(update: Update, context: CallbackContext):
     results_dict = speedtest.results.dict()
     download = str(results_dict["download"] // 10 ** 6)
     upload = str(results_dict["upload"] // 10 ** 6)
+    last_speedtest.set_data(now, download, upload)
     context.bot.edit_message_text(chat_id=update.message.chat_id, message_id=message_id,
                                   text=f"<b>Download:</b> <code>{download}</code> mbps\n"
                                        f"<b>Upload:</b> <code>{upload}</code> mbps", parse_mode=ParseMode.HTML)
@@ -106,7 +114,7 @@ LEAVE_HANDLER = CommandHandler("leave", leave, run_async=True)
 LEAVE_CALLBACK = CallbackQueryHandler(leave_cb, pattern=r"leavechat_cb_", run_async=True)
 IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.user(OWNER_ID), run_async=True)
 PING_HANDLER = CommandHandler("ping", ping, run_async=True)
-SPEEDTEST_HANDLER = CommandHandler("speedtest", speedtest, filters=Filters.user(OWNER_ID), run_async=True)
+SPEEDTEST_HANDLER = CommandHandler("speedtest", speedtest, filters=Filters.user(SUDO_USERS), run_async=True)
 
 dispatcher.add_handler(SHELL_HANDLER)
 dispatcher.add_handler(LOG_HANDLER)
