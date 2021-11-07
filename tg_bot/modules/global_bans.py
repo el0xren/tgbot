@@ -115,10 +115,11 @@ def gban(update: Update, context: CallbackContext):
                   "\n<b>Sudo Admin:</b> {}" \
                   "\n<b>User:</b> {}" \
                   "\n<b>ID:</b> <code>{}</code>" \
+                  "\n<b>Initiated From:</b> <code>{}</code>" \
                   "\n<b>Previous Reason:</b> {}" \
                   "\n<b>Amended Reason:</b> {}".format(mention_html(banner.id, banner.first_name),
                                                        mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                    user_chat.id, old_reason, new_reason)
+                                                                    user_chat.id,message.chat.title, old_reason, new_reason)
             if LOGS:
                 bot.send_message(LOGS, log, parse_mode=ParseMode.HTML)
             else:
@@ -137,9 +138,10 @@ def gban(update: Update, context: CallbackContext):
                   "\n<b>Sudo Admin:</b> {}" \
                   "\n<b>User:</b> {}" \
                   "\n<b>ID:</b> <code>{}</code>" \
+                  "\n<b>Initiated From:</b> <code>{}</code>" \
                   "\n<b>New Reason:</b> {}".format(mention_html(banner.id, banner.first_name),
                                                    mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                user_chat.id, new_reason)
+                                                                user_chat.id, message.chat.title, new_reason)
             if LOGS:
                 bot.send_message(LOGS, log, parse_mode=ParseMode.HTML)
             else:
@@ -159,9 +161,10 @@ def gban(update: Update, context: CallbackContext):
           "\n<b>Sudo Admin:</b> {}" \
           "\n<b>User:</b> {}" \
           "\n<b>ID:</b> <code>{}</code>" \
+          "\n<b>Initiated From:</b> <code>{}</code>" \
           "\n<b>Reason:</b> {}".format(mention_html(banner.id, banner.first_name),
                                        mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                    user_chat.id, reason or "No reason given")
+                                                    user_chat.id, message.chat.title, reason or "No reason given")
     if LOGS:
         bot.send_message(LOGS, log, parse_mode=ParseMode.HTML)
     else:
@@ -229,9 +232,10 @@ def ungban(update: Update, context: CallbackContext):
           "\n<b>Status:</b> <code>Ceased</code>" \
           "\n<b>Sudo Admin:</b> {}" \
           "\n<b>User:</b> {}" \
+          "\n<b>Initiated From:</b> <code>{}</code>" \
           "\n<b>ID:</b> <code>{}</code>".format(mention_html(banner.id, banner.first_name),
                                                 mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                             user_chat.id)
+                                                             message.chat.title, user_chat.id)
     if LOGS:
         bot.send_message(LOGS, log, parse_mode=ParseMode.HTML)
     else:
