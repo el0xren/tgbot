@@ -288,7 +288,6 @@ def info(update: Update, context: CallbackContext):
 
     text += "\nㅤProfile Pics: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
 
-
     text += "\nㅤCAS Banned: "
     result = cas.banchecker(user.id)
     text += str(result)
