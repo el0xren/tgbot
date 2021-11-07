@@ -28,7 +28,8 @@ GMUTE_ERRORS = {
     "Chat_admin_required",
     "Only the creator of a basic group can kick group administrators",
     "Channel_private",
-    "Not in the chat"
+    "Not in the chat",
+    "Can't demote chat creator",
 }
 
 UNGMUTE_ERRORS = {
@@ -41,6 +42,7 @@ UNGMUTE_ERRORS = {
     "Channel_private",
     "Chat_admin_required",
     "Peer_id_invalid",
+    "User not found",
 }
 
 
