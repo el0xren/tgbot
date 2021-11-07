@@ -26,7 +26,12 @@ GKICK_ERRORS = {
     "Channel_private",
     "Not in the chat",
     "Method is available for supergroup and channel chats only",
-    "Reply message not found"
+    "Reply message not found",
+    "Bots can't add new chat members",
+    "Can't demote chat creator",
+    "Method is available only for supergroups",
+    "Can't remove chat owner",
+    "User not found",
 }
 
 
