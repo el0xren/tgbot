@@ -116,10 +116,11 @@ def gmute(update: Update, context: CallbackContext):
                          "\n<b>Sudo Admin:</b> {}" \
                          "\n<b>User:</b> {}" \
                          "\n<b>ID:</b> <code>{}</code>" \
+                         "\n<b>Initiated From:</b> <code>{}</code>" \
                          "\n<b>Previous Reason:</b> {}" \
                          "\n<b>Amended Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
                                                               mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                           user_chat.id, old_reason, new_reason),
+                                                                           user_chat.id, message.chat.title, old_reason, new_reason),
                          html=True)
 
             message.reply_text("This user is already gmuted, for the following reason:\n"
@@ -135,9 +136,10 @@ def gmute(update: Update, context: CallbackContext):
                          "\n<b>Sudo Admin:</b> {}" \
                          "\n<b>User:</b> {}" \
                          "\n<b>ID:</b> <code>{}</code>" \
+                         "\n<b>Initiated From:</b> <code>{}</code>" \
                          "\n<b>New Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
                                                           mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                       user_chat.id, new_reason),
+                                                                       user_chat.id, message.chat.title, new_reason),
                          html=True)
 
             message.reply_text("This user is already gmuted, but had no reason set; I've gone and updated it!")
@@ -154,9 +156,10 @@ def gmute(update: Update, context: CallbackContext):
                  "\n<b>Sudo Admin:</b> {}" \
                  "\n<b>User:</b> {}" \
                  "\n<b>ID:</b> <code>{}</code>" \
+                 "\n<b>Initiated From:</b> <code>{}</code>" \
                  "\n<b>Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
                                               mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                           user_chat.id, reason or "No reason given"),
+                                                           user_chat.id, message.chat.title, reason or "No reason given"),
                  html=True)
 
     sql.gmute_user(user_id, user_chat.username or user_chat.first_name, reason)
