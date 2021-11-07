@@ -14,7 +14,6 @@ from tg_bot.modules.helper_funcs.misc import send_to_list
 from tg_bot.modules.sql.users_sql import get_all_chats
 
 GKICK_ERRORS = {
-    "Bots can't add new chat members",
     "User is an administrator of the chat",
     "Chat not found",
     "Not enough rights to restrict/unrestrict chat member",
