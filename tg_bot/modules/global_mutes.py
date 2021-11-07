@@ -17,7 +17,7 @@ from tg_bot.modules.sql.users_sql import get_all_chats
 
 GMUTE_ENFORCE_GROUP = 6
 
-GKICK_ERRORS = {
+GMUTE_ERRORS = {
     "User is an administrator of the chat",
     "Chat not found",
     "Not enough rights to restrict/unrestrict chat member",
@@ -31,7 +31,7 @@ GKICK_ERRORS = {
     "Not in the chat"
 }
 
-UNGKICK_ERRORS = {
+UNGMUTE_ERRORS = {
     "User is an administrator of the chat",
     "Chat not found",
     "Not enough rights to restrict/unrestrict chat member",
@@ -170,7 +170,7 @@ def gmute(update: Update, context: CallbackContext):
         try:
             bot.restrict_chat_member(chat_id, user_id, permissions=ChatPermissions(can_send_messages=False))
         except BadRequest as excp:
-            if excp.message in GKICK_ERRORS:
+            if excp.message in GMUTE_ERRORS:
                 pass
             else:
                 message.reply_text("Could not gmute due to: {}".format(excp.message))
@@ -245,7 +245,7 @@ def ungmute(update: Update, context: CallbackContext):
                                      can_add_web_page_previews=True))
 
         except BadRequest as excp:
-            if excp.message in UNGKICK_ERRORS:
+            if excp.message in UNGMUTE_ERRORS:
                 pass
             else:
                 message.reply_text("Could not un-gmute due to: {}".format(excp.message))
