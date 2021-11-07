@@ -8,6 +8,7 @@ from random import randint
 from time import sleep
 
 import requests
+import tg_bot.modules.helper_funcs.cas_api as cas
 from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
@@ -285,6 +286,13 @@ def info(update: Update, context: CallbackContext):
     else:
         text += "\nㅤLastname: {}".format(html.escape(user.last_name or ""))
 
+    text += "\nㅤProfile Pics: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
+
+
+    text += "\nㅤCAS Banned: "
+    result = cas.banchecker(user.id)
+    text += str(result)
+
     status = status = bot.get_chat_member(chat.id, user.id).status
     if chat.type != "private":
         if status:
@@ -341,6 +349,7 @@ def info(update: Update, context: CallbackContext):
         msg.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )
+
 
 @user_admin
 def ginfo(update: Update, context: CallbackContext):
