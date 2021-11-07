@@ -33,7 +33,6 @@ GMUTE_ERRORS = {
     "Can't demote chat creator",
     "Can't remove chat owner",
     "Participant_id_invalid",
-    
 }
 
 UNGMUTE_ERRORS = {
