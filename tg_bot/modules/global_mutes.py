@@ -347,13 +347,14 @@ def __stats__():
 def __user_info__(user_id):
     is_gmuted = sql.is_user_gmuted(user_id)
     
+    text = "<b>Globally Muted</b>: <code>{}</code>"
     if is_gmuted:
-        text = "Globally muted: <b>Yes</b>"
+        text = text.format("<code>Yes</code>")
         user = sql.get_gmuted_user(user_id)
         if user.reason:
-            text += "\nReason: {}".format(html.escape(user.reason))
+            text += "\n  Reason: <code>{}</code>".format(html.escape(user.reason))
     else:
-        text = ""
+        text = text.format("<code>No</code>")
 
     return text
 

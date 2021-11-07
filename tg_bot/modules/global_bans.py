@@ -350,13 +350,14 @@ def __stats__():
 def __user_info__(user_id):
     is_gbanned = sql.is_user_gbanned(user_id)
 
+    text = "<b>Globally Banned</b>: <code>{}</code>"
     if is_gbanned:
-        text = "Globally banned: <b>Yes</b>"
+        text = text.format("<code>Yes</code>")
         user = sql.get_gbanned_user(user_id)
         if user.reason:
-            text += "\nReason: {}".format(html.escape(user.reason))
+            text += "\n  Reason: <code>{}</code>".format(html.escape(user.reason))
     else:
-        text = ""
+        text = text.format("<code>No</code>")
 
     return text
 

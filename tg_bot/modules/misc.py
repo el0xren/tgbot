@@ -266,64 +266,25 @@ def info(update: Update, context: CallbackContext):
     else:
         return
 
-    text = "<b>General:</b>" \
-           "\nㅤID: <code>{}</code>" \
-           "\nㅤFirst Name: {}".format(user.id, mention_html(user.id, user.first_name))
+    text = "<b>User info</b>:" \
+           "\n  <b>ID</b>: <code>{}</code>" \
+           "\n  <b>First Name</b>: {}".format(user.id, user.first_name)
 
-    if user.id == OWNER_ID:
-        text += "\nㅤUser level: <b>Owner</b>"
-    elif user.id in DEV_USERS:
-        text += "\nㅤUser level: <b>Developer</b>"
-    elif user.id in SUDO_USERS:
-        text += "\nㅤUser level: <b>Sudo</b>"
-    elif user.id in SUPPORT_USERS:
-        text += "\nㅤUser level: <b>Support</b>"
-    elif user.id in WHITELIST_USERS:
-        text += "\nㅤUser level: <b>Whitelist</b>"
+    text += "\n  <b>Lastname</b>: {}".format(html.escape(user.last_name or "null"))
 
     if user.username:
-        text += "\nㅤUsername: @{}".format(html.escape(user.username))
-    else:
-        text += "\nㅤLastname: {}".format(html.escape(user.last_name or ""))
+        text += "\n  <b>Username</b>: @{}".format(html.escape(user.username))
 
-    text += "\nㅤProfile Pics: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
+    text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count)
 
-    text += "\nㅤCAS Banned: "
+    text += "\n  <b>User link</b>: {}".format(mention_html(user.id, 'here'))
+
     result = cas.banchecker(user.id)
-    text += str(result)
-
-    status = status = bot.get_chat_member(chat.id, user.id).status
-    if chat.type != "private":
-        if status:
-            if status in {"administrator", "creator"}:
-                text += "\n<b>Admin Status:</b>"
-
-    try:
-        user_member = chat.get_member(user.id)
-
-        if user_member.status == "left":
-                text += f"\nㅤPresence: <b>Not here</b>"
-        if user_member.status == "kicked":
-                text += f"\nㅤPresence: <b>Banned</b>"
-        elif user_member.status == "member":
-                text += f"\nㅤPresence: <b>Detected</b>"
-        elif user_member.status == "administrator" or "creator":
-            text += f"\nㅤPresence: <b>Admin</b>"
-            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
-            result = result.json()["result"]
-            if "custom_title" in result.keys():
-                custom_title = result["custom_title"]
-                text += f"\nㅤTitle: <code>{custom_title}</code>"
-    except BadRequest:
+    #text += str(result)
+    if result == False:
         pass
-
-    for mod in USER_INFO:
-        try:
-            mod_info = mod.__user_info__(user.id).strip()
-        except TypeError:
-            mod_info = mod.__user_info__(user.id, chat.id).strip()
-        if mod_info:
-            text += "\n" + mod_info
+    else:
+        text += "\n  <b>CAS Banned<b>: True"
 
     if INFOPIC:
         try:
@@ -346,6 +307,85 @@ def info(update: Update, context: CallbackContext):
 
     else:
         msg.reply_text(
+            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+        )
+
+
+def getuser(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+    msg = update.effective_message  # type: Optional[Message]
+    user_id = extract_user(update.effective_message, args)
+    chat = update.effective_chat
+
+    if user_id and int(user_id) != 777000 and int(user_id) != 1087968824:
+        user = bot.get_chat(user_id)
+
+    elif not msg.reply_to_message and not args:
+        user = msg.from_user
+
+    elif not msg.reply_to_message and (not args or (
+            len(args) >= 1 and not args[0].startswith("@") and not args[0].isdigit() and not msg.parse_entities(
+        [MessageEntity.TEXT_MENTION]))):
+        msg.reply_text("I can't extract a user from this.")
+        return
+
+    else:
+        return
+
+    text = "<b>User info from {} Database</b>" \
+           "\n<b>ID</b>: <code>{}</code>" \
+           "\n<b>First Name</b>: {}".format(dispatcher.bot.first_name, user.id, mention_html(user.id, user.first_name))
+
+    if user.id == OWNER_ID:
+        text += "\n<b>User level</b>: <code>Owner</code>"
+    elif user.id in DEV_USERS:
+        text += "\n<b>User level</b>: <code>Developer</code>"
+    elif user.id in SUDO_USERS:
+        text += "\n<b>User level</b>: <code>Sudo</code>"
+    elif user.id in SUPPORT_USERS:
+        text += "\n<b>User level</b>: <code>Support</code>"
+    elif user.id in WHITELIST_USERS:
+        text += "\n<b>User level</b>: <code>Whitelist</code>"
+
+    if user.username:
+        text += "\n<b>Username</b>: @{}".format(html.escape(user.username))
+
+    text += "\n<b>Lastname</b>: <code>{}</code>".format(html.escape(user.last_name or "null"))
+
+    text += "\n<b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
+
+    try:
+        user_member = chat.get_member(user.id)
+
+        if user_member.status == "left":
+                text += f"\n<b>Presence</b>: <code>Not here</code>"
+        elif user_member.status == "kicked":
+                text += f"\n<b>Presence</b>: <code>Banned</code>"
+        elif user_member.status == "member":
+                text += f"\n<b>Presence</b>: <code>Detected</code>"
+        elif user_member.status == "administrator" or "creator":
+            text += f"\n<b>Presence</b>: <code>Admin</code>"
+            result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
+            result = result.json()["result"]
+            if "custom_title" in result.keys():
+                custom_title = result["custom_title"]
+                text += f"\n<b>Title</b>: <code>{custom_title}</code>"
+    except BadRequest:
+        pass
+
+    result = cas.banchecker(user.id)
+    text += "\n<b>CAS Banned</b>: <code>{}</code>".format(str(result))
+
+    for mod in USER_INFO:
+        try:
+            mod_info = mod.__user_info__(user.id).strip()
+        except TypeError:
+            mod_info = mod.__user_info__(user.id, chat.id).strip()
+        if mod_info:
+            text += "\n" + mod_info
+
+    bot.send_message(chat.id,
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )
 
@@ -555,6 +595,7 @@ TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, run_async=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
+GETUSER_HANDLER = DisableAbleCommandHandler("getuser", getuser, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 
@@ -570,6 +611,7 @@ dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
+dispatcher.add_handler(GETUSER_HANDLER)
 dispatcher.add_handler(GINFO_HANDLER)
 dispatcher.add_handler(FLASH_HANDLER)
 dispatcher.add_handler(ECHO_HANDLER)
