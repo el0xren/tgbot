@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMo
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, SUDO_USERS
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS
 from tg_bot.modules.sql.systools_sql import last_speedtest
 
 
@@ -79,6 +79,12 @@ def get_bot_ip(update: Update, context: CallbackContext):
 
 
 def ping(update: Update, context: CallbackContext):
+    message = update.effective_message
+    user = update.effective_user
+
+    if user.id != OWNER_ID and user.id not in DEV_USERS and user.id not in SUDO_USERS:
+        return message.reply_text("Ping Pong... Your opinion is wrong.")
+
     before = datetime.now()
     message = update.message.reply_text("Pinging..")
     now =  datetime.now()
