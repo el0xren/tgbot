@@ -6,7 +6,7 @@ from telegram.error import BadRequest
 from telegram.ext import run_async, CommandHandler, Filters
 from telegram.utils.helpers import mention_html
 
-from tg_bot import dispatcher, CallbackContext, BAN_STICKER, LOGGER
+from tg_bot import dispatcher, CallbackContext, BAN_STICKER, LOGGER, SUDO_USERS
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
     is_user_admin, is_user_in_chat, can_delete
@@ -45,6 +45,10 @@ def ban(update: Update, context: CallbackContext):
             return ""
         else:
             raise
+
+    if not member.can_restrict_members and member.status != "creator" and user.id not in SUDO_USERS:
+        message.reply_text("You're missing the can_restrict_members permission.")
+        return ""
 
     if is_user_ban_protected(chat, user_id, member):
         message.reply_text("I really wish I could ban admins...")
