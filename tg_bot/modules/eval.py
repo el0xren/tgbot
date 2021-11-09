@@ -21,6 +21,7 @@ def namespace_of(chat, update, bot, context):
             "effective_user": update.effective_user,
             "effective_chat": update.effective_chat,
             "update": update,
+            "ctx": context,
         }
 
     return namespaces[chat]
