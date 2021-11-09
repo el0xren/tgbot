@@ -5,14 +5,14 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout
 
-from tg_bot import LOGGER as log, dispatcher, OWNER_ID
+from tg_bot import dispatcher, LOGGER, OWNER_ID
 from telegram import ParseMode, Update
 from telegram.ext import CommandHandler, Filters, CallbackContext
 
 namespaces = {}
 
 
-def namespace_of(chat, update, bot):
+def namespace_of(chat, update, bot, context):
     if chat not in namespaces:
         namespaces[chat] = {
             "__builtins__": globals()["__builtins__"],
@@ -48,12 +48,12 @@ def send(msg, bot, update):
 
 def evaluate(update: Update, context: CallbackContext):
     bot = context.bot
-    send(do(eval, bot, update), bot, update)
+    send(do(eval, bot, update, context), bot, update)
 
 
 def execute(update: Update, context: CallbackContext):
     bot = context.bot
-    send(do(exec, bot, update), bot, update)
+    send(do(exec, bot, update, context), bot, update)
 
 
 def cleanup_code(code):
@@ -62,12 +62,11 @@ def cleanup_code(code):
     return code.strip("` \n")
 
 
-def do(func, bot, update):
+def do(func, bot, update, context):
     log_input(update)
     content = update.message.text.split(" ", 1)[-1]
     body = cleanup_code(content)
-    env = namespace_of(update.message.chat_id, update, bot)
-
+    env = namespace_of(update.message.chat_id, update, bot, context)
     os.chdir(os.getcwd())
     with open(
         os.path.join(os.getcwd(), "tg_bot/modules/helper_funcs/temp.txt"), "w",
