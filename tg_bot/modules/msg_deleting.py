@@ -25,6 +25,7 @@ def purge(update: Update, context: CallbackContext) -> str:
         if can_delete(chat, bot.id):
             message_id = msg.reply_to_message.message_id
             delete_to = msg.message_id - 1
+            count = 0
             if args and args[0].isdigit():
                 new_del = message_id + int(args[0])
                 # No point deleting messages which haven't been written yet.
@@ -32,6 +33,7 @@ def purge(update: Update, context: CallbackContext) -> str:
                     delete_to = new_del
 
             for m_id in range(delete_to, message_id - 1, -1):  # Reverse iteration over message ids
+                count += 1
                 try:
                     bot.deleteMessage(chat.id, m_id)
                 except BadRequest as err:
@@ -52,7 +54,7 @@ def purge(update: Update, context: CallbackContext) -> str:
                 elif err.message != "Message to delete not found":
                     LOGGER.exception("Error while purging chat messages.")
 
-            del_msg = bot.send_message(chat.id, "Purge complete.")
+            del_msg = bot.send_message(chat.id, f"Purged {count} messages.")
             time.sleep(3)
             del_msg.delete()
             return "<b>{}:</b>" \
