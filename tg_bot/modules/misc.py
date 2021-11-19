@@ -355,6 +355,9 @@ def getuser(update: Update, context: CallbackContext):
 
     text += "\n<b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
 
+    afk = is_afk(user.id)
+    text += ("\n<b>AFK</b>: <code>{}</code>").format(str(afk))
+
     try:
         user_member = chat.get_member(user.id)
 
