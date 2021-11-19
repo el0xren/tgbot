@@ -358,6 +358,10 @@ def getuser(update: Update, context: CallbackContext):
     afk = is_afk(user.id)
     text += "\n<b>AFK</b>: <code>{}</code>".format(str(afk))
 
+    afk_res = check_afk_status(user_id)
+    if afk_res.reason:
+        text += "\n  Reason: <code>{}</code>".format(afk_res.reason)
+
     try:
         user_member = chat.get_member(user.id)
 
