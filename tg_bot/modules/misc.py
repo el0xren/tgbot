@@ -2,6 +2,7 @@ import html
 import json
 import random
 import os
+import io
 from datetime import datetime
 from typing import Optional, List
 from random import randint
@@ -14,6 +15,8 @@ from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
+from contextlib import redirect_stdout
+from cowsay import cow
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
 from tg_bot.__main__ import GDPR
@@ -528,6 +531,16 @@ def flash(update: Update, context: CallbackContext):
         flash.edit_text(f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>", parse_mode=ParseMode.HTML)
 
 
+def cowsay(update: Update, context: CallbackContext):
+    with io.StringIO() as buf, redirect_stdout(buf):
+        try:
+            cow(update.message.text.split(' ', 1)[1])
+        except IndexError:
+            update.message.reply_text(f"Usage: `/cowsay bow-bow or <text>`", parse_mode=ParseMode.MARKDOWN)
+        else:
+            update.message.reply_text(f"`{buf.getvalue()}`", parse_mode=ParseMode.MARKDOWN)
+
+
 def gdpr(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -603,6 +616,7 @@ INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
 GETUSER_HANDLER = DisableAbleCommandHandler("getuser", getuser, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
+COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
 
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
 RECHO_HANDLER = CommandHandler("recho", recho, filters=Filters.user(OWNER_ID), run_async=True)
@@ -619,6 +633,7 @@ dispatcher.add_handler(INFO_HANDLER)
 dispatcher.add_handler(GETUSER_HANDLER)
 dispatcher.add_handler(GINFO_HANDLER)
 dispatcher.add_handler(FLASH_HANDLER)
+dispatcher.add_handler(COWSAY_HANDLER)
 dispatcher.add_handler(ECHO_HANDLER)
 dispatcher.add_handler(RECHO_HANDLER)
 dispatcher.add_handler(MD_HELP_HANDLER)
