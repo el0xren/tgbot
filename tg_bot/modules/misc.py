@@ -408,13 +408,13 @@ def ginfo(update: Update, context: CallbackContext):
     if chat.type == "private":
         msg.reply_text("Please reply this command in group!")
     else:
-        text = "<b>Chat Info:</b>" \
-               "\nㅤ<b>Chat Title</b>: <code>{}</code>".format(update.effective_chat.title)
+        text = "<b>Chat info:</b>" \
+               "\nㅤ<b>Title</b>: <code>{}</code>".format(update.effective_chat.title)
 
         if chat.username:
-            text += "\nㅤ<b>Chat Username</b>: @{}".format(chat.username)
+            text += "\nㅤ<b>Username</b>: @{}".format(chat.username)
 
-        text += "\nㅤ<b>Chat ID</b>: <code>{}</code>".format(chat.id)
+        text += "\nㅤ<b>ID</b>: <code>{}</code>".format(chat.id)
 
         if chat.type in [chat.SUPERGROUP, chat.CHANNEL]:
             bot_member = chat.get_member(bot.id)
@@ -430,8 +430,10 @@ def ginfo(update: Update, context: CallbackContext):
 
         admins_count = bot.getChatAdministrators(chat.id)
         status = chat.get_member(user.id)
-        if status == "administrator" or "creator":
+        if status == "administrator":
             text += "\nㅤ<b>Total Admins</b>: <code>{}</code>".format(len(admins_count))
+        if status == "creator":
+            text += "\n  Creator: {}".format(mention_html(user.id, user.first_name))
 
         text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(chat.get_members_count(user.id))
 
