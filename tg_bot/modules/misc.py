@@ -409,25 +409,31 @@ def ginfo(update: Update, context: CallbackContext):
         msg.reply_text("Please reply this command in group!")
     else:
         text = "<b>Chat Info:</b>" \
-               "\nㅤChat Title: {}".format(update.effective_chat.title)
+               "\nㅤ<b>Chat Title</b>: <code>{}</code>".format(update.effective_chat.title)
 
         if chat.username:
-            text += "\nㅤChat Username: @{}".format(chat.username)
+            text += "\nㅤ<b>Chat Username</b>: @{}".format(chat.username)
 
-        text += "\nㅤChat ID: {}".format(chat.id)
+        text += "\nㅤ<b>Chat ID</b>: <code>{}</code>".format(chat.id)
 
         if chat.type in [chat.SUPERGROUP, chat.CHANNEL]:
             bot_member = chat.get_member(bot.id)
             if bot_member.can_invite_users:
                 invitelink = bot.exportChatInviteLink(chat.id)
-                text += f"\nㅤInvitelink: {invitelink}"
+                text += f"\nㅤ<b>Invitelink</b>: {invitelink}"
+
+        if chat.type == "group":
+            text += f"\nㅤ<b>Type</b>: <code>Group</code>"
+
+        if chat.type == "supergroup":
+            text += f"\nㅤ<b>Type</b>: <code>Supergroup</code>"
 
         admins_count = bot.getChatAdministrators(chat.id)
         status = chat.get_member(user.id)
         if status == "administrator" or "creator":
-            text += "\nㅤTotal Admins: {}".format(len(admins_count))
+            text += "\nㅤ<b>Total Admins</b>: <code>{}</code>".format(len(admins_count))
 
-        text += "\nㅤTotal Members: {}".format(chat.get_members_count(user.id))
+        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(chat.get_members_count(user.id))
 
         msg.reply_text(text, disable_web_page_preview=True, parse_mode=ParseMode.HTML)
 
