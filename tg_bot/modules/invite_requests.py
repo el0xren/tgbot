@@ -51,9 +51,8 @@ def approve_joinreq(upd: Update, ctx: CallbackContext) -> str:
     match = re.match(r"cb_approve=(.+)", query.data)
 
     user_id = match.group(1)
-    chat = upd.effective_chat.id
     try:
-        bot.approve_chat_join_request(chat, user_id)
+        bot.approve_chat_join_request(chat.id, user_id)
         upd.effective_message.edit_text(
             f"Join Request approved by {mention_html(user.id, user.first_name)}.",
             parse_mode="HTML",
@@ -66,7 +65,8 @@ def approve_joinreq(upd: Update, ctx: CallbackContext) -> str:
                 f"<b>User:</b> {mention_html(user_id, html.escape(user.first_name))}\n"
         )
         return logmsg
-    except:
+    except Exception as e:
+        upd.effective_message.edit_text(str(e))
         pass
 
 @user_can_resrtict_no_reply
@@ -80,9 +80,8 @@ def decline_joinreq(upd: Update, ctx: CallbackContext) -> str:
     match = re.match(r"cb_decline=(.+)", query.data)
 
     user_id = match.group(1)
-    chat = upd.effective_chat.id
     try:
-        bot.decline_chat_join_request(chat, user_id)
+        bot.decline_chat_join_request(chat.id, user_id)
         upd.effective_message.edit_text(
             f"Join Request declined by {mention_html(user.id, user.first_name)}.",
             parse_mode="HTML",
@@ -95,7 +94,8 @@ def decline_joinreq(upd: Update, ctx: CallbackContext) -> str:
                 f"<b>User:</b> {mention_html(user_id, html.escape(user.first_name))}\n"
         )
         return logmsg
-    except:
+    except Exception as e:
+        upd.effective_message.edit_text(str(e))
         pass
 
 
