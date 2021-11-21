@@ -12,7 +12,7 @@ from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 
 import tg_bot.modules.sql.welcome_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
-from tg_bot.modules.helper_funcs.chat_status import user_admin, user_can_resrtict_no_reply, bot_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, user_can_restrict_no_reply, bot_admin
 from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
 from tg_bot.modules.helper_funcs.string_handling import markdown_parser, \

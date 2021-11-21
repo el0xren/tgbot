@@ -270,11 +270,9 @@ def user_not_admin(func):
     return is_not_admin
 
 
-def user_can_resrtict_no_reply(func):
+def user_can_restrict_no_reply(func):
     @wraps(func)
-    def u_can_restrict_noreply(
-        update: Update, context: CallbackContext, *args, **kwargs
-    ):
+    def user_can_restrict_noreply(update: Update, context: CallbackContext, *args, **kwargs:)
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
@@ -282,14 +280,10 @@ def user_can_resrtict_no_reply(func):
         member = chat.get_member(user.id)
 
         if user:
-            if (
-                member.can_restrict_members
-                or member.status == "creator"
-                or user.id in SUDO_USERS
-            ):
+            if member.can_restrict_members or member.status == "creator" or user.id in SUDO_USERS:
                 return func(update, context, *args, **kwargs)
             elif member.status == 'administrator':
-                query.answer("You're missing the `can_restrict_members` permission.")
+                query.answer("You lack the permission: `can_restrict_members` permission.")
             else:
                 query.answer("You need to be admin with `can_restrict_users` permission to do this.")
         elif DEL_CMDS and " " not in update.effective_message.text:
@@ -298,4 +292,4 @@ def user_can_resrtict_no_reply(func):
             except:
                 pass
 
-    return u_can_restrict_noreply
+    return user_can_restrict_noreply
