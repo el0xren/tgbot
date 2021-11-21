@@ -1,15 +1,18 @@
 import html
+import re
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup
 from telegram.error import BadRequest
-from telegram.ext import MessageHandler, Filters, CommandHandler, run_async
+from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, ChatJoinRequestHandler, CallbackQueryHandler
 from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
+from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
+from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 
 import tg_bot.modules.sql.welcome_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
-from tg_bot.modules.helper_funcs.chat_status import user_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, user_can_resrtict_no_reply, bot_admin
 from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
 from tg_bot.modules.helper_funcs.string_handling import markdown_parser, \
@@ -144,7 +147,7 @@ def new_member(update: Update, context: CallbackContext):
                         fullname = "{} {}".format(first_name, new_mem.last_name)
                     else:
                         fullname = first_name
-                    count = chat.get_member_count()
+                    count = chat.get_members_count()
                     mention = mention_markdown(new_mem.id, first_name)
                     if new_mem.username:
                         username = "@" + escape_markdown(new_mem.username)
@@ -223,7 +226,7 @@ def left_member(update: Update, context: CallbackContext):
                     fullname = "{} {}".format(first_name, left_mem.last_name)
                 else:
                     fullname = first_name
-                count = chat.get_member_count()
+                count = chat.get_members_count()
                 mention = mention_markdown(left_mem.id, first_name)
                 if left_mem.username:
                     username = "@" + escape_markdown(left_mem.username)
@@ -480,6 +483,86 @@ def cleanservice(update: Update, context: CallbackContext) -> str:
             update.effective_message.reply_text("Welcome clean service is: <code>off</code>", parse_mode=ParseMode.HTML)
 
 
+def chat_join_req(update: Update, context: CallbackContext):
+    bot = context.bot
+    user = update.chat_join_request.from_user
+    chat = update.chat_join_request.chat
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "✅ Approve", callback_data="cb_approve={}".format(user.id)
+                ),
+                InlineKeyboardButton(
+                    "❌ Decline", callback_data="cb_decline={}".format(user.id)
+                ),
+            ]
+        ]
+    )
+    bot.send_message(chat.id, "{} wants to join {}".format(mention_html(user.id, user.first_name),
+                                                           chat.title or "this chat"),
+                                                           reply_markup=keyboard,
+                                                           parse_mode=ParseMode.HTML)
+
+
+@user_can_resrtict_no_reply
+@bot_admin
+@loggable
+def approve_join_req(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
+    query = update.callback_query
+    user = update.effective_user
+    chat = update.effective_chat
+    match = re.match(r"cb_approve=(.+)", query.data)
+
+    user_id = match.group(1)
+    try:
+        bot.approve_chat_join_request(chat.id, user_id)
+        update.effective_message.edit_text(f"Join request approved by {mention_html(user.id, user.first_name)}.", parse_mode=ParseMode.HTML)
+
+        log = (
+            f"<b>{html.escape(chat.title)}:</b>\n"
+            f"#JOIN_REQUEST\n"
+            f"Approved\n"
+            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
+            f"<b>User:</b> {mention_html(user_id, html.escape(user.first_name))}\n")
+
+        return log
+
+    except Exception as e:
+        update.effective_message.edit_text(str(e))
+        pass
+
+
+@user_can_resrtict_no_reply
+@bot_admin
+@loggable
+def decline_join_req(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
+    query = update.callback_query
+    user = update.effective_user
+    chat = update.effective_chat
+    match = re.match(r"cb_decline=(.+)", query.data)
+
+    user_id = match.group(1)
+    try:
+        bot.decline_chat_join_request(chat.id, user_id)
+        update.effective_message.edit_text(f"Join request declined by {mention_html(user.id, user.first_name)}.", parse_mode=ParseMode.HTML)
+
+        log = (
+            f"<b>{html.escape(chat.title)}:</b>\n"
+            f"#JOIN_REQUEST\n"
+            f"Declined!\n"
+            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
+            f"<b>User:</b> {mention_html(user_id, html.escape(user.first_name))}\n")
+
+        return log
+
+    except Exception as e:
+        update.effective_message.edit_text(str(e))
+        pass
+
+
 WELC_HELP_TXT = "Your group's welcome/goodbye messages can be personalised in multiple ways. If you want the messages" \
                 " to be individually generated, like the default welcome message is, you can use *these* variables:\n" \
                 " - `{{first}}`: this represents the user's *first* name\n" \
@@ -575,4 +658,7 @@ dispatcher.add_handler(RESET_WELCOME)
 dispatcher.add_handler(RESET_GOODBYE)
 dispatcher.add_handler(CLEAN_WELCOME)
 dispatcher.add_handler(CLEAN_SERVICE_HANDLER)
+dispatcher.add_handler(ChatJoinRequestHandler(callback=chat_join_req, run_async=True))
+dispatcher.add_handler(CallbackQueryHandler(approve_join_req, pattern=r"cb_approve=", run_async=True))
+dispatcher.add_handler(CallbackQueryHandler(decline_join_req, pattern=r"cb_decline=", run_async=True))
 dispatcher.add_handler(WELCOME_HELP)
