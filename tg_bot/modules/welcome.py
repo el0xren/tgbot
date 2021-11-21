@@ -505,7 +505,7 @@ def chat_join_req(update: Update, context: CallbackContext):
                                                            parse_mode=ParseMode.HTML)
 
 
-@user_can_resrtict_no_reply
+@user_can_restrict_no_reply
 @bot_admin
 @loggable
 def approve_join_req(update: Update, context: CallbackContext) -> str:
@@ -534,7 +534,7 @@ def approve_join_req(update: Update, context: CallbackContext) -> str:
         pass
 
 
-@user_can_resrtict_no_reply
+@user_can_restrict_no_reply
 @bot_admin
 @loggable
 def decline_join_req(update: Update, context: CallbackContext) -> str:
