@@ -34,7 +34,7 @@ def check_flood(update: Update, context: CallbackContext) -> str:
         return ""
 
     try:
-        chat.kick_member(user.id)
+        chat.ban_member(user.id)
         msg.reply_text("I like to leave the flooding to natural disasters. But you, you were just a "
                        "disappointment. Get out.")
 

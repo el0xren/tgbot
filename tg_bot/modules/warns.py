@@ -48,7 +48,7 @@ def warn(user: User, chat: Chat, reason: str, message: Message, warner: User = N
             reply = "{} warnings, {} has been kicked!".format(limit, mention_html(user.id, user.first_name))
 
         else:  # ban
-            chat.kick_member(user.id)
+            chat.ban_member(user.id)
             reply = "{} warnings, {} has been banned!".format(limit, mention_html(user.id, user.first_name))
 
         for warn_reason in reasons:
@@ -119,7 +119,7 @@ def swarn(user: User, chat: Chat, reason: str, message: Message, warner: User = 
             reply = "{} warnings, {} has been kicked!".format(limit, mention_html(user.id, user.first_name))
 
         else:  # ban
-            chat.kick_member(user.id)
+            chat.ban_member(user.id)
             reply = "{} warnings, {} has been banned!".format(limit, mention_html(user.id, user.first_name))
 
         for warn_reason in reasons:
@@ -196,7 +196,7 @@ def dwarn(user: User, chat: Chat, reason: str, message: Message, warner: User = 
             reply = "{} warnings, {} has been kicked!".format(limit, mention_html(user.id, user.first_name))
 
         else:  # ban
-            chat.kick_member(user.id)
+            chat.ban_member(user.id)
             reply = "{} warnings, {} has been banned!".format(limit, mention_html(user.id, user.first_name))
 
         for warn_reason in reasons:

@@ -72,7 +72,7 @@ def ban(update: Update, context: CallbackContext):
         log += "\n<b>Reason:</b> {}".format(reason)
 
     try:
-        chat.kick_member(user_id)
+        chat.ban_member(user_id)
         bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text("Banned!\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
         return log
@@ -155,7 +155,7 @@ def temp_ban(update: Update, context: CallbackContext):
         log += "\n<b>Reason:</b> {}".format(reason)
 
     try:
-        chat.kick_member(user_id, until_date=bantime)
+        chat.ban_member(user_id, until_date=bantime)
         bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text("Banned! User will be banned for {}.".format(time_val))
         return log
@@ -270,7 +270,7 @@ def banme(update: Update, context: CallbackContext):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
         return
 
-    res = update.effective_chat.kick_member(user_id)  
+    res = update.effective_chat.ban_member(user_id)  
     if res:
         update.effective_message.reply_text("No problem.")
     else:
@@ -321,7 +321,7 @@ def sban(update: Update, context: CallbackContext):
         log += "\n<b>• Reason:</b> {}".format(reason)
 
     try:
-        chat.kick_member(user_id)
+        chat.ban_member(user_id)
         return log
 
     except BadRequest as excp:

@@ -435,7 +435,7 @@ def ginfo(update: Update, context: CallbackContext):
         if status == "creator":
             text += "\n  Creator: {}".format(mention_html(user.id, user.first_name))
 
-        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(chat.get_members_count(user.id))
+        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(chat.get_member_count(user.id))
 
         msg.reply_text(text, disable_web_page_preview=True, parse_mode=ParseMode.HTML)
 
