@@ -95,7 +95,7 @@ def chats(update: Update, context: CallbackContext):
         try:
             curr_chat = context.bot.getChat(chat.chat_id)
             bot_member = curr_chat.get_member(context.bot.id)
-            chat_members = curr_chat.get_members_count(context.bot.id)
+            chat_members = curr_chat.get_member_count(context.bot.id)
             if bot_member.can_invite_users:
                 invitelink = context.bot.exportChatInviteLink(chat.chat_id)
             else:
