@@ -272,7 +272,7 @@ def user_not_admin(func):
 
 def user_can_restrict_no_reply(func):
     @wraps(func)
-    def user_can_restrict_noreply(update: Update, context: CallbackContext, *args, **kwargs:)
+    def user_can_restrict_noreply(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
