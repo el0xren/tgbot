@@ -25,7 +25,6 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.chat_status import user_admin
-from tg_bot.modules.sql.afk_sql import is_afk, check_afk_status
 
 RUN_STRINGS = (
     "Where do you think you're going?",
@@ -357,13 +356,6 @@ def getuser(update: Update, context: CallbackContext):
     text += "\n<b>Lastname</b>: <code>{}</code>".format(html.escape(user.last_name or "null"))
 
     text += "\n<b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
-
-    afk = is_afk(user.id)
-    text += "\n<b>AFK</b>: <code>{}</code>".format(str(afk))
-
-    afk_res = check_afk_status(user_id)
-    if afk_res.reason:
-        text += "\n  Reason: <code>{}</code>".format(afk_res.reason)
 
     try:
         user_member = chat.get_member(user.id)
