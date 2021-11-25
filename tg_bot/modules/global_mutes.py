@@ -46,6 +46,7 @@ UNGMUTE_ERRORS = {
     "Chat_admin_required",
     "Peer_id_invalid",
     "User not found",
+    "Replied message not found",
 }
 
 
