@@ -1,25 +1,29 @@
 import html
 import re
-from typing import Optional, List
+from typing import List, Optional
 
-from telegram import Message, Chat, Update, Bot, User
-from telegram import ParseMode, InlineKeyboardMarkup
+from telegram import (Bot, Chat, InlineKeyboardMarkup, Message, ParseMode,
+                      Update, User)
 from telegram.error import BadRequest
-from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, ChatJoinRequestHandler, CallbackQueryHandler
-from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
+from telegram.ext import (CallbackQueryHandler, ChatJoinRequestHandler,
+                          CommandHandler, Filters, MessageHandler, run_async)
 from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
+from telegram.utils.helpers import (escape_markdown, mention_html,
+                                    mention_markdown)
 
 import tg_bot.modules.sql.welcome_sql as sql
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
-from tg_bot.modules.helper_funcs.chat_status import user_admin, user_can_restrict_no_reply, bot_admin
-from tg_bot.modules.helper_funcs.misc import build_keyboard, revert_buttons
+from tg_bot import (DEV_USERS, LOGGER, OWNER_ID, SUDO_USERS, SUPPORT_USERS,
+                    CallbackContext, dispatcher)
+from tg_bot.modules.helper_funcs.chat_status import (bot_admin, user_admin,
+                                                     user_can_restrict_no_reply)
+from tg_bot.modules.helper_funcs.misc import (build_keyboard, revert_buttons,
+                                              send_to_list)
 from tg_bot.modules.helper_funcs.msg_types import get_welcome_type
-from tg_bot.modules.helper_funcs.string_handling import markdown_parser, \
-    escape_invalid_curly_brackets
+from tg_bot.modules.helper_funcs.string_handling import (escape_invalid_curly_brackets,
+                                                         markdown_parser)
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql.global_bans_sql import is_user_gbanned
-from tg_bot.modules.helper_funcs.misc import send_to_list
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
 

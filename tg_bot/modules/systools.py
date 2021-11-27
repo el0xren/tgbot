@@ -1,16 +1,16 @@
-import requests
 import re
 import time
-
 from datetime import datetime
-from subprocess import Popen, PIPE
-from speedtest import Speedtest
+from subprocess import PIPE, Popen
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+import requests
+from speedtest import Speedtest
+from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, ParseMode,
+                      Update)
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS
+from tg_bot import DEV_USERS, OWNER_ID, SUDO_USERS, CallbackContext, dispatcher
 from tg_bot.modules.sql.systools_sql import last_speedtest
 
 

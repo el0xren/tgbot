@@ -1,11 +1,11 @@
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from future.utils import string_types
-from telegram import ParseMode, Update, Bot, Chat, User
-from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram import Bot, Chat, ParseMode, Update, User
+from telegram.ext import CommandHandler, Filters, MessageHandler
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, CallbackContext
+from tg_bot import CallbackContext, dispatcher
 from tg_bot.modules.helper_funcs.handlers import CMD_STARTERS
 from tg_bot.modules.helper_funcs.misc import is_module_loaded
 

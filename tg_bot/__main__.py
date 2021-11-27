@@ -1,24 +1,28 @@
 import datetime
 import importlib
-import re
 import logging
-from typing import Optional, List
+import re
+from typing import List, Optional
 
-from telegram import Message, Chat, Update, Bot, User
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
-from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
-from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
+from telegram import (Bot, Chat, InlineKeyboardButton, InlineKeyboardMarkup,
+                      Message, ParseMode, Update, User)
+from telegram.error import (BadRequest, ChatMigrated, NetworkError,
+                            TelegramError, TimedOut, Unauthorized)
+from telegram.ext import (CallbackQueryHandler, CommandHandler, Filters,
+                          MessageHandler)
+from telegram.ext.dispatcher import (Dispatcher, DispatcherHandlerStop,
+                                     run_async)
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
-    ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
+from tg_bot import (ALLOW_EXCL, CERT_PATH, IGNORE_PENDING_REQUESTS, LOGGER,
+                    OWNER_ID, PORT, START_STICKER, SUDO_USERS, SUPPORT_CHAT,
+                    SUPPORT_USERS, TOKEN, URL, WEBHOOK, CallbackContext,
+                    dispatcher, updater)
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
-from tg_bot.modules.helper_funcs.misc import paginate_modules
-from tg_bot.modules.helper_funcs.misc import send_to_list
+from tg_bot.modules.helper_funcs.misc import paginate_modules, send_to_list
 
 BOT_IMG = "https://telegra.ph/file/572f1989b04f0eefa53b0.jpg"
 

@@ -1,30 +1,30 @@
 import html
-import json
-import random
-import os
 import io
+import json
+import os
+import random
+from contextlib import redirect_stdout
 from datetime import datetime
-from typing import Optional, List
 from random import randint
 from time import sleep
+from typing import List, Optional
 
 import requests
-import tg_bot.modules.helper_funcs.cas_api as cas
-from telegram import Message, Chat, Update, Bot, MessageEntity
-from telegram import ParseMode
-from telegram.ext import CommandHandler, run_async, Filters
-from telegram.utils.helpers import escape_markdown, mention_html
-from telegram.error import BadRequest
-from contextlib import redirect_stdout
 from cowsay import cow
+from telegram import Bot, Chat, Message, MessageEntity, ParseMode, Update
+from telegram.error import BadRequest
+from telegram.ext import CommandHandler, Filters, run_async
+from telegram.utils.helpers import escape_markdown, mention_html
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, INFOPIC
-from tg_bot.__main__ import GDPR
-from tg_bot.__main__ import STATS, USER_INFO, TOKEN
+import tg_bot.modules.helper_funcs.cas_api as cas
+from tg_bot import (BAN_STICKER, DEV_USERS, INFOPIC, OWNER_ID, SUDO_USERS,
+                    SUPPORT_USERS, WHITELIST_USERS, CallbackContext,
+                    dispatcher)
+from tg_bot.__main__ import GDPR, STATS, TOKEN, USER_INFO
 from tg_bot.modules.disable import DisableAbleCommandHandler
+from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
-from tg_bot.modules.helper_funcs.chat_status import user_admin
 
 RUN_STRINGS = (
     "Where do you think you're going?",

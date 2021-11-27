@@ -1,7 +1,7 @@
 from math import ceil
-from typing import List, Dict
+from typing import Dict, List
 
-from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
+from telegram import MAX_MESSAGE_LENGTH, Bot, InlineKeyboardButton, ParseMode
 from telegram.error import TelegramError
 
 from tg_bot import LOAD, NO_LOAD

@@ -1,18 +1,20 @@
 import html
 from typing import List, Optional
 
-from telegram import Message, Update, Bot, User, Chat, ParseMode
+from telegram import Bot, Chat, Message, ParseMode, Update, User
 from telegram.error import BadRequest, TelegramError
-from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler, Filters, MessageHandler, run_async
 from telegram.utils.helpers import mention_html
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS
-from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
-from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
+import tg_bot.modules.sql.global_kicks_sql as sql
+from tg_bot import (DEV_USERS, OWNER_ID, SUDO_USERS, SUPPORT_USERS,
+                    CallbackContext, dispatcher)
+from tg_bot.modules.helper_funcs.chat_status import is_user_admin, user_admin
+from tg_bot.modules.helper_funcs.extraction import (extract_user,
+                                                    extract_user_and_text)
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
 from tg_bot.modules.sql.users_sql import get_all_chats
-import tg_bot.modules.sql.global_kicks_sql as sql
 
 GKICK_ERRORS = {
     "User is an administrator of the chat",

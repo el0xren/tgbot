@@ -1,8 +1,8 @@
 import threading
 
-from sqlalchemy import func, distinct, Column, String, UnicodeText
+from sqlalchemy import Column, String, UnicodeText, distinct, func
 
-from tg_bot.modules.sql import SESSION, BASE
+from tg_bot.modules.sql import BASE, SESSION
 
 
 class BlackListFilters(BASE):

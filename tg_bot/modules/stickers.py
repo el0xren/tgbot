@@ -1,14 +1,13 @@
 import hashlib
 import os
+from typing import List, Optional
 
-from typing import Optional, List
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram import TelegramError
-from telegram import Update, Bot
+from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
+                      ParseMode, TelegramError, Update)
 from telegram.ext import CommandHandler, run_async
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, CallbackContext
+from tg_bot import CallbackContext, dispatcher
 from tg_bot.modules.disable import DisableAbleCommandHandler
 
 
