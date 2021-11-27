@@ -1,9 +1,9 @@
 # New chat added -> setup permissions
 import threading
 
-from sqlalchemy import Boolean, Column, String
+from sqlalchemy import Column, String, Boolean
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import SESSION, BASE
 
 
 class Permissions(BASE):

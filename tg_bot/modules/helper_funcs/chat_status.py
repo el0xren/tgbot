@@ -1,14 +1,12 @@
-from functools import wraps
-from threading import RLock
 from time import perf_counter
+from functools import wraps
+from cachetools import TTLCache
+from threading import RLock
 from typing import Optional
 
-from cachetools import TTLCache
-from telegram import Bot, Chat, ChatMember, Update, User
+from telegram import User, Chat, ChatMember, Update, Bot
 
-from tg_bot import (DEL_CMDS, DEV_USERS, SUDO_USERS, SUPPORT_CHAT,
-                    SUPPORT_USERS, WHITELIST_USERS, CallbackContext,
-                    dispatcher)
+from tg_bot import dispatcher, CallbackContext, DEL_CMDS, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10, timer=perf_counter)
 THREAD_LOCK = RLock()

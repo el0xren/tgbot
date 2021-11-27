@@ -1,11 +1,10 @@
 # Note: chat_id's are stored as strings because the int is too large to be stored in a PSQL database.
 import threading
 
-from sqlalchemy import (Boolean, Column, Integer, String, UnicodeText,
-                        distinct, func)
+from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, func, distinct
 
 from tg_bot.modules.helper_funcs.msg_types import Types
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import SESSION, BASE
 
 
 class Notes(BASE):

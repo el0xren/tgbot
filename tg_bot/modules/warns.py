@@ -1,24 +1,19 @@
 import html
 import re
-from typing import List, Optional
+from typing import Optional, List
 
 import telegram
-from telegram import (Bot, CallbackQuery, Chat, InlineKeyboardButton,
-                      InlineKeyboardMarkup, Message, ParseMode, Update, User)
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, User, CallbackQuery
+from telegram import Message, Chat, Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import (CallbackQueryHandler, CommandHandler,
-                          DispatcherHandlerStop, Filters, MessageHandler,
-                          run_async)
+from telegram.ext import CommandHandler, run_async, DispatcherHandlerStop, MessageHandler, Filters, CallbackQueryHandler
 from telegram.utils.helpers import mention_html
 
-from tg_bot import BAN_STICKER, CallbackContext, dispatcher
+from tg_bot import dispatcher, CallbackContext, BAN_STICKER
 from tg_bot.modules.disable import DisableAbleCommandHandler
-from tg_bot.modules.helper_funcs.chat_status import (bot_admin, can_delete,
-                                                     can_restrict,
-                                                     is_user_admin, user_admin,
-                                                     user_admin_no_reply)
-from tg_bot.modules.helper_funcs.extraction import (extract_text, extract_user,
-                                                    extract_user_and_text)
+from tg_bot.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin_no_reply, user_admin, \
+    can_restrict, can_delete
+from tg_bot.modules.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import split_message
 from tg_bot.modules.helper_funcs.string_handling import split_quotes

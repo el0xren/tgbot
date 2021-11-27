@@ -1,16 +1,16 @@
 from typing import Optional
 
-from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup, Message,
-                      ParseMode, Update, User)
+from telegram import Message, Update, Bot, User
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters, run_async
+from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown
 
 import tg_bot.modules.sql.rules_sql as sql
-from tg_bot import CallbackContext, dispatcher
-from tg_bot.modules.disable import DisableAbleCommandHandler
+from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.string_handling import markdown_parser
+from tg_bot.modules.disable import DisableAbleCommandHandler
 
 
 def get_rules(update: Update, context: CallbackContext):

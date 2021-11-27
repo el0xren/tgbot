@@ -1,7 +1,6 @@
-import datetime
-import json
 import urllib.request as url
-
+import json
+import datetime
 import requests
 
 VERSION = "1.3.3"

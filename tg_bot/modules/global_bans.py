@@ -1,18 +1,16 @@
 import html
 from io import BytesIO
-from typing import List, Optional
+from typing import Optional, List
 
-from telegram import Bot, Chat, Message, ParseMode, Update, User
+from telegram import Message, Update, Bot, User, Chat, ParseMode
 from telegram.error import BadRequest, TelegramError
-from telegram.ext import CommandHandler, Filters, MessageHandler, run_async
+from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_bans_sql as sql
-from tg_bot import (DEV_USERS, LOGS, OWNER_ID, STRICT_GBAN, SUDO_USERS,
-                    SUPPORT_CHAT, SUPPORT_USERS, CallbackContext, dispatcher)
-from tg_bot.modules.helper_funcs.chat_status import is_user_admin, user_admin
-from tg_bot.modules.helper_funcs.extraction import (extract_user,
-                                                    extract_user_and_text)
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN, SUPPORT_CHAT, LOGS
+from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
+from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
 from tg_bot.modules.sql.users_sql import get_user_com_chats

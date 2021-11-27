@@ -1,13 +1,13 @@
 import io
 import os
+
 import textwrap
 import traceback
 from contextlib import redirect_stdout
 
+from tg_bot import dispatcher, LOGGER, OWNER_ID
 from telegram import ParseMode, Update
-from telegram.ext import CallbackContext, CommandHandler, Filters
-
-from tg_bot import LOGGER, OWNER_ID, dispatcher
+from telegram.ext import CommandHandler, Filters, CallbackContext
 
 namespaces = {}
 

@@ -2,11 +2,11 @@ import json
 from io import BytesIO
 from typing import Optional
 
-from telegram import Bot, Chat, Message, Update
+from telegram import Message, Chat, Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, run_async
 
-from tg_bot import LOGGER, CallbackContext, dispatcher
+from tg_bot import dispatcher, CallbackContext, LOGGER
 from tg_bot.__main__ import DATA_IMPORT
 from tg_bot.modules.helper_funcs.chat_status import user_admin
 
