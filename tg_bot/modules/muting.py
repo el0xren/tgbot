@@ -41,7 +41,7 @@ def mute(update: Update, context: CallbackContext) -> str:
     member = chat.get_member(int(user_id))
 
     if member:
-        if is_user_admin(chat, user_id, member=member):
+        if is_user_admin(update, user_id, member=member):
             message.reply_text("Afraid I can't stop an admin from talking!")
 
         elif member.can_send_messages is None or member.can_send_messages:
@@ -83,7 +83,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
     member = chat.get_member(int(user_id))
 
     if member:
-        if is_user_admin(chat, user_id, member=member):
+        if is_user_admin(update, user_id, member=member):
             message.reply_text(
                 "This is an admin, what do you expect me to do?")
             return ""
@@ -142,7 +142,7 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
         else:
             raise
 
-    if is_user_admin(chat, user_id, member):
+    if is_user_admin(update, user_id, member):
         message.reply_text("I really wish I could mute admins...")
         return ""
 

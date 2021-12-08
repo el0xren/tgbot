@@ -46,12 +46,7 @@ def ban(update: Update, context: CallbackContext):
         else:
             raise
 
-    if not member.can_restrict_members and member.status != "creator" and user.id not in SUDO_USERS:
-        message.reply_text(
-            "You're missing the can_restrict_members permission.")
-        return ""
-
-    if is_user_ban_protected(chat, user_id, member):
+    if is_user_ban_protected(update, user_id, member):
         message.reply_text("I really wish I could ban admins...")
         return ""
 
@@ -120,7 +115,7 @@ def temp_ban(update: Update, context: CallbackContext):
         else:
             raise
 
-    if is_user_ban_protected(chat, user_id, member):
+    if is_user_ban_protected(update, user_id, member):
         message.reply_text("I really wish I could ban admins...")
         return ""
 
@@ -207,7 +202,7 @@ def kick(update: Update, context: CallbackContext):
         else:
             raise
 
-    if is_user_ban_protected(chat, user_id):
+    if is_user_ban_protected(update, user_id):
         message.reply_text("I really wish I could kick admins...")
         return ""
 
@@ -255,7 +250,7 @@ def kick(update: Update, context: CallbackContext):
 def kickme(update: Update, context: CallbackContext):
     bot = context.bot
     user_id = update.effective_message.from_user.id
-    if is_user_admin(update.effective_chat, user_id):
+    if is_user_admin(update, user_id):
         update.effective_message.reply_text(
             "I wish I could... but you're an admin.")
         return
@@ -275,7 +270,7 @@ def banme(update: Update, context: CallbackContext):
     user_id = update.effective_message.from_user.id
     chat = update.effective_chat
     user = update.effective_user
-    if is_user_admin(update.effective_chat, user_id):
+    if is_user_admin(update, user_id):
         update.effective_message.reply_text(
             "I wish I could... but you're an admin.")
         return
@@ -314,7 +309,7 @@ def sban(update: Update, context: CallbackContext):
         else:
             raise
 
-    if is_user_ban_protected(chat, user_id, member):
+    if is_user_ban_protected(update, user_id, member):
         return ""
 
     if user_id == bot.id:
@@ -375,7 +370,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
         message.reply_text("How would I unban myself if I wasn't here...?")
         return ""
 
-    if is_user_in_chat(chat, user_id):
+    if is_user_in_chat(update, user_id):
         message.reply_text(
             "Why are you trying to unban someone that's already in the chat?")
         return ""

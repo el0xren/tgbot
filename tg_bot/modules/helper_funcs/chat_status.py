@@ -4,25 +4,24 @@ from cachetools import TTLCache
 from threading import RLock
 from typing import Optional
 
-from telegram import User, Chat, ChatMember, Update, Bot, TelegramError
+from telegram import User, Chat, ChatMember, Update, TelegramError
 
 from tg_bot import dispatcher, CallbackContext, DEL_CMDS, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
-ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10, timer=perf_counter)
-THREAD_LOCK = RLock()
+ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
 
 
-def is_sudo_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in DEV_USERS or user_id in SUDO_USERS
 
 
-def is_support_plus(chat: Chat,
+def is_support_plus(_: Chat,
                     user_id: int,
                     member: ChatMember = None) -> bool:
     return user_id in SUPPORT_USERS or user_id in SUDO_USERS
 
 
-def is_whitelist_plus(chat: Chat,
+def is_whitelist_plus(_: Chat,
                       user_id: int,
                       member: ChatMember = None) -> bool:
     return any(user_id in user
@@ -34,7 +33,6 @@ def owner_plus(func):
     @wraps(func)
     def is_owner_plus_func(update: Update, context: CallbackContext, *args,
                            **kwargs):
-        bot = context.bot
         user = update.effective_user
 
         if user.id == OWNER_ID:
@@ -59,7 +57,6 @@ def dev_plus(func):
     @wraps(func)
     def is_dev_plus_func(update: Update, context: CallbackContext, *args,
                          **kwargs):
-        bot = context.bot
         user = update.effective_user  # type: Optional[User]
 
         if user.id in DEV_USERS:
@@ -84,7 +81,6 @@ def sudo_plus(func):
     @wraps(func)
     def is_sudo_plus_func(update: Update, context: CallbackContext, *args,
                           **kwargs):
-        bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -99,7 +95,7 @@ def sudo_plus(func):
                 pass
         else:
             update.effective_message.reply_text(
-                "Who dis non-admin telling me what to do?")
+                "This is a restricted command. You do not have permissions to run this.")
 
     return is_sudo_plus_func
 
@@ -109,7 +105,6 @@ def support_plus(func):
     @wraps(func)
     def is_support_plus_func(update: Update, context: CallbackContext, *args,
                              **kwargs):
-        bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -129,7 +124,6 @@ def whitelist_plus(func):
     @wraps(func)
     def is_whitelist_plus_func(update: Update, context: CallbackContext, *args,
                                **kwargs):
-        bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -146,8 +140,18 @@ def can_delete(chat: Chat, bot_id: int) -> bool:
     return chat.get_member(bot_id).can_delete_messages
 
 
+def user_can_delete(chat: Chat, user_id: int) -> bool:
+    mem = chat.get_member(user_id)
+    return bool(mem.can_delete_messages or mem.status == "creator" or user_id in DEV_USERS or SUDO_USERS)
+
+
 def can_change_info(chat: Chat, user: User, bot_id: int) -> bool:
     return chat.get_member(user.id).can_change_info
+
+
+def user_can_change_info(chat: Chat, user_id: int) -> bool:
+    mem = chat.get_member(user_id)
+    return bool(mem.can_change_info or mem.status == "creator" or user_id in DEV_USERS or SUDO_USERS)
 
 
 def is_user_ban_protected(chat: Chat,
@@ -165,25 +169,28 @@ def is_user_ban_protected(chat: Chat,
     return member.status in ('administrator', 'creator')
 
 
-def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bool:
+    chat = update.effective_chat
+    msg = update.effective_message
     if chat.type == 'private' \
             or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
-            or chat.all_members_are_administrators:
+            or chat.all_members_are_administrators \
+            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
+            msg.reply_to_message.sender_chat.type != "channel"):
         return True
 
     if not member:
-        with THREAD_LOCK:
-            try:
-                return user_id in ADMIN_CACHE[chat.id]
-            except KeyError:
+        try:
+            return user_id in ADMIN_CACHE[chat.id]
+        except KeyError:
                 chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
                 admin_list = [x.user.id for x in chat_admins]
                 ADMIN_CACHE[chat.id] = admin_list
 
-                return user_id in admin_list
-    else:
-        return member.status in ("administrator", "creator")
+                if user_id in admin_list:
+                    return True
+                return False
 
 
 def is_bot_admin(chat: Chat,
@@ -324,10 +331,18 @@ def user_not_admin(func):
     @wraps(func)
     def is_not_admin(update: Update, context: CallbackContext, *args,
                      **kwargs):
-        bot = context.bot
-        user = update.effective_user  # type: Optional[User]
-        if user and not is_user_admin(update.effective_chat, user.id):
+        message = update.effective_message
+        user = update.effective_user
+
+        if message.is_automatic_forward:
+            return
+        if message.sender_chat and message.sender_chat.type != "channel":
+            return
+        elif user and not is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
+
+        elif not user:
+            pass
 
     return is_not_admin
 
@@ -348,11 +363,11 @@ def user_can_restrict_no_reply(func):
                 return func(update, context, *args, **kwargs)
             elif member.status == 'administrator':
                 query.answer(
-                    "You lack the permission: `can_restrict_members` permission."
+                    "You are missing the following rights to use this command: CanRestrictUsers"
                 )
             else:
                 query.answer(
-                    "You need to be admin with `can_restrict_users` permission to do this."
+                    "You are missing the following rights to use this command: CanRestrictUsers"
                 )
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
