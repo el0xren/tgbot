@@ -5,8 +5,8 @@ from telegram import Update, ParseMode
 from telegram.ext import CallbackContext
 from telegram.chatmemberupdated import ChatMemberUpdated
 from telegram.ext.chatmemberhandler import ChatMemberHandler
-
-from tg_bot import dispatcher, GLOBALANNOUNCE
+import tg_bot.modules.sql.log_channel_sql as logsql
+from tg_bot import dispatcher
 from tg_bot.modules.log_channel import loggable
 
 import tg_bot.modules.sql.logger_sql as sql
@@ -72,7 +72,8 @@ def chatmemberupdates(update: Update,
                 elif newtitle is None:
                     if do_announce(chat):
                         update.effective_chat.send_message(
-                            f"{member_name}'s title was removed by {cause_name}.\nold title: '<code>{oldtitle}</code>'\nnew title: {newtitle}",
+                            f"{member_name}'s title was removed by {cause_name}.\nold title: '<code>{oldtitle}</code"
+                            f">'\nnew title: {newtitle}",
                             parse_mode=ParseMode.HTML,
                         )
                     log_message = (
@@ -87,7 +88,8 @@ def chatmemberupdates(update: Update,
                 else:
                     if do_announce(chat):
                         update.effective_chat.send_message(
-                            f"{member_name}'s title was changed by {cause_name}.\nold title: '<code>{oldtitle}</code>'\nnew title: '<code>{newtitle}</code>'",
+                            f"{member_name}'s title was changed by {cause_name}.\nold title: '<code>{oldtitle}</code"
+                            f">'\nnew title: '<code>{newtitle}</code>'",
                             parse_mode=ParseMode.HTML,
                         )
                     log_message = (
@@ -104,6 +106,8 @@ def chatmemberupdates(update: Update,
         oldstat = str(status.split(",")[0])
         newstat = str(status.split(",")[1])
 
+        log_setting = logsql.get_chat_setting(chat.id)
+
         if str(update.chat_member.from_user.id) == str(bot.id):
             return ''  # we handle these in their respective modules same as before
         else:
@@ -118,6 +122,10 @@ def chatmemberupdates(update: Update,
                         f"{member_name} was demoted by {cause_name}.",
                         parse_mode=ParseMode.HTML,
                     )
+
+                if not log_setting.log_action:
+                    return ""
+
                 log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                f"#ADMIN\n<b>Demoted</b>\n"
                                f"<b>Admin:</b> {cause_name}\n"
@@ -127,9 +135,13 @@ def chatmemberupdates(update: Update,
             if oldstat == "administrator" and newstat == "kicked":
                 if do_announce(chat):
                     update.effective_chat.send_message(
-                        f"{member_name} was demoted anad removed by {cause_name}.",
+                        f"{member_name} was demoted and removed by {cause_name}.",
                         parse_mode=ParseMode.HTML,
                     )
+
+                if not log_setting.log_action:
+                    return ""
+
                 log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                f"#BANNED\n"
                                f"#ADMIN\n<b>Demoted</b>\n"
@@ -138,6 +150,10 @@ def chatmemberupdates(update: Update,
                 return log_message
 
             if oldstat == "administrator" and newstat == "left":
+
+                if not log_setting.log_action:
+                    return ""
+
                 log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                f"#ADMIN\n<b>Left</b>\n"
                                f"<b>Admin:</b> {cause_name}\n"
@@ -153,6 +169,10 @@ def chatmemberupdates(update: Update,
                                 f"{member_name} was promoted by {cause_name} with the title <code>{newtitle}</code>.",
                                 parse_mode=ParseMode.HTML,
                             )
+
+                        if not log_setting.log_action:
+                            return ""
+
                         log_message = (
                             f"<b>{html.escape(chat.title)}:</b>\n"
                             f"#ADMIN\n<b>Promoted</b>\n"
@@ -167,6 +187,10 @@ def chatmemberupdates(update: Update,
                             f"{member_name} was promoted by {cause_name}.",
                             parse_mode=ParseMode.HTML,
                         )
+
+                    if not log_setting.log_action:
+                        return ""
+
                     log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                    f"#ADMIN\n<b>Promoted</b>\n"
                                    f"<b>Admin:</b> {cause_name}\n"
@@ -179,6 +203,10 @@ def chatmemberupdates(update: Update,
                         f"{member_name} was muted by {cause_name}.",
                         parse_mode=ParseMode.HTML,
                     )
+
+                if not log_setting.log_action:
+                    return ""
+
                 log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                f"#MUTED\n"
                                f"<b>Admin:</b> {cause_name}\n"
@@ -191,6 +219,10 @@ def chatmemberupdates(update: Update,
                         f"{member_name} was unmuted by {cause_name}.",
                         parse_mode=ParseMode.HTML,
                     )
+
+                if not log_setting.log_action:
+                    return ""
+
                 log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                                f"#UNMUTED\n"
                                f"<b>Admin:</b> {cause_name}\n"
@@ -208,6 +240,10 @@ def chatmemberupdates(update: Update,
                     f"{member_name} was banned by {cause_name}.",
                     parse_mode=ParseMode.HTML,
                 )
+
+            if not log_setting.log_action:
+                return ""
+
             log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                            f"#BANNED\n"
                            f"<b>Admin:</b> {cause_name}\n"
@@ -220,6 +256,10 @@ def chatmemberupdates(update: Update,
                     f"{member_name} was unbanned by {cause_name}.",
                     parse_mode=ParseMode.HTML,
                 )
+
+            if not log_setting.log_action:
+                return ""
+
             log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                            f"#UNBANNED\n"
                            f"<b>Admin:</b> {cause_name}\n"
@@ -232,6 +272,10 @@ def chatmemberupdates(update: Update,
                     f"{member_name} was unbanned and added by {cause_name}.",
                     parse_mode=ParseMode.HTML,
                 )
+
+            if not log_setting.log_action:
+                return ""
+
             log_message = (f"<b>{html.escape(chat.title)}:</b>\n"
                            f"#UNBANNED\n"
                            f"#WELCOME\n"
@@ -241,6 +285,10 @@ def chatmemberupdates(update: Update,
 
         if oldstat == ("left" or "kicked") and newstat == "member":
             if member_name == cause_name:
+
+                if not log_setting.log_joins:
+                    return ""
+
                 log_message = (
                     f"<b>{html.escape(chat.title)}:</b>\n"
                     f"#WELCOME\n"
@@ -250,6 +298,9 @@ def chatmemberupdates(update: Update,
                 return log_message
 
             else:
+                if not log_setting.log_joins:
+                    return ""
+
                 log_message = (
                     f"<b>{html.escape(chat.title)}:</b>\n"
                     f"#WELCOME\n"
@@ -261,6 +312,10 @@ def chatmemberupdates(update: Update,
 
         if oldstat == ("member" or "administrator") and newstat == "left":
             if member_name == cause_name:
+
+                if not log_setting.log_leave:
+                    return ""
+
                 log_message = (
                     f"<b>{html.escape(chat.title)}:</b>\n"
                     f"#GOODBYE\n"
@@ -270,6 +325,10 @@ def chatmemberupdates(update: Update,
                 return log_message
 
             else:
+
+                if not log_setting.log_leave:
+                    return ""
+
                 log_message = (
                     f"<b>{html.escape(chat.title)}:</b>\n"
                     f"#REMOVED\n"
