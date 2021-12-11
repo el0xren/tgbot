@@ -16,6 +16,7 @@ from tg_bot.modules.helper_funcs.chat_status import can_delete, is_user_admin, u
     bot_can_delete, is_bot_admin
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql import users_sql
+from tg_bot.modules.helper_funcs.filters import CustomFilters
 
 LOCK_TYPES = {'sticker': Filters.sticker,
               'audio': Filters.audio,
@@ -31,6 +32,7 @@ LOCK_TYPES = {'sticker': Filters.sticker,
               'forward': Filters.forwarded,
               'game': Filters.game,
               'location': Filters.location,
+              'anonchannel': CustomFilters.is_anon_channel
               }
 
 GIF = Filters.animation
@@ -54,9 +56,15 @@ class CustomCommandHandler(tg.CommandHandler):
         super().__init__(command, callback, **kwargs)
 
     def check_update(self, update):
-        return super().check_update(update) and not (
+        if super().check_update(update) and not (
                 sql.is_restr_locked(update.effective_chat.id, 'messages') and not is_user_admin(update.effective_chat,
-                                                                                                update.effective_user.id))
+                                                                                                update.effective_user.id)):
+            args = update.effective_message.text.split()[1:]
+            filter_result = self.filters(update)
+            if filter_result:
+                return args, filter_result
+            else:
+                return False
 
 
 CommandHandler = CustomCommandHandler
@@ -71,10 +79,11 @@ def restr_members(bot, chat_id, members, messages=False, media=False, other=Fals
             pass
         try:
             bot.restrict_chat_member(chat_id, mem.user,
+                                     permissions=ChatPermissions(
                                      can_send_messages=messages,
                                      can_send_media_messages=media,
                                      can_send_other_messages=other,
-                                     can_add_web_page_previews=previews)
+                                     can_add_web_page_previews=previews))
         except TelegramError:
             pass
 
@@ -122,6 +131,17 @@ def lock(update: Update, context: CallbackContext) -> str:
                 if args[0] == "previews":
                     members = users_sql.get_chat_members(str(chat.id))
                     restr_members(bot, chat.id, members, messages=True, media=True, other=True)
+                    bot.restrict_chat_member(chat.id, int(777000), permissions=ChatPermissions(
+                                     can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_add_web_page_previews=True))
+
+                    bot.restrict_chat_member(chat.id, int(1087968824), permissions=ChatPermissions(
+                                     can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_add_web_page_previews=True))
 
                 message.reply_text("Locked {} for all non-admins!".format(args[0]))
                 return "<b>{}:</b>" \
@@ -265,9 +285,10 @@ def build_lock_message(chat_id):
                    "\n - bots = `{}`" \
                    "\n - forward = `{}`" \
                    "\n - game = `{}`" \
-                   "\n - location = `{}`".format(locks.sticker, locks.audio, locks.voice, locks.document,
+                   "\n - location = `{}`" \
+                   "\n - anonchannel = `{}`".format(locks.sticker, locks.audio, locks.voice, locks.document,
                                                  locks.video, locks.videonote, locks.contact, locks.photo, locks.gif, locks.url,
-                                                 locks.bots, locks.forward, locks.game, locks.location)
+                                                 locks.bots, locks.forward, locks.game, locks.location, locks.anonchannel)
         if restr:
             res += "\n - messages = `{}`" \
                    "\n - media = `{}`" \

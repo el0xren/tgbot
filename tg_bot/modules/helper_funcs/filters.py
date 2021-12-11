@@ -38,3 +38,11 @@ class CustomFilters(object):
             return bool(message.text or message.sticker or message.photo or message.document or message.video)
 
     has_text = _HasText()
+
+    class _IsAnonChannel(MessageFilter):
+            def filter(self, message: Message):
+                if (message.from_user and message.from_user.id == 136817688 ):
+                    return True
+                return False
+    
+    is_anon_channel = _IsAnonChannel()
