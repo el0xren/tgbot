@@ -68,6 +68,7 @@ if ENV:
     INFOPIC = bool(os.environ.get("INFOPIC", False))
     START_STICKER = os.environ.get('START_STICKER', 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE')
     LOGS = os.environ.get('LOGS', None)
+    BACKUP_PASS = os.environ.get("BACKUP_PASS", True)
 
 else:
     from tg_bot.config import Development as Config
@@ -102,6 +103,7 @@ else:
     CERT_PATH = Config.CERT_PATH
 
     DB_URI = Config.SQLALCHEMY_DATABASE_URI
+    DB_NAME = Config.DB_NAME
     LOAD = Config.LOAD
     NO_LOAD = Config.NO_LOAD
     DEL_CMDS = Config.DEL_CMDS
@@ -114,6 +116,7 @@ else:
     INFOPIC = Config.INFOPIC
     START_STICKER = Config.START_STICKER
     LOGS = Config.LOGS
+    BACKUP_PASS = Config.BACKUP_PASS
     IGNORE_PENDING_REQUESTS = Config.IGNORE_PENDING_REQUESTS
 
 

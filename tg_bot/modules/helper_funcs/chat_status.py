@@ -6,7 +6,7 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from tg_bot import dispatcher, CallbackContext, DEL_CMDS, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
+from tg_bot import dispatcher, CallbackContext, DEL_CMDS, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10, timer=perf_counter)
 THREAD_LOCK = RLock()

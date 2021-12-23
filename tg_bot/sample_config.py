@@ -19,6 +19,7 @@ class Config(object):
 
     # RECOMMENDED
     SQLALCHEMY_DATABASE_URI = 'sqldbtype://username:pw@hostname:port/db_name'  # needed for any database modules
+    DB_NAME = "databasename"  # needed for cron_jobs module, use same databasename from SQLALCHEMY_DATABASE_URI
     MESSAGE_DUMP = None  # needed to make sure 'save from' messages persist
     LOAD = []
     # sed has been disabled after the discovery that certain long-running sed commands maxed out cpu usage
@@ -44,6 +45,7 @@ class Config(object):
     INFOPIC = False
     START_STICKER = 'CAACAgIAAx0CWFZqDQABBkpeYT4ykmRFN7qjtrzCH4-EYzGVkGwAAmIAA3_0Mxx8ZiETK_KDeiAE'
     LOGS = None
+    BACKUP_PASS = "12345" # The password used for the cron backups zip
     IGNORE_PENDING_REQUESTS = False
 
 
