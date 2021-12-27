@@ -24,6 +24,27 @@ def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bo
     return any(user_id in user for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS])
 
 
+def owner_plus(func):
+    @wraps(func)
+    def is_owner_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+
+        if user.id == OWNER_ID:
+            return func(update, context, *args, **kwargs)
+        elif not user:
+            pass
+        elif DEL_CMDS and " " not in update.effective_message.text:
+            try:
+                update.effective_message.delete()
+            except:
+                pass
+        else:
+            update.effective_message.reply_text("This is a restricted command. You do not have permissions to run this.")
+
+    return is_owner_plus_func
+
+
 def dev_plus(func):
     @wraps(func)
     def is_dev_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
