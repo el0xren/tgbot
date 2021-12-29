@@ -256,8 +256,24 @@ def info(update: Update, context: CallbackContext):
     if user_id and int(user_id) != 777000 and int(user_id) != 1087968824:
         user = bot.get_chat(user_id)
 
+    elif user_id and int(user_id) == 777000:
+        msg.reply_text(
+            "This is Telegram. Unless you manually entered this reserved account's ID, it is likely a old broadcast from a linked channel."
+        )
+        return
+
+    elif user_id and int(user_id) == 1087968824:
+        msg.reply_text(
+            "This is Group Anonymous Bot. Unless you manually entered this reserved account's ID, it is likely a broadcast from a linked channel or anonymously sent message."
+        )
+        return
+
     elif not msg.reply_to_message and not args:
-        user = msg.from_user
+        user = (
+            msg.sender_chat
+            if msg.sender_chat is not None
+            else msg.from_user
+        )
 
     elif not msg.reply_to_message and (not args or (
             len(args) >= 1 and not args[0].startswith("@") and not args[0].isdigit() and not msg.parse_entities(
@@ -268,56 +284,84 @@ def info(update: Update, context: CallbackContext):
     else:
         return
 
-    text = "<b>User info</b>:" \
-           "\n  <b>ID</b>: <code>{}</code>" \
-           "\n  <b>First Name</b>: {}".format(user.id, user.first_name or user.title)
-
-    text += "\n  <b>Lastname</b>: {}".format(html.escape(user.last_name or "null"))
-
-    if user.username:
-        text += "\n  <b>Username</b>: @{}".format(html.escape(user.username))
-
-    try:
-        text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count or "??")
-    except BadRequest:
-        pass
-
-    text += "\n  <b>User link</b>: {}".format(mention_html(user.id, 'here'))
-
-    result = cas.banchecker(user.id)
-    #text += str(result)
-    if result == False:
-        pass
-    else:
-        text += "\n  <b>CAS Banned</b>: True"
-
-    if INFOPIC:
-        try:
-            profile = context.bot.get_user_profile_photos(user.id).photos[0][-1]
-            _file = bot.get_file(profile["file_id"])
-            _file.download(f"{user.id}.png")
-
-            msg.reply_document(
-                document=open(f"{user.id}.png", "rb"),
-                caption=(text),
-                parse_mode=ParseMode.HTML,
-            )
-
-            os.remove(f"{user.id}.png")
-        # Incase user don't have profile pic, send normal text
-        except IndexError:
-            msg.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
-        except BadRequest:
-            msg.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
-
-    else:
-        msg.reply_text(
-            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+    if hasattr(user, 'type') and user.type != "private":
+        text = (
+            f"<b>Chat info: </b>"
+            f"\n  <b>ID</b>: <code>{user.id}</code>"
+            f"\n  <b>Title</b>: {user.title}"
         )
+
+        if user.username:
+            text += f"\n  <b>Username</b>: @{html.escape(user.username)}"
+            text += f"\n  <b>Chat Type</b>: {user.type.capitalize()}"
+        
+        if INFOPIC:
+            try:
+                profile = bot.getChat(user.id).photo
+                _file = bot.get_file(profile["big_file_id"])
+                _file.download(f"{user.id}.png")
+
+                msg.reply_document(
+                    document=open(f"{user.id}.png", "rb"),
+                    caption=(text),
+                    parse_mode=ParseMode.HTML,
+                )
+
+                os.remove(f"{user.id}.png")
+            # Incase chat don't have profile pic, send normal text
+            except:
+                msg.reply_text(
+                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+                )
+
+        else:
+            msg.reply_text(
+                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            )
+    else:
+        text = "<b>User info</b>:" \
+               "\n  <b>ID</b>: <code>{}</code>" \
+               "\n  <b>First Name</b>: {}".format(user.id, user.first_name or user.title)
+
+        text += "\n  <b>Lastname</b>: {}".format(html.escape(user.last_name or "null"))
+
+        if user.username:
+            text += "\n  <b>Username</b>: @{}".format(html.escape(user.username))
+
+        try:
+            text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count or "??")
+        except BadRequest:
+            pass
+
+        text += "\n  <b>User link</b>: {}".format(mention_html(user.id, 'here'))
+
+        if INFOPIC:
+            try:
+                profile = context.bot.get_user_profile_photos(user.id).photos[0][-1]
+                _file = bot.get_file(profile["file_id"])
+                _file.download(f"{user.id}.png")
+
+                msg.reply_document(
+                    document=open(f"{user.id}.png", "rb"),
+                    caption=(text),
+                    parse_mode=ParseMode.HTML,
+                )
+
+                os.remove(f"{user.id}.png")
+            # Incase user don't have profile pic, send normal text
+            except IndexError:
+                msg.reply_text(
+                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+                )
+            except BadRequest:
+                msg.reply_text(
+                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+                )
+
+        else:
+            msg.reply_text(
+                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            )
 
 
 def getuser(update: Update, context: CallbackContext):
