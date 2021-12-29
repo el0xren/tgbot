@@ -270,14 +270,17 @@ def info(update: Update, context: CallbackContext):
 
     text = "<b>User info</b>:" \
            "\n  <b>ID</b>: <code>{}</code>" \
-           "\n  <b>First Name</b>: {}".format(user.id, user.first_name)
+           "\n  <b>First Name</b>: {}".format(user.id, user.first_name or user.title)
 
     text += "\n  <b>Lastname</b>: {}".format(html.escape(user.last_name or "null"))
 
     if user.username:
         text += "\n  <b>Username</b>: @{}".format(html.escape(user.username))
 
-    text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count)
+    try:
+        text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count or "??")
+    except BadRequest:
+        pass
 
     text += "\n  <b>User link</b>: {}".format(mention_html(user.id, 'here'))
 
@@ -286,7 +289,7 @@ def info(update: Update, context: CallbackContext):
     if result == False:
         pass
     else:
-        text += "\n  <b>CAS Banned<b>: True"
+        text += "\n  <b>CAS Banned</b>: True"
 
     if INFOPIC:
         try:
@@ -303,6 +306,10 @@ def info(update: Update, context: CallbackContext):
             os.remove(f"{user.id}.png")
         # Incase user don't have profile pic, send normal text
         except IndexError:
+            msg.reply_text(
+                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            )
+        except BadRequest:
             msg.reply_text(
                 text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
             )
