@@ -133,17 +133,16 @@ def save(update: Update, context: CallbackContext):
     bot = context.bot
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
-
+    m = msg.text.split(' ', 1)
+    if len(m) == 1:
+        msg.reply_text("Provide something to save.")
+        return
     note_name, text, data_type, content, buttons = get_note_type(msg)
-
+    note_name = note_name.lower()
     if data_type is None:
         msg.reply_text("Dude, there's no note")
         return
     
-    if len(text.strip()) == 0:
-        text = note_name
-    
-    note_name = note_name.lower()
     sql.add_note_to_db(chat_id, note_name, text, data_type, buttons=buttons, file=content)
 
     msg.reply_text(
