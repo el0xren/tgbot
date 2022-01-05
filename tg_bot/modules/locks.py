@@ -131,13 +131,13 @@ def lock(update: Update, context: CallbackContext) -> str:
                 if args[0] == "previews":
                     members = users_sql.get_chat_members(str(chat.id))
                     restr_members(bot, chat.id, members, messages=True, media=True, other=True)
-                    bot.restrict_chat_member(chat.id, int(777000), permissions=ChatPermissions(
+                    context.bot.restrict_chat_member(chat.id, int(777000), permissions=ChatPermissions(
                                      can_send_messages=True,
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
                                      can_add_web_page_previews=True))
 
-                    bot.restrict_chat_member(chat.id, int(1087968824), permissions=ChatPermissions(
+                    context.bot.restrict_chat_member(chat.id, int(1087968824), permissions=ChatPermissions(
                                      can_send_messages=True,
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
