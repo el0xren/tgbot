@@ -11,7 +11,7 @@ if is_module_loaded(FILENAME):
     from telegram.ext import CommandHandler, run_async, JobQueue
     from telegram.utils.helpers import escape_markdown
 
-    from tg_bot import dispatcher, CallbackContext, LOGGER, LOGS
+    from tg_bot import dispatcher, CallbackContext, LOGGER, LOGS, OWNER_ID
     from tg_bot.modules.helper_funcs.chat_status import user_admin
     from tg_bot.modules.sql import log_channel_sql as sql
 
@@ -54,7 +54,7 @@ if is_module_loaded(FILENAME):
                     result += "\n<b>Link:</b> " \
                               "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username,
                                                                                            message.message_id)
-                log_chat = str(LOGS)
+                log_chat = GBAN_LOGS or OWNER_ID
                 if log_chat:
                     send_log(context, log_chat, chat.id, result)
             elif result == "":
