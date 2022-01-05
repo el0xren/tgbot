@@ -11,7 +11,7 @@ from telegram.utils.helpers import escape_markdown, mention_html
 
 from tg_bot import dispatcher, CallbackContext, SUDO_USERS
 from tg_bot.modules.disable import DisableAbleCommandHandler
-from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info, ADMIN_CACHE
+from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin, can_change_info
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.log_channel import loggable
 
@@ -67,11 +67,6 @@ def promote(update: Update, context: CallbackContext) -> str:
             #can_promote_members=bot_member.can_promote_members)
             can_manage_voice_chats=bot_member.can_manage_voice_chats)
         message.reply_text("Successfully promoted!")
-        # refresh admin cache
-        try:
-            ADMIN_CACHE.pop(update.effective_chat.id)
-        except KeyError:
-            pass
         return "<b>{}:</b>" \
                "\n#PROMOTED" \
                "\n<b>Admin:</b> {}" \
@@ -134,11 +129,6 @@ def demote(update: Update, context: CallbackContext) -> str:
                               can_promote_members=False,
                               can_manage_voice_chats=False)
         message.reply_text("Successfully demoted!")
-        # refresh admin cache
-        try:
-            ADMIN_CACHE.pop(update.effective_chat.id)
-        except KeyError:
-            pass
         return "<b>{}:</b>" \
                "\n#DEMOTED" \
                "\n<b>Admin:</b> {}" \
@@ -510,16 +500,6 @@ def adminlist(update: Update, context: CallbackContext):
 
     update.effective_message.reply_text(text + admins,
                                         parse_mode=ParseMode.HTML)
-
-
-@user_admin
-def refresh_admin(update, _):
-    try:
-        ADMIN_CACHE.pop(update.effective_chat.id)
-    except KeyError:
-        pass
-
-    update.effective_message.reply_text("Admins cache refreshed!")
 
 
 def __chat_settings__(chat_id, user_id):
