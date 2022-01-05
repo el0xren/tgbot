@@ -6,7 +6,7 @@ from telegram.ext import CallbackContext
 from telegram.chatmemberupdated import ChatMemberUpdated
 from telegram.ext.chatmemberhandler import ChatMemberHandler
 import tg_bot.modules.sql.log_channel_sql as logsql
-from tg_bot import dispatcher
+from tg_bot import dispatcher, OWNER_ID
 from tg_bot.modules.log_channel import loggable
 
 import tg_bot.modules.sql.logger_sql as sql
@@ -41,9 +41,10 @@ def chatmemberupdates(update: Update,
     message = update.effective_message
     log_setting = logsql.get_chat_setting(chat.id)
     if not log_setting:
-        logsql.set_chat_setting(logsql.LogChannelSettings(chat.id, True, True, True, True, True))
+        logsql.set_chat_setting(
+            logsql.LogChannelSettings(chat.id, True, True, True, True, True))
         log_setting = logsql.get_chat_setting(chat.id)
-        
+
     result = extract_status_change(update.chat_member)
     status_change, title_change = result
 
@@ -341,7 +342,36 @@ def chatmemberupdates(update: Update,
                 return log_message
 
 
-dispatcher.add_handler(
-    ChatMemberHandler(chatmemberupdates,
-                      ChatMemberHandler.CHAT_MEMBER,
-                      run_async=True))
+def mychatmemberupdates(update: Update, _: CallbackContext):
+    result = extract_status_change(update.my_chat_member)
+    status_change, _1 = result
+    chat = update.effective_chat
+    chatname = chatname = chat.title or chat.first_name or 'None'
+    cause_name = update.effective_user.mention_html(
+    ) if update.effective_user else "Unknown"
+    if status_change is not None:
+        status = ','.join(status_change)
+        oldstat = str(status.split(",")[0])
+        newstat = str(status.split(",")[1])
+        if oldstat == ("left" or "kicked") and newstat == ("member"
+                                                           or "administrator"):
+            new_group = (
+                f"<b>{html.escape(chat.title) or chat.first_name or chat.id}:</b>\n"
+                f"#NEW_CHAT\n"
+                f"<b>Chat:</b> {chatname}\n"
+                f"<b>Added by:</b> {cause_name or 'none'}\n"
+                f"<b>ID</b>: <code>{update.effective_user.id}</code>\n"
+                f"<b>Chat ID</b>: <code>{update.effective_chat.id}</code>")
+            dispatcher.bot.send_message(OWNER_ID,
+                                        new_group,
+                                        parse_mode=ParseMode.HTML)
+
+
+dispatcher.add_handler(ChatMemberHandler(chatmemberupdates,
+                                         ChatMemberHandler.CHAT_MEMBER,
+                                         run_async=True),
+                       group=-21)
+dispatcher.add_handler(ChatMemberHandler(mychatmemberupdates,
+                                         ChatMemberHandler.MY_CHAT_MEMBER,
+                                         run_async=True),
+                       group=-20)
