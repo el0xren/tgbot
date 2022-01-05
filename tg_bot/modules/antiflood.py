@@ -1,5 +1,5 @@
 import html
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from telegram import Message, Chat, Update, Bot, User
 from telegram.error import BadRequest
@@ -13,6 +13,10 @@ from tg_bot.modules.sql import antiflood_sql as sql
 from tg_bot.modules.sql.approve_sql import is_approved
 
 FLOOD_GROUP = 3
+
+
+def mention_html_chat(chat_id: Union[int, str], name: str) -> str:
+    return f'<a href="tg://t.me/{chat_id}">{html.escape(name)}</a>'
 
 
 @loggable
