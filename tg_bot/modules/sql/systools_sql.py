@@ -3,6 +3,7 @@ from threading import Lock
 
 
 class SpeedtestResult:
+
     def __init__(self):
         self.date: datetime = None
         self.download: str = None
@@ -14,5 +15,6 @@ class SpeedtestResult:
             self.date: datetime = date
             self.download: str = download
             self.upload: str = upload
+
 
 last_speedtest = SpeedtestResult()

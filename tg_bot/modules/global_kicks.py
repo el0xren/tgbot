@@ -49,10 +49,12 @@ def gkick(update: Update, context: CallbackContext):
         if excp.message in GKICK_ERRORS:
             pass
         else:
-            message.reply_text("User cannot be Globally kicked because: {}".format(excp.message))
+            message.reply_text(
+                "User cannot be Globally kicked because: {}".format(
+                    excp.message))
             return
     except TelegramError:
-            pass
+        pass
 
     if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
         message.reply_text("You do not seems to be referring to a user")
@@ -62,32 +64,38 @@ def gkick(update: Update, context: CallbackContext):
         message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) == OWNER_ID:
-            message.reply_text("Wow! Someone's so noob that he want to gkick my owner! *Grabs Potato Chips*")
-            return
+        message.reply_text(
+            "Wow! Someone's so noob that he want to gkick my owner! *Grabs Potato Chips*"
+        )
+        return
 
     if user_id == sender_id:
         message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) in DEV_USERS:
-            message.reply_text("OOOF! Try again later XoXo >.<")
-            return
+        message.reply_text("OOOF! Try again later XoXo >.<")
+        return
 
     if user_id == sender_id:
         message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) in SUDO_USERS:
-            message.reply_text("I spy, with my little eye... a sudo user war! Why are you guys turning on each other?")
-            return
+        message.reply_text(
+            "I spy, with my little eye... a sudo user war! Why are you guys turning on each other?"
+        )
+        return
 
     if user_id == sender_id:
         message.reply_text("No. You're not going to gkick yourself.")
         return
     elif int(user_id) in SUPPORT_USERS:
-            message.reply_text("OOOH someone's trying to gkick a support user! *grabs popcorn*")
-            return
+        message.reply_text(
+            "OOOH someone's trying to gkick a support user! *grabs popcorn*")
+        return
 
     if user_id == bot.id:
-        message.reply_text("-_- So funny, lets gkick myself why don't I? Nice try.")
+        message.reply_text(
+            "-_- So funny, lets gkick myself why don't I? Nice try.")
         return
 
     message.reply_text("*Snaps with fingers* 😉")
@@ -105,15 +113,19 @@ def gkick(update: Update, context: CallbackContext):
                                                                     user_chat.id),
                 html=True)
 
-    message.reply_text("Done! Gkicked.\n<b>ID:</b> <code>{}</code>".format(user_id), parse_mode=ParseMode.HTML)
+    message.reply_text(
+        "Done! Gkicked.\n<b>ID:</b> <code>{}</code>".format(user_id),
+        parse_mode=ParseMode.HTML)
     for chat in chats:
         try:
-             bot.unban_chat_member(chat.chat_id, user_id)
+            bot.unban_chat_member(chat.chat_id, user_id)
         except BadRequest as excp:
             if excp.message in GKICK_ERRORS:
                 pass
             else:
-                message.reply_text("User cannot be Globally kicked because: {}".format(excp.message))
+                message.reply_text(
+                    "User cannot be Globally kicked because: {}".format(
+                        excp.message))
                 return
         except TelegramError:
             pass
@@ -193,17 +205,30 @@ def __user_info__(user_id):
     times = sql.get_times(user_id)
 
     text = "<b>Globally Kicked</b>: {}"
-    if times!=0:
-        text = text.format("<code>Yes</code> (Times: <code>{}</code>)".format(times))
+    if times != 0:
+        text = text.format(
+            "<code>Yes</code> (Times: <code>{}</code>)".format(times))
     else:
         text = text.format("<code>No</code>")
 
     return text
 
 
-GKICK_HANDLER = CommandHandler("gkick", gkick, run_async=True, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
-SET_HANDLER = CommandHandler("gkickset", gkickset, run_async=True, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
-RESET_HANDLER = CommandHandler("gkickreset", gkickreset, run_async=True, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
+GKICK_HANDLER = CommandHandler("gkick",
+                               gkick,
+                               run_async=True,
+                               filters=CustomFilters.sudo_filter
+                               | CustomFilters.support_filter)
+SET_HANDLER = CommandHandler("gkickset",
+                             gkickset,
+                             run_async=True,
+                             filters=CustomFilters.sudo_filter
+                             | CustomFilters.support_filter)
+RESET_HANDLER = CommandHandler("gkickreset",
+                               gkickreset,
+                               run_async=True,
+                               filters=CustomFilters.sudo_filter
+                               | CustomFilters.support_filter)
 
 dispatcher.add_handler(GKICK_HANDLER)
 dispatcher.add_handler(SET_HANDLER)

@@ -29,7 +29,8 @@ def promote(update: Update, context: CallbackContext) -> str:
     user = update.effective_user  # type: Optional[User]
     promoter = chat.get_member(user.id)
 
-    if (not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS):
+    if (not (promoter.can_promote_members or promoter.status == "creator")
+            and not user.id in SUDO_USERS):
         message.reply_text("You don't have enough permissions!")
         return ""
 
@@ -40,27 +41,31 @@ def promote(update: Update, context: CallbackContext) -> str:
 
     user_member = chat.get_member(user_id)
     if user_member.status == 'administrator' or user_member.status == 'creator':
-        message.reply_text("How am I meant to promote someone that's already an admin?")
+        message.reply_text(
+            "How am I meant to promote someone that's already an admin?")
         return ""
 
     if user_id == bot.id:
-        message.reply_text("I can't promote myself! Get an admin to do it for me.")
+        message.reply_text(
+            "I can't promote myself! Get an admin to do it for me.")
         return ""
 
     # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chat.get_member(bot.id)
 
     try:
-        bot.promoteChatMember(chat_id, user_id,
-                              can_change_info=bot_member.can_change_info,
-                              can_post_messages=bot_member.can_post_messages,
-                              can_edit_messages=bot_member.can_edit_messages,
-                              can_delete_messages=bot_member.can_delete_messages,
-                              can_invite_users=bot_member.can_invite_users,
-                              can_restrict_members=bot_member.can_restrict_members,
-                              can_pin_messages=bot_member.can_pin_messages,
-                              #can_promote_members=bot_member.can_promote_members)
-                              can_manage_voice_chats=bot_member.can_manage_voice_chats)
+        bot.promoteChatMember(
+            chat_id,
+            user_id,
+            can_change_info=bot_member.can_change_info,
+            can_post_messages=bot_member.can_post_messages,
+            can_edit_messages=bot_member.can_edit_messages,
+            can_delete_messages=bot_member.can_delete_messages,
+            can_invite_users=bot_member.can_invite_users,
+            can_restrict_members=bot_member.can_restrict_members,
+            can_pin_messages=bot_member.can_pin_messages,
+            #can_promote_members=bot_member.can_promote_members)
+            can_manage_voice_chats=bot_member.can_manage_voice_chats)
         message.reply_text("Successfully promoted!")
         # refresh admin cache
         try:
@@ -74,7 +79,9 @@ def promote(update: Update, context: CallbackContext) -> str:
                                           mention_html(user.id, user.first_name),
                                           mention_html(user_member.user.id, user_member.user.first_name))
     except BadRequest:
-        return message.reply_text("Could not promote. I am not an admin, promote me first then i can promote others.")
+        return message.reply_text(
+            "Could not promote. I am not an admin, promote me first then i can promote others."
+        )
 
 
 @bot_admin
@@ -89,7 +96,8 @@ def demote(update: Update, context: CallbackContext) -> str:
     user = update.effective_user  # type: Optional[User]
     demoter = chat.get_member(user.id)
 
-    if (not (demoter.can_promote_members or demoter.status == "creator") and user.id not in SUDO_USERS):
+    if (not (demoter.can_promote_members or demoter.status == "creator")
+            and user.id not in SUDO_USERS):
         message.reply_text("You don't have the necessary rights to do that!")
         return
 
@@ -100,7 +108,8 @@ def demote(update: Update, context: CallbackContext) -> str:
 
     user_member = chat.get_member(user_id)
     if user_member.status == 'creator':
-        message.reply_text("This person CREATED the chat, how would I demote them?")
+        message.reply_text(
+            "This person CREATED the chat, how would I demote them?")
         return ""
 
     if not user_member.status == 'administrator':
@@ -108,11 +117,13 @@ def demote(update: Update, context: CallbackContext) -> str:
         return ""
 
     if user_id == bot.id:
-        message.reply_text("I can't demote myself! Get an admin to do it for me.")
+        message.reply_text(
+            "I can't demote myself! Get an admin to do it for me.")
         return ""
 
     try:
-        bot.promoteChatMember(int(chat.id), int(user_id),
+        bot.promoteChatMember(int(chat.id),
+                              int(user_id),
                               can_change_info=False,
                               can_post_messages=False,
                               can_edit_messages=False,
@@ -136,8 +147,9 @@ def demote(update: Update, context: CallbackContext) -> str:
                                           mention_html(user_member.user.id, user_member.user.first_name))
 
     except BadRequest:
-        message.reply_text("Could not demote. I might not be admin, or the admin status was appointed by another "
-                           "user, so I can't act upon them!")
+        message.reply_text(
+            "Could not demote. I might not be admin, or the admin status was appointed by another "
+            "user, so I can't act upon them!")
         return ""
 
 
@@ -162,15 +174,21 @@ def set_title(update: Update, context: CallbackContext):
         return
 
     if user_member.status == "creator":
-        message.reply_text("This person CREATED the chat, how can i set custom title for him?")
+        message.reply_text(
+            "This person CREATED the chat, how can i set custom title for him?"
+        )
         return
 
     if user_member.status != "administrator":
-        message.reply_text("Can't set title for non-admins!\nPromote them first to set custom title!")
+        message.reply_text(
+            "Can't set title for non-admins!\nPromote them first to set custom title!"
+        )
         return
 
     if user_id == bot.id:
-        message.reply_text("I can't set my own title myself! Get the one who made me admin to do it for me.")
+        message.reply_text(
+            "I can't set my own title myself! Get the one who made me admin to do it for me."
+        )
         return
 
     if not title:
@@ -178,17 +196,23 @@ def set_title(update: Update, context: CallbackContext):
         return
 
     if len(title) > 16:
-        message.reply_text("The title length is longer than 16 characters.\nTruncating it to 16 characters.")
+        message.reply_text(
+            "The title length is longer than 16 characters.\nTruncating it to 16 characters."
+        )
 
     try:
         bot.setChatAdministratorCustomTitle(chat.id, user_id, title)
     except BadRequest:
-        message.reply_text("Either they aren't promoted by me or you set a title text that is impossible to set.")
+        message.reply_text(
+            "Either they aren't promoted by me or you set a title text that is impossible to set."
+        )
         return
 
-    bot.sendMessage(chat.id,
+    bot.sendMessage(
+        chat.id,
         f"Sucessfully set title for <code>{user_member.user.first_name or user_id}</code> "
-        f"to <code>{html.escape(title[:16])}</code>!", parse_mode=ParseMode.HTML)
+        f"to <code>{html.escape(title[:16])}</code>!",
+        parse_mode=ParseMode.HTML)
 
 
 @bot_admin
@@ -286,8 +310,7 @@ def set_sticker(update: Update, context: CallbackContext):
     if msg.reply_to_message:
         if not msg.reply_to_message.sticker:
             return msg.reply_text(
-                "You need to reply to some sticker to set chat sticker set!"
-            )
+                "You need to reply to some sticker to set chat sticker set!")
         stkr = msg.reply_to_message.sticker.set_name
         try:
             context.bot.set_chat_sticker_set(chat.id, stkr)
@@ -346,18 +369,22 @@ def pin(update: Update, context: CallbackContext) -> str:
 
     is_silent = True
     if len(args) >= 1:
-        is_silent = not (args[0].lower() == 'notify' or args[0].lower() == 'loud' or args[0].lower() == 'violent')
+        is_silent = not (args[0].lower() == 'notify' or args[0].lower()
+                         == 'loud' or args[0].lower() == 'violent')
 
     message = update.effective_message
     pinner = chat.get_member(user.id)
 
-    if (not (pinner.can_pin_messages or pinner.status == "creator") and user.id not in SUDO_USERS):
+    if (not (pinner.can_pin_messages or pinner.status == "creator")
+            and user.id not in SUDO_USERS):
         message.reply_text("You don't have the necessary rights to do that!")
         return
 
     if prev_message and is_group:
         try:
-            bot.pinChatMessage(chat.id, prev_message.message_id, disable_notification=is_silent)
+            bot.pinChatMessage(chat.id,
+                               prev_message.message_id,
+                               disable_notification=is_silent)
         except BadRequest as excp:
             if excp.message == "Chat_not_modified":
                 pass
@@ -381,7 +408,8 @@ def unpin(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
     unpinner = chat.get_member(user.id)
 
-    if (not (unpinner.can_pin_messages or unpinner.status == "creator") and user.id not in SUDO_USERS):
+    if (not (unpinner.can_pin_messages or unpinner.status == "creator")
+            and user.id not in SUDO_USERS):
         message.reply_text("You don't have the necessary rights to do that!")
         return
 
@@ -437,21 +465,30 @@ def invite(update: Update, context: CallbackContext):
             invitelink = bot.exportChatInviteLink(chat.id)
             update.effective_message.reply_text(invitelink)
         else:
-            update.effective_message.reply_text("I don't have access to the invite link, try changing my permissions!")
+            update.effective_message.reply_text(
+                "I don't have access to the invite link, try changing my permissions!"
+            )
     else:
-        update.effective_message.reply_text("I can only give you invite links for supergroups and channels, sorry!")
+        update.effective_message.reply_text(
+            "I can only give you invite links for supergroups and channels, sorry!"
+        )
 
 
 @user_admin
 def adminlist(update: Update, context: CallbackContext):
     bot = context.bot
     administrators = update.effective_chat.get_administrators()
-    text = "Admins in <b>{}</b>".format(update.effective_chat.title or "this chat")
+    text = "Admins in <b>{}</b>".format(update.effective_chat.title
+                                        or "this chat")
     for admin in administrators:
         user = admin.user
         status = admin.status
         if user.first_name:
-            name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
+            name = "{}".format(
+                mention_html(
+                    user.id,
+                    html.escape(user.first_name + " " +
+                                (user.last_name or ""))))
         if status == "creator":
             text += "\n<b>Creator:</b>\n"
             text += "ㅤ• {} \n<b>Admins:</b>".format(name)
@@ -461,12 +498,18 @@ def adminlist(update: Update, context: CallbackContext):
         chat_id = update.effective_chat.id
         admins_count = bot.getChatAdministrators(chat_id)
         if user.first_name:
-            name = "{}".format(mention_html(user.id, html.escape(user.first_name + " " + (user.last_name or ""))))
+            name = "{}".format(
+                mention_html(
+                    user.id,
+                    html.escape(user.first_name + " " +
+                                (user.last_name or ""))))
         if status == "administrator":
             text += "\nㅤ• {}".format(name)
-            admins = "\n<b>Total Admins:</b> <code>{}</code>".format(len(admins_count))
+            admins = "\n<b>Total Admins:</b> <code>{}</code>".format(
+                len(admins_count))
 
-    update.effective_message.reply_text(text + admins, parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text(text + admins,
+                                        parse_mode=ParseMode.HTML)
 
 
 @user_admin
@@ -481,7 +524,8 @@ def refresh_admin(update, _):
 
 def __chat_settings__(chat_id, user_id):
     return "You are *admin*: `{}`".format(
-        dispatcher.bot.get_chat_member(chat_id, user_id).status in ("administrator", "creator"))
+        dispatcher.bot.get_chat_member(chat_id, user_id).status in (
+            "administrator", "creator"))
 
 
 __help__ = """
@@ -503,26 +547,65 @@ __help__ = """
 
 __mod_name__ = "Admin"
 
+PIN_HANDLER = CommandHandler("pin",
+                             pin,
+                             filters=Filters.chat_type.groups,
+                             run_async=True)
+UNPIN_HANDLER = CommandHandler("unpin",
+                               unpin,
+                               filters=Filters.chat_type.groups,
+                               run_async=True)
+UNPINALL_HANDLER = CommandHandler("unpinall",
+                                  unpinall,
+                                  filters=Filters.chat_type.groups,
+                                  run_async=True)
 
-PIN_HANDLER = CommandHandler("pin", pin, filters=Filters.chat_type.groups, run_async=True)
-UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.chat_type.groups, run_async=True)
-UNPINALL_HANDLER = CommandHandler("unpinall", unpinall, filters=Filters.chat_type.groups, run_async=True)
+INVITE_HANDLER = CommandHandler(["invitelink", "link"],
+                                invite,
+                                filters=Filters.chat_type.groups,
+                                run_async=True)
 
-INVITE_HANDLER = CommandHandler(["invitelink", "link"], invite, filters=Filters.chat_type.groups, run_async=True)
+PROMOTE_HANDLER = CommandHandler("promote",
+                                 promote,
+                                 filters=Filters.chat_type.groups,
+                                 run_async=True)
+DEMOTE_HANDLER = CommandHandler("demote",
+                                demote,
+                                filters=Filters.chat_type.groups,
+                                run_async=True)
 
-PROMOTE_HANDLER = CommandHandler("promote", promote, filters=Filters.chat_type.groups, run_async=True)
-DEMOTE_HANDLER = CommandHandler("demote", demote, filters=Filters.chat_type.groups, run_async=True)
+ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"],
+                                              adminlist,
+                                              filters=Filters.chat_type.groups,
+                                              run_async=True)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "staff"], adminlist, filters=Filters.chat_type.groups, run_async=True)
+SET_TITLE_HANDLER = CommandHandler(["title", "settitle"],
+                                   set_title,
+                                   run_async=True)
+CHAT_PIC_HANDLER = CommandHandler("setgpic",
+                                  setchatpic,
+                                  filters=Filters.chat_type.groups,
+                                  run_async=True)
+DEL_CHAT_PIC_HANDLER = CommandHandler("delgpic",
+                                      rmchatpic,
+                                      filters=Filters.chat_type.groups,
+                                      run_async=True)
+SETCHAT_TITLE_HANDLER = CommandHandler("setgtitle",
+                                       setchat_title,
+                                       filters=Filters.chat_type.groups,
+                                       run_async=True)
+SETSTICKET_HANDLER = CommandHandler("setsticker",
+                                    set_sticker,
+                                    filters=Filters.chat_type.groups,
+                                    run_async=True)
+SETDESC_HANDLER = CommandHandler("setdescription",
+                                 set_desc,
+                                 filters=Filters.chat_type.groups,
+                                 run_async=True)
 
-SET_TITLE_HANDLER = CommandHandler(["title", "settitle"], set_title, run_async=True)
-CHAT_PIC_HANDLER = CommandHandler("setgpic", setchatpic, filters=Filters.chat_type.groups, run_async=True)
-DEL_CHAT_PIC_HANDLER = CommandHandler("delgpic", rmchatpic, filters=Filters.chat_type.groups, run_async=True)
-SETCHAT_TITLE_HANDLER = CommandHandler("setgtitle", setchat_title, filters=Filters.chat_type.groups, run_async=True)
-SETSTICKET_HANDLER = CommandHandler("setsticker", set_sticker, filters=Filters.chat_type.groups, run_async=True)
-SETDESC_HANDLER = CommandHandler("setdescription", set_desc, filters=Filters.chat_type.groups, run_async=True)
-
-ADMIN_REFRESH_HANDLER = CommandHandler("admincache", refresh_admin, filters=Filters.chat_type.groups)
+ADMIN_REFRESH_HANDLER = CommandHandler("admincache",
+                                       refresh_admin,
+                                       filters=Filters.chat_type.groups)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)

@@ -21,7 +21,8 @@ def check_flood(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
-    if int(user.id) == 777000 or int(user.id) == 1087968824 or not user:  # ignore channels
+    if int(user.id) == 777000 or int(
+            user.id) == 1087968824 or not user:  # ignore channels
         return ""
 
     # ignore admins
@@ -35,8 +36,9 @@ def check_flood(update: Update, context: CallbackContext) -> str:
 
     try:
         chat.ban_member(user.id)
-        msg.reply_text("I like to leave the flooding to natural disasters. But you, you were just a "
-                       "disappointment. Get out.")
+        msg.reply_text(
+            "I like to leave the flooding to natural disasters. But you, you were just a "
+            "disappointment. Get out.")
 
         return "<b>{}:</b>" \
                "\n#BANNED" \
@@ -45,7 +47,9 @@ def check_flood(update: Update, context: CallbackContext) -> str:
                                              mention_html(user.id, user.first_name))
 
     except BadRequest:
-        msg.reply_text("I can't kick people here, give me permissions first! Until then, I'll disable antiflood.")
+        msg.reply_text(
+            "I can't kick people here, give me permissions first! Until then, I'll disable antiflood."
+        )
         sql.set_flood(chat.id, 0)
         return "<b>{}:</b>" \
                "\n#INFO" \
@@ -79,12 +83,15 @@ def set_flood(update: Update, context: CallbackContext) -> str:
                        "\nDisabled antiflood.".format(html.escape(chat.title), mention_html(user.id, user.first_name))
 
             elif amount < 3:
-                message.reply_text("Antiflood has to be either 0 (disabled), or a number bigger than 3!")
+                message.reply_text(
+                    "Antiflood has to be either 0 (disabled), or a number bigger than 3!"
+                )
                 return ""
 
             else:
                 sql.set_flood(chat.id, amount)
-                message.reply_text("Antiflood has been updated and set to {}".format(amount))
+                message.reply_text(
+                    "Antiflood has been updated and set to {}".format(amount))
                 return "<b>{}:</b>" \
                        "\n#SETFLOOD" \
                        "\n<b>Admin:</b> {}" \
@@ -92,7 +99,8 @@ def set_flood(update: Update, context: CallbackContext) -> str:
                                                                     mention_html(user.id, user.first_name), amount)
 
         else:
-            message.reply_text("Unrecognised argument - please use a number, 'off', or 'no'.")
+            message.reply_text(
+                "Unrecognised argument - please use a number, 'off', or 'no'.")
 
     return ""
 
@@ -103,10 +111,12 @@ def flood(update: Update, context: CallbackContext):
 
     limit = sql.get_flood_limit(chat.id)
     if limit == 0:
-        update.effective_message.reply_text("I'm not currently enforcing flood control!")
+        update.effective_message.reply_text(
+            "I'm not currently enforcing flood control!")
     else:
         update.effective_message.reply_text(
-            "I'm currently banning users if they send more than {} consecutive messages.".format(limit))
+            "I'm currently banning users if they send more than {} consecutive messages."
+            .format(limit))
 
 
 def __migrate__(old_chat_id, new_chat_id):
@@ -130,9 +140,19 @@ __help__ = """
 
 __mod_name__ = "AntiFlood"
 
-FLOOD_BAN_HANDLER = MessageHandler(Filters.all & ~Filters.status_update & Filters.chat_type.groups & ~Filters.update.edited_message, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, filters=Filters.chat_type.groups, run_async=True)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_BAN_HANDLER = MessageHandler(Filters.all & ~Filters.status_update
+                                   & Filters.chat_type.groups
+                                   & ~Filters.update.edited_message,
+                                   check_flood,
+                                   run_async=True)
+SET_FLOOD_HANDLER = CommandHandler("setflood",
+                                   set_flood,
+                                   filters=Filters.chat_type.groups,
+                                   run_async=True)
+FLOOD_HANDLER = CommandHandler("flood",
+                               flood,
+                               filters=Filters.chat_type.groups,
+                               run_async=True)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
 dispatcher.add_handler(SET_FLOOD_HANDLER)

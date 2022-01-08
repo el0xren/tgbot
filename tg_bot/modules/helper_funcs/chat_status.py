@@ -16,17 +16,24 @@ def is_sudo_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in DEV_USERS or user_id in SUDO_USERS
 
 
-def is_support_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_support_plus(chat: Chat,
+                    user_id: int,
+                    member: ChatMember = None) -> bool:
     return user_id in SUPPORT_USERS or user_id in SUDO_USERS
 
 
-def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
-    return any(user_id in user for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS])
+def is_whitelist_plus(chat: Chat,
+                      user_id: int,
+                      member: ChatMember = None) -> bool:
+    return any(user_id in user
+               for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS])
 
 
 def owner_plus(func):
+
     @wraps(func)
-    def is_owner_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_owner_plus_func(update: Update, context: CallbackContext, *args,
+                           **kwargs):
         bot = context.bot
         user = update.effective_user
 
@@ -40,14 +47,18 @@ def owner_plus(func):
             except:
                 pass
         else:
-            update.effective_message.reply_text("This is a restricted command. You do not have permissions to run this.")
+            update.effective_message.reply_text(
+                "This is a restricted command. You do not have permissions to run this."
+            )
 
     return is_owner_plus_func
 
 
 def dev_plus(func):
+
     @wraps(func)
-    def is_dev_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_dev_plus_func(update: Update, context: CallbackContext, *args,
+                         **kwargs):
         bot = context.bot
         user = update.effective_user  # type: Optional[User]
 
@@ -61,14 +72,18 @@ def dev_plus(func):
             except:
                 pass
         else:
-            update.effective_message.reply_text("This is a developer restricted command. You do not have permissions to run this.")
+            update.effective_message.reply_text(
+                "This is a developer restricted command. You do not have permissions to run this."
+            )
 
     return is_dev_plus_func
 
 
 def sudo_plus(func):
+
     @wraps(func)
-    def is_sudo_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_sudo_plus_func(update: Update, context: CallbackContext, *args,
+                          **kwargs):
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
@@ -83,14 +98,17 @@ def sudo_plus(func):
             except:
                 pass
         else:
-            update.effective_message.reply_text("Who dis non-admin telling me what to do?")
+            update.effective_message.reply_text(
+                "Who dis non-admin telling me what to do?")
 
     return is_sudo_plus_func
 
 
 def support_plus(func):
+
     @wraps(func)
-    def is_support_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_support_plus_func(update: Update, context: CallbackContext, *args,
+                             **kwargs):
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
@@ -107,8 +125,10 @@ def support_plus(func):
 
 
 def whitelist_plus(func):
+
     @wraps(func)
-    def is_whitelist_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_whitelist_plus_func(update: Update, context: CallbackContext, *args,
+                               **kwargs):
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
@@ -130,7 +150,9 @@ def can_change_info(chat: Chat, user: User, bot_id: int) -> bool:
     return chat.get_member(user.id).can_change_info
 
 
-def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_user_ban_protected(chat: Chat,
+                          user_id: int,
+                          member: ChatMember = None) -> bool:
     if chat.type == 'private' \
             or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
@@ -151,7 +173,7 @@ def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
         return True
 
     if not member:
-       with THREAD_LOCK:
+        with THREAD_LOCK:
             try:
                 return user_id in ADMIN_CACHE[chat.id]
             except KeyError:
@@ -164,7 +186,9 @@ def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
         return member.status in ("administrator", "creator")
 
 
-def is_bot_admin(chat: Chat, bot_id: int, bot_member: ChatMember = None) -> bool:
+def is_bot_admin(chat: Chat,
+                 bot_id: int,
+                 bot_member: ChatMember = None) -> bool:
     if chat.type == 'private' \
             or chat.all_members_are_administrators:
         return True
@@ -180,58 +204,70 @@ def is_user_in_chat(chat: Chat, user_id: int) -> bool:
 
 
 def bot_can_delete(func):
+
     @wraps(func)
-    def delete_rights(update: Update, context: CallbackContext, *args, **kwargs):
+    def delete_rights(update: Update, context: CallbackContext, *args,
+                      **kwargs):
         bot = context.bot
         if can_delete(update.effective_chat, bot.id):
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text("I can't delete messages here! "
-                                                "Make sure I'm admin and can delete other user's messages.")
+            update.effective_message.reply_text(
+                "I can't delete messages here! "
+                "Make sure I'm admin and can delete other user's messages.")
 
     return delete_rights
 
 
 def can_pin(func):
+
     @wraps(func)
     def pin_rights(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
         if update.effective_chat.get_member(bot.id).can_pin_messages:
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text("I can't pin messages here! "
-                                                "Make sure I'm admin and can pin messages.")
+            update.effective_message.reply_text(
+                "I can't pin messages here! "
+                "Make sure I'm admin and can pin messages.")
 
     return pin_rights
 
 
 def can_promote(func):
+
     @wraps(func)
-    def promote_rights(update: Update, context: CallbackContext, *args, **kwargs):
+    def promote_rights(update: Update, context: CallbackContext, *args,
+                       **kwargs):
         bot = context.bot
         if update.effective_chat.get_member(bot.id).can_promote_members:
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text("I can't promote/demote people here! "
-                                                "Make sure I'm admin and can appoint new admins.")
+            update.effective_message.reply_text(
+                "I can't promote/demote people here! "
+                "Make sure I'm admin and can appoint new admins.")
 
     return promote_rights
 
 
 def can_restrict(func):
+
     @wraps(func)
-    def promote_rights(update: Update, context: CallbackContext, *args, **kwargs):
+    def promote_rights(update: Update, context: CallbackContext, *args,
+                       **kwargs):
         bot = context.bot
         if update.effective_chat.get_member(bot.id).can_restrict_members:
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text("I can't restrict people here! "
-                                                "Make sure I'm admin and can appoint new admins.")
+            update.effective_message.reply_text(
+                "I can't restrict people here! "
+                "Make sure I'm admin and can appoint new admins.")
 
     return promote_rights
 
 
 def bot_admin(func):
+
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
@@ -244,6 +280,7 @@ def bot_admin(func):
 
 
 def user_admin(func):
+
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
@@ -258,12 +295,14 @@ def user_admin(func):
             update.effective_message.delete()
 
         else:
-            update.effective_message.reply_text("Who dis non-admin telling me what to do?")
+            update.effective_message.reply_text(
+                "Who dis non-admin telling me what to do?")
 
     return is_admin
 
 
 def user_admin_no_reply(func):
+
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
@@ -281,8 +320,10 @@ def user_admin_no_reply(func):
 
 
 def user_not_admin(func):
+
     @wraps(func)
-    def is_not_admin(update: Update, context: CallbackContext, *args, **kwargs):
+    def is_not_admin(update: Update, context: CallbackContext, *args,
+                     **kwargs):
         bot = context.bot
         user = update.effective_user  # type: Optional[User]
         if user and not is_user_admin(update.effective_chat, user.id):
@@ -292,8 +333,10 @@ def user_not_admin(func):
 
 
 def user_can_restrict_no_reply(func):
+
     @wraps(func)
-    def user_can_restrict_noreply(update: Update, context: CallbackContext, *args, **kwargs):
+    def user_can_restrict_noreply(update: Update, context: CallbackContext,
+                                  *args, **kwargs):
         bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
@@ -304,9 +347,13 @@ def user_can_restrict_no_reply(func):
             if member.can_restrict_members or member.status == "creator" or user.id in SUDO_USERS:
                 return func(update, context, *args, **kwargs)
             elif member.status == 'administrator':
-                query.answer("You lack the permission: `can_restrict_members` permission.")
+                query.answer(
+                    "You lack the permission: `can_restrict_members` permission."
+                )
             else:
-                query.answer("You need to be admin with `can_restrict_users` permission to do this.")
+                query.answer(
+                    "You need to be admin with `can_restrict_users` permission to do this."
+                )
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()

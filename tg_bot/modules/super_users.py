@@ -21,24 +21,30 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in SUDO_USERS:
         message.reply_text("This member is already sudo")
         return ""
     if user_id in SUPPORT_USERS:
-        message.reply_text("This user is already a support user. Promoting to sudo.")
+        message.reply_text(
+            "This user is already a support user. Promoting to sudo.")
         data['supports'].remove(user_id)
         SUPPORT_USERS.remove(user_id)
     if user_id in WHITELIST_USERS:
-        message.reply_text("This user is already a whitelisted user. Promoting to sudo.")
+        message.reply_text(
+            "This user is already a whitelisted user. Promoting to sudo.")
         data['whitelists'].remove(user_id)
         WHITELIST_USERS.remove(user_id)
     data['sudos'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'w') as outfile:
         json.dump(data, outfile, indent=4)
     SUDO_USERS.append(user_id)
-    update.effective_message.reply_text("Successfully promoted {} to sudo!".format(user_member.user.first_name))
+    update.effective_message.reply_text(
+        "Successfully promoted {} to sudo!".format(
+            user_member.user.first_name))
     return "<b>{}:</b>" \
            "\n#SUDO" \
            "\n<b>Admin:</b> {}" \
@@ -55,13 +61,15 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in SUDO_USERS:
         message.reply_text("Demoting to normal user")
         SUDO_USERS.remove(user_id)
         data['sudos'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+                  'w') as outfile:
             json.dump(data, outfile, indent=4)
         return "<b>{}:</b>" \
            "\n#UNSUDO" \
@@ -82,7 +90,8 @@ def addsupport(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in SUDO_USERS:
         message.reply_text("This member is a sudo user. Demoting to support.")
@@ -92,14 +101,18 @@ def addsupport(update: Update, context: CallbackContext) -> str:
         message.reply_text("This user is already a support user.")
         return ""
     if user_id in WHITELIST_USERS:
-        message.reply_text("This user is already a whitelisted user. Promoting to support.")
+        message.reply_text(
+            "This user is already a whitelisted user. Promoting to support.")
         data['whitelists'].remove(user_id)
         WHITELIST_USERS.remove(user_id)
     data['supports'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'w') as outfile:
         json.dump(data, outfile, indent=4)
     SUPPORT_USERS.append(user_id)
-    update.effective_message.reply_text("Successfully promoted {} to support!".format(user_member.user.first_name))
+    update.effective_message.reply_text(
+        "Successfully promoted {} to support!".format(
+            user_member.user.first_name))
     return "<b>{}:</b>" \
            "\n#SUPPORT" \
            "\n<b>Admin:</b> {}" \
@@ -116,13 +129,15 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in SUPPORT_USERS:
         message.reply_text("Demoting to normal user")
         SUPPORT_USERS.remove(user_id)
         data['supports'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+                  'w') as outfile:
             json.dump(data, outfile, indent=4)
         return "<b>{}:</b>" \
            "\n#UNSUPPORT" \
@@ -143,24 +158,30 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in SUDO_USERS:
-        message.reply_text("This member is a sudo user. Demoting to whitelist.")
+        message.reply_text(
+            "This member is a sudo user. Demoting to whitelist.")
         data['sudos'].remove(user_id)
         SUDO_USERS.remove(user_id)
     if user_id in SUPPORT_USERS:
-        message.reply_text("This user is already a support user. Demoting to whitelist.")
+        message.reply_text(
+            "This user is already a support user. Demoting to whitelist.")
         data['supports'].remove(user_id)
         SUPPORT_USERS.remove(user_id)
     if user_id in WHITELIST_USERS:
         message.reply_text("This user is already a whitelisted user.")
         return ""
     data['whitelists'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'w') as outfile:
         json.dump(data, outfile, indent=4)
     WHITELIST_USERS.append(user_id)
-    update.effective_message.reply_text("Successfully promoted {} to whitelist!".format(user_member.user.first_name))
+    update.effective_message.reply_text(
+        "Successfully promoted {} to whitelist!".format(
+            user_member.user.first_name))
     return "<b>{}:</b>" \
            "\n#WHITELIST" \
            "\n<b>Admin:</b> {}" \
@@ -177,13 +198,15 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'r') as infile:
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
         data = json.load(infile)
     if user_id in WHITELIST_USERS:
         message.reply_text("Demoting to normal user")
         WHITELIST_USERS.remove(user_id)
         data['whitelists'].remove(user_id)
-        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()), 'w') as outfile:
+        with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+                  'w') as outfile:
             json.dump(data, outfile, indent=4)
         return "<b>{}:</b>" \
            "\n#UNWHITELIST" \
@@ -272,17 +295,39 @@ __help__ = """
 
 __mod_name__ = "Super Users"
 
-SUDO_HANDLER = CommandHandler("addsudo", addsudo, filters=Filters.user(OWNER_ID), run_async=True)
-UNSUDO_HANDLER = CommandHandler("removesudo", removesudo, filters=Filters.user(OWNER_ID), run_async=True)
-SUPPORT_HANDLER = CommandHandler("addsupport", addsupport, filters=Filters.user(OWNER_ID), run_async=True)
-UNSUPPORT_HANDLER = CommandHandler("removesupport", removesupport, filters=Filters.user(OWNER_ID), run_async=True)
-WHITELIST_HANDLER = CommandHandler("addwhitelist", addwhitelist, filters=Filters.user(OWNER_ID), run_async=True)
-UNWHITELIST_HANDLER = CommandHandler("removewhitelist", removewhitelist, filters=Filters.user(OWNER_ID), run_async=True)
+SUDO_HANDLER = CommandHandler("addsudo",
+                              addsudo,
+                              filters=Filters.user(OWNER_ID),
+                              run_async=True)
+UNSUDO_HANDLER = CommandHandler("removesudo",
+                                removesudo,
+                                filters=Filters.user(OWNER_ID),
+                                run_async=True)
+SUPPORT_HANDLER = CommandHandler("addsupport",
+                                 addsupport,
+                                 filters=Filters.user(OWNER_ID),
+                                 run_async=True)
+UNSUPPORT_HANDLER = CommandHandler("removesupport",
+                                   removesupport,
+                                   filters=Filters.user(OWNER_ID),
+                                   run_async=True)
+WHITELIST_HANDLER = CommandHandler("addwhitelist",
+                                   addwhitelist,
+                                   filters=Filters.user(OWNER_ID),
+                                   run_async=True)
+UNWHITELIST_HANDLER = CommandHandler("removewhitelist",
+                                     removewhitelist,
+                                     filters=Filters.user(OWNER_ID),
+                                     run_async=True)
 
 DEVLIST_HANDLER = CommandHandler(("devlist"), devlist, run_async=True)
 SUDOLIST_HANDLER = CommandHandler(("sudolist"), sudolist, run_async=True)
-SUPPORTLIST_HANDLER = CommandHandler(("supportlist"), supportlist, run_async=True)
-WHITELISTLIST_HANDLER = CommandHandler(("whitelistlist"), whitelistlist, run_async=True)
+SUPPORTLIST_HANDLER = CommandHandler(("supportlist"),
+                                     supportlist,
+                                     run_async=True)
+WHITELISTLIST_HANDLER = CommandHandler(("whitelistlist"),
+                                       whitelistlist,
+                                       run_async=True)
 
 dispatcher.add_handler(SUDO_HANDLER)
 dispatcher.add_handler(UNSUDO_HANDLER)

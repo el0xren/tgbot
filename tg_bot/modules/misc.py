@@ -89,8 +89,7 @@ SLAP_TEMPLATES = (
     "{user1} pins {user2} down and repeatedly {hits} them with a {item}.",
     "{user1} grabs up a {item} and {hits} {user2} with it.",
     "{user1} ties {user2} to a chair and {throws} a {item} at them.",
-    "{user1} gave a friendly push to help {user2} learn to swim in lava."
-)
+    "{user1} gave a friendly push to help {user2} learn to swim in lava.")
 
 ITEMS = (
     "cast iron skillet",
@@ -189,7 +188,8 @@ def slap(update: Update, context: CallbackContext):
     if msg.from_user.username:
         curr_user = "@" + escape_markdown(msg.from_user.username)
     else:
-        curr_user = "[{}](tg://user?id={})".format(msg.from_user.first_name, msg.from_user.id)
+        curr_user = "[{}](tg://user?id={})".format(msg.from_user.first_name,
+                                                   msg.from_user.id)
 
     user_id = extract_user(update.effective_message, args)
     if user_id == bot.id or user_id == 777000 or user_id == 1087968824:
@@ -211,7 +211,11 @@ def slap(update: Update, context: CallbackContext):
     hit = random.choice(HIT)
     throw = random.choice(THROW)
 
-    repl = temp.format(user1=user1, user2=user2, item=item, hits=hit, throws=throw)
+    repl = temp.format(user1=user1,
+                       user2=user2,
+                       item=item,
+                       hits=hit,
+                       throws=throw)
 
     reply_text(repl, parse_mode=ParseMode.MARKDOWN)
 
@@ -225,25 +229,26 @@ def get_id(update: Update, context: CallbackContext):
             user1 = update.effective_message.reply_to_message.from_user
             user2 = update.effective_message.reply_to_message.forward_from
             update.effective_message.reply_text(
-                "The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.".format(
-                    escape_markdown(user2.first_name),
-                    user2.id,
-                    escape_markdown(user1.first_name),
-                    user1.id),
+                "The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`."
+                .format(escape_markdown(user2.first_name), user2.id,
+                        escape_markdown(user1.first_name), user1.id),
                 parse_mode=ParseMode.MARKDOWN)
         else:
             user = bot.get_chat(user_id)
-            update.effective_message.reply_text("{}'s id is `{}`.".format(escape_markdown(user.first_name), user.id),
+            update.effective_message.reply_text("{}'s id is `{}`.".format(
+                escape_markdown(user.first_name), user.id),
                                                 parse_mode=ParseMode.MARKDOWN)
     else:
         chat = update.effective_chat  # type: Optional[Chat]
         if chat.type == "private":
-            update.effective_message.reply_text("Your id is `{}`.".format(chat.id),
+            update.effective_message.reply_text("Your id is `{}`.".format(
+                chat.id),
                                                 parse_mode=ParseMode.MARKDOWN)
 
         else:
-            update.effective_message.reply_text("This group's id is `{}`.".format(chat.id),
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(
+                "This group's id is `{}`.".format(chat.id),
+                parse_mode=ParseMode.MARKDOWN)
 
 
 def info(update: Update, context: CallbackContext):
@@ -269,15 +274,14 @@ def info(update: Update, context: CallbackContext):
         return
 
     elif not msg.reply_to_message and not args:
-        user = (
-            msg.sender_chat
-            if msg.sender_chat is not None
-            else msg.from_user
-        )
+        user = (msg.sender_chat
+                if msg.sender_chat is not None else msg.from_user)
 
-    elif not msg.reply_to_message and (not args or (
-            len(args) >= 1 and not args[0].startswith("@") and not args[0].isdigit() and not msg.parse_entities(
-        [MessageEntity.TEXT_MENTION]))):
+    elif not msg.reply_to_message and (
+            not args or
+        (len(args) >= 1 and not args[0].startswith("@")
+         and not args[0].isdigit()
+         and not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
         msg.reply_text("I can't extract a user from this.")
         return
 
@@ -285,16 +289,14 @@ def info(update: Update, context: CallbackContext):
         return
 
     if hasattr(user, 'type') and user.type != "private":
-        text = (
-            f"<b>Chat info: </b>"
-            f"\n  <b>ID</b>: <code>{user.id}</code>"
-            f"\n  <b>Title</b>: {user.title}"
-        )
+        text = (f"<b>Chat info: </b>"
+                f"\n  <b>ID</b>: <code>{user.id}</code>"
+                f"\n  <b>Title</b>: {user.title}")
 
         if user.username:
             text += f"\n  <b>Username</b>: @{html.escape(user.username)}"
             text += f"\n  <b>Chat Type</b>: {user.type.capitalize()}"
-        
+
         if INFOPIC:
             try:
                 profile = bot.getChat(user.id).photo
@@ -310,34 +312,39 @@ def info(update: Update, context: CallbackContext):
                 os.remove(f"{user.id}.png")
             # Incase chat don't have profile pic, send normal text
             except:
-                msg.reply_text(
-                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-                )
+                msg.reply_text(text,
+                               parse_mode=ParseMode.HTML,
+                               disable_web_page_preview=True)
 
         else:
-            msg.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
+            msg.reply_text(text,
+                           parse_mode=ParseMode.HTML,
+                           disable_web_page_preview=True)
     else:
         text = "<b>User info</b>:" \
                "\n  <b>ID</b>: <code>{}</code>" \
                "\n  <b>First Name</b>: {}".format(user.id, user.first_name or user.title)
 
-        text += "\n  <b>Lastname</b>: {}".format(html.escape(user.last_name or "null"))
+        text += "\n  <b>Lastname</b>: {}".format(
+            html.escape(user.last_name or "null"))
 
         if user.username:
-            text += "\n  <b>Username</b>: @{}".format(html.escape(user.username))
+            text += "\n  <b>Username</b>: @{}".format(
+                html.escape(user.username))
 
         try:
-            text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count or "??")
+            text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(
+                bot.get_user_profile_photos(user.id).total_count or "??")
         except BadRequest:
             pass
 
-        text += "\n  <b>User link</b>: {}".format(mention_html(user.id, 'here'))
+        text += "\n  <b>User link</b>: {}".format(mention_html(
+            user.id, 'here'))
 
         if INFOPIC:
             try:
-                profile = context.bot.get_user_profile_photos(user.id).photos[0][-1]
+                profile = context.bot.get_user_profile_photos(
+                    user.id).photos[0][-1]
                 _file = bot.get_file(profile["file_id"])
                 _file.download(f"{user.id}.png")
 
@@ -350,18 +357,18 @@ def info(update: Update, context: CallbackContext):
                 os.remove(f"{user.id}.png")
             # Incase user don't have profile pic, send normal text
             except IndexError:
-                msg.reply_text(
-                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-                )
+                msg.reply_text(text,
+                               parse_mode=ParseMode.HTML,
+                               disable_web_page_preview=True)
             except BadRequest:
-                msg.reply_text(
-                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-                )
+                msg.reply_text(text,
+                               parse_mode=ParseMode.HTML,
+                               disable_web_page_preview=True)
 
         else:
-            msg.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
+            msg.reply_text(text,
+                           parse_mode=ParseMode.HTML,
+                           disable_web_page_preview=True)
 
 
 def getuser(update: Update, context: CallbackContext):
@@ -377,9 +384,11 @@ def getuser(update: Update, context: CallbackContext):
     elif not msg.reply_to_message and not args:
         user = msg.from_user
 
-    elif not msg.reply_to_message and (not args or (
-            len(args) >= 1 and not args[0].startswith("@") and not args[0].isdigit() and not msg.parse_entities(
-        [MessageEntity.TEXT_MENTION]))):
+    elif not msg.reply_to_message and (
+            not args or
+        (len(args) >= 1 and not args[0].startswith("@")
+         and not args[0].isdigit()
+         and not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
         msg.reply_text("I can't extract a user from this.")
         return
 
@@ -404,19 +413,22 @@ def getuser(update: Update, context: CallbackContext):
     if user.username:
         text += "\n<b>Username</b>: @{}".format(html.escape(user.username))
 
-    text += "\n<b>Lastname</b>: <code>{}</code>".format(html.escape(user.last_name or "null"))
+    text += "\n<b>Lastname</b>: <code>{}</code>".format(
+        html.escape(user.last_name or "null"))
 
-    text += "\n<b>Profile Pics</b>: <code>{}</code>".format(bot.get_user_profile_photos(user.id).total_count, parse_mode=ParseMode.HTML)
+    text += "\n<b>Profile Pics</b>: <code>{}</code>".format(
+        bot.get_user_profile_photos(user.id).total_count,
+        parse_mode=ParseMode.HTML)
 
     try:
         user_member = chat.get_member(user.id)
 
         if user_member.status == "left":
-                text += f"\n<b>Presence</b>: <code>Not here</code>"
+            text += f"\n<b>Presence</b>: <code>Not here</code>"
         elif user_member.status == "kicked":
-                text += f"\n<b>Presence</b>: <code>Banned</code>"
+            text += f"\n<b>Presence</b>: <code>Banned</code>"
         elif user_member.status == "member":
-                text += f"\n<b>Presence</b>: <code>Detected</code>"
+            text += f"\n<b>Presence</b>: <code>Detected</code>"
         elif user_member.status == "administrator" or "creator":
             text += f"\n<b>Presence</b>: <code>Admin</code>"
             result = bot.get_chat_member(chat.id, user.id)
@@ -437,8 +449,9 @@ def getuser(update: Update, context: CallbackContext):
             text += "\n" + mod_info
 
     bot.send_message(chat.id,
-            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-        )
+                     text,
+                     parse_mode=ParseMode.HTML,
+                     disable_web_page_preview=True)
 
 
 @user_admin
@@ -474,13 +487,18 @@ def ginfo(update: Update, context: CallbackContext):
         admins_count = bot.getChatAdministrators(chat.id)
         status = chat.get_member(user.id)
         if status == "administrator":
-            text += "\nㅤ<b>Total Admins</b>: <code>{}</code>".format(len(admins_count))
+            text += "\nㅤ<b>Total Admins</b>: <code>{}</code>".format(
+                len(admins_count))
         if status == "creator":
-            text += "\n  Creator: {}".format(mention_html(user.id, user.first_name))
+            text += "\n  Creator: {}".format(
+                mention_html(user.id, user.first_name))
 
-        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(chat.get_member_count(user.id))
+        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(
+            chat.get_member_count(user.id))
 
-        msg.reply_text(text, disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+        msg.reply_text(text,
+                       disable_web_page_preview=True,
+                       parse_mode=ParseMode.HTML)
 
 
 def get_time(update: Update, context: CallbackContext):
@@ -488,7 +506,8 @@ def get_time(update: Update, context: CallbackContext):
     args = context.args
     location = " ".join(args)
     if location.lower() == bot.first_name.lower():
-        update.effective_message.reply_text("Its always banhammer time for me!")
+        update.effective_message.reply_text(
+            "Its always banhammer time for me!")
         bot.send_sticker(update.effective_chat.id, BAN_STICKER)
         return
 
@@ -518,12 +537,17 @@ def get_time(update: Update, context: CallbackContext):
                 location = country
 
             timenow = int(datetime.utcnow().timestamp())
-            res = requests.get(GMAPS_TIME, params=dict(location="{},{}".format(lat, long), timestamp=timenow))
+            res = requests.get(GMAPS_TIME,
+                               params=dict(location="{},{}".format(lat, long),
+                                           timestamp=timenow))
             if res.status_code == 200:
                 offset = json.loads(res.text)['dstOffset']
                 timestamp = json.loads(res.text)['rawOffset']
-                time_there = datetime.fromtimestamp(timenow + timestamp + offset).strftime("%H:%M:%S on %A %d %B")
-                update.message.reply_text("It's {} in {}".format(time_there, location))
+                time_there = datetime.fromtimestamp(timenow + timestamp +
+                                                    offset).strftime(
+                                                        "%H:%M:%S on %A %d %B")
+                update.message.reply_text("It's {} in {}".format(
+                    time_there, location))
 
 
 def echo(update: Update, context: CallbackContext):
@@ -551,7 +575,9 @@ def recho(update: Update, context: CallbackContext):
         try:
             bot.sendMessage(int(chat_id), str(to_send))
         except TelegramError:
-            message.reply_text("Couldn't send the message. Perhaps I'm not part of that group?")
+            message.reply_text(
+                "Couldn't send the message. Perhaps I'm not part of that group?"
+            )
 
 
 def flash(update: Update, context: CallbackContext):
@@ -566,20 +592,28 @@ def flash(update: Update, context: CallbackContext):
         string = " ".join(args).replace(" ", "_").lower()
 
     if not string:
-        message.reply_text("Usage: `/flash <text>`", parse_mode=ParseMode.MARKDOWN)
+        message.reply_text("Usage: `/flash <text>`",
+                           parse_mode=ParseMode.MARKDOWN)
         return
 
     if len(string) > 30:
-        message.reply_text("Your message exceeded limit.\nShortening it to 30 characters.")
+        message.reply_text(
+            "Your message exceeded limit.\nShortening it to 30 characters.")
 
     if message.reply_to_message:
-        flash = message.reply_to_message.reply_text("<code>Flashing...</code>", parse_mode=ParseMode.HTML)
-        sleep(randint(1,3))
-        flash.edit_text(f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>", parse_mode=ParseMode.HTML)
+        flash = message.reply_to_message.reply_text("<code>Flashing...</code>",
+                                                    parse_mode=ParseMode.HTML)
+        sleep(randint(1, 3))
+        flash.edit_text(
+            f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
+            parse_mode=ParseMode.HTML)
     else:
-        flash = message.reply_text("<code>Flashing...</code>", parse_mode=ParseMode.HTML)
-        sleep(randint(1,3))
-        flash.edit_text(f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>", parse_mode=ParseMode.HTML)
+        flash = message.reply_text("<code>Flashing...</code>",
+                                   parse_mode=ParseMode.HTML)
+        sleep(randint(1, 3))
+        flash.edit_text(
+            f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
+            parse_mode=ParseMode.HTML)
 
 
 def cowsay(update: Update, context: CallbackContext):
@@ -587,9 +621,11 @@ def cowsay(update: Update, context: CallbackContext):
         try:
             cow(update.message.text.split(' ', 1)[1])
         except IndexError:
-            update.message.reply_text(f"Usage: `/cowsay bow-bow or <text>`", parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text(f"Usage: `/cowsay bow-bow or <text>`",
+                                      parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text(f"`{buf.getvalue()}`", parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text(f"`{buf.getvalue()}`",
+                                      parse_mode=ParseMode.MARKDOWN)
 
 
 def gdpr(update: Update, context: CallbackContext):
@@ -599,14 +635,15 @@ def gdpr(update: Update, context: CallbackContext):
     for mod in GDPR:
         mod.__gdpr__(update.effective_user.id)
 
-    update.effective_message.reply_text("Your personal data has been deleted.\n\nNote that this will not unban "
-                                        "you from any chats, as that is telegram data, not Marie data. "
-                                        "Flooding, warns, and gbans are also preserved, as of "
-                                        "[this](https://ico.org.uk/for-organisations/guide-to-the-general-data-protection-regulation-gdpr/individual-rights/right-to-erasure/), "
-                                        "which clearly states that the right to erasure does not apply "
-                                        "\"for the performance of a task carried out in the public interest\", as is "
-                                        "the case for the aforementioned pieces of data.",
-                                        parse_mode=ParseMode.MARKDOWN)
+    update.effective_message.reply_text(
+        "Your personal data has been deleted.\n\nNote that this will not unban "
+        "you from any chats, as that is telegram data, not Marie data. "
+        "Flooding, warns, and gbans are also preserved, as of "
+        "[this](https://ico.org.uk/for-organisations/guide-to-the-general-data-protection-regulation-gdpr/individual-rights/right-to-erasure/), "
+        "which clearly states that the right to erasure does not apply "
+        "\"for the performance of a task carried out in the public interest\", as is "
+        "the case for the aforementioned pieces of data.",
+        parse_mode=ParseMode.MARKDOWN)
 
 
 MARKDOWN_HELP = """
@@ -632,16 +669,20 @@ Keep in mind that your message <b>MUST</b> contain some text other than just a b
 
 def markdown_help(update: Update, context: CallbackContext):
     bot = context.bot
-    update.effective_message.reply_text(MARKDOWN_HELP, parse_mode=ParseMode.HTML)
-    update.effective_message.reply_text("Try forwarding the following message to me, and you'll see!")
-    update.effective_message.reply_text("/save test This is a markdown test. _italics_, *bold*, `code`, "
-                                        "[URL](example.com) [button](buttonurl:github.com) "
-                                        "[button2](buttonurl://google.com:same)")
+    update.effective_message.reply_text(MARKDOWN_HELP,
+                                        parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text(
+        "Try forwarding the following message to me, and you'll see!")
+    update.effective_message.reply_text(
+        "/save test This is a markdown test. _italics_, *bold*, `code`, "
+        "[URL](example.com) [button](buttonurl:github.com) "
+        "[button2](buttonurl://google.com:same)")
 
 
 def stats(update: Update, context: CallbackContext):
     bot = context.bot
-    update.effective_message.reply_text("Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
+    update.effective_message.reply_text(
+        "Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
 
 
 # /ip is for private use
@@ -669,12 +710,27 @@ GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
 
-ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
-RECHO_HANDLER = CommandHandler("recho", recho, filters=Filters.user(OWNER_ID), run_async=True)
-MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.private, run_async=True)
+ECHO_HANDLER = CommandHandler("echo",
+                              echo,
+                              filters=Filters.user(OWNER_ID),
+                              run_async=True)
+RECHO_HANDLER = CommandHandler("recho",
+                               recho,
+                               filters=Filters.user(OWNER_ID),
+                               run_async=True)
+MD_HELP_HANDLER = CommandHandler("markdownhelp",
+                                 markdown_help,
+                                 filters=Filters.private,
+                                 run_async=True)
 
-STATS_HANDLER = CommandHandler("stats", stats, filters=CustomFilters.sudo_filter, run_async=True)
-GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.private, run_async=True)
+STATS_HANDLER = CommandHandler("stats",
+                               stats,
+                               filters=CustomFilters.sudo_filter,
+                               run_async=True)
+GDPR_HANDLER = CommandHandler("gdpr",
+                              gdpr,
+                              filters=Filters.private,
+                              run_async=True)
 
 dispatcher.add_handler(ID_HANDLER)
 # dispatcher.add_handler(TIME_HANDLER)

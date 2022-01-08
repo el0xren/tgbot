@@ -25,27 +25,35 @@ def report_setting(update: Update, context: CallbackContext):
         if len(args) >= 1:
             if args[0] in ("yes", "on"):
                 sql.set_user_setting(chat.id, True)
-                msg.reply_text("Turned on reporting! You'll be notified whenever anyone reports something.")
+                msg.reply_text(
+                    "Turned on reporting! You'll be notified whenever anyone reports something."
+                )
 
             elif args[0] in ("no", "off"):
                 sql.set_user_setting(chat.id, False)
-                msg.reply_text("Turned off reporting! You wont get any reports.")
+                msg.reply_text(
+                    "Turned off reporting! You wont get any reports.")
         else:
-            msg.reply_text("Your current report preference is: `{}`".format(sql.user_should_report(chat.id)),
+            msg.reply_text("Your current report preference is: `{}`".format(
+                sql.user_should_report(chat.id)),
                            parse_mode=ParseMode.MARKDOWN)
 
     else:
         if len(args) >= 1:
             if args[0] in ("yes", "on"):
                 sql.set_chat_setting(chat.id, True)
-                msg.reply_text("Turned on reporting! Admins who have turned on reports will be notified when /report "
-                               "or @admin are called.")
+                msg.reply_text(
+                    "Turned on reporting! Admins who have turned on reports will be notified when /report "
+                    "or @admin are called.")
 
             elif args[0] in ("no", "off"):
                 sql.set_chat_setting(chat.id, False)
-                msg.reply_text("Turned off reporting! No admins will be notified on /report or @admin.")
+                msg.reply_text(
+                    "Turned off reporting! No admins will be notified on /report or @admin."
+                )
         else:
-            msg.reply_text("This chat's current setting is: `{}`".format(sql.chat_should_report(chat.id)),
+            msg.reply_text("This chat's current setting is: `{}`".format(
+                sql.chat_should_report(chat.id)),
                            parse_mode=ParseMode.MARKDOWN)
 
 
@@ -79,8 +87,8 @@ def report(update: Update, context: CallbackContext) -> str:
             should_forward = False
 
         else:
-            msg = "{} is calling for admins in \"{}\"!".format(mention_html(user.id, user.first_name),
-                                                               html.escape(chat_name))
+            msg = "{} is calling for admins in \"{}\"!".format(
+                mention_html(user.id, user.first_name), html.escape(chat_name))
             link = ""
             should_forward = True
 
@@ -90,22 +98,27 @@ def report(update: Update, context: CallbackContext) -> str:
 
             if sql.user_should_report(admin.user.id):
                 try:
-                    bot.send_message(admin.user.id, msg + link, parse_mode=ParseMode.HTML)
+                    bot.send_message(admin.user.id,
+                                     msg + link,
+                                     parse_mode=ParseMode.HTML)
 
                     if should_forward:
                         message.reply_to_message.forward(admin.user.id)
 
-                        if len(message.text.split()) > 1:  # If user is giving a reason, send his message too
+                        if len(
+                                message.text.split()
+                        ) > 1:  # If user is giving a reason, send his message too
                             message.forward(admin.user.id)
 
                 except Unauthorized:
                     pass
                 except BadRequest as excp:  # TODO: cleanup exceptions
                     LOGGER.exception("Exception while reporting user")
-                    
-        message.reply_to_message.reply_text("{} reported the message to the admins.".format(
-                                            mention_html(user.id, user.first_name)),
-                                            parse_mode = ParseMode.HTML)
+
+        message.reply_to_message.reply_text(
+            "{} reported the message to the admins.".format(
+                mention_html(user.id, user.first_name)),
+            parse_mode=ParseMode.HTML)
         return msg
 
     return ""
@@ -138,7 +151,10 @@ NOTE: neither of these will get triggered if used by admins
    - If in chat, toggles that chat's status.
 """
 
-REPORT_HANDLER = CommandHandler("report", report, filters=Filters.chat_type.groups, run_async=True)
+REPORT_HANDLER = CommandHandler("report",
+                                report,
+                                filters=Filters.chat_type.groups,
+                                run_async=True)
 SETTING_HANDLER = CommandHandler("reports", report_setting, run_async=True)
 ADMIN_REPORT_HANDLER = RegexHandler("(?i)@admin(s)?", report, run_async=True)
 

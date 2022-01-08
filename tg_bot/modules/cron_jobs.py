@@ -28,6 +28,7 @@ def start_jobs(update: Update, _: CallbackContext):
     print(j.start())
     update.effective_message.reply_text("Scheduler started")
 
+
 zip_pass = BACKUP_PASS
 
 
@@ -38,7 +39,8 @@ def backup_db(_: CallbackContext):
     datenow = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     dbbkpname = "db_{}_{}.tar".format(bot.username, datenow)
     bkplocation = "backups/{}".format(datenow)
-    bkpcmd = "pg_dump {} --format=tar > {}/{}".format(DB_NAME, bkplocation, dbbkpname)
+    bkpcmd = "pg_dump {} --format=tar > {}/{}".format(DB_NAME, bkplocation,
+                                                      dbbkpname)
 
     if not os.path.exists(bkplocation):
         os.makedirs(bkplocation)
@@ -50,7 +52,7 @@ def backup_db(_: CallbackContext):
         tmp.edit_text("Backup Failed!")
         sleep(8)
         tmp.delete()
-        return 
+        return
     else:
         log.info("copying config, and logs to backup location")
         if os.path.exists('log.txt'):
@@ -58,9 +60,11 @@ def backup_db(_: CallbackContext):
             shutil.copyfile('log.txt', '{}/log.txt'.format(bkplocation))
         if os.path.exists('tg_bot/config.py'):
             print("config copied")
-            shutil.copyfile('tg_bot/config.py', '{}/config.py'.format(bkplocation))
+            shutil.copyfile('tg_bot/config.py',
+                            '{}/config.py'.format(bkplocation))
         log.info("zipping the backup")
-        zipcmd = "zip --password '{}' {} {}/*".format(zip_pass, bkplocation, bkplocation)
+        zipcmd = "zip --password '{}' {} {}/*".format(zip_pass, bkplocation,
+                                                      bkplocation)
         zipinfo = "zipping db backup"
         log.info("zip started")
         term(zipcmd, zipinfo)
@@ -68,11 +72,7 @@ def backup_db(_: CallbackContext):
         sleep(1)
         with open('backups/{}'.format(f'{datenow}.zip'), 'rb') as bkp:
             nm = "{} backup \n".format(bot.username) + datenow
-            bot.send_document(OWNER_ID,
-                            document=bkp,
-                            caption=nm,
-                            timeout=20
-                            )
+            bot.send_document(OWNER_ID, document=bkp, caption=nm, timeout=20)
         log.info("removing zipped files")
         shutil.rmtree("backups/{}".format(datenow))
         log.info("backup done")
@@ -88,9 +88,10 @@ def del_bkp_fldr(update: Update, _: CallbackContext):
 
 
 def term(cmd, info):
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-    )
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               shell=True)
     stdout, stderr = process.communicate()
     stderr = stderr.decode()
     stdout = stdout.decode()
@@ -111,4 +112,5 @@ cronjob = j.run_daily(callback=backup_db, name="database backups", time=twhen)
 dispatcher.add_handler(CommandHandler("backupdb", backup_now, run_async=True))
 dispatcher.add_handler(CommandHandler("stopjobs", stop_jobs, run_async=True))
 dispatcher.add_handler(CommandHandler("startjobs", start_jobs, run_async=True))
-dispatcher.add_handler(CommandHandler("purgebackups", del_bkp_fldr, run_async=True))
+dispatcher.add_handler(
+    CommandHandler("purgebackups", del_bkp_fldr, run_async=True))

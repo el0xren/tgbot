@@ -30,14 +30,16 @@ def namespace_of(chat, update, bot, context):
 def log_input(update):
     user = update.effective_user.id
     chat = update.effective_chat.id
-    LOGGER.info(f"IN: {update.effective_message.text} (user={user}, chat={chat})")
+    LOGGER.info(
+        f"IN: {update.effective_message.text} (user={user}, chat={chat})")
 
 
 def send(msg, bot, update):
     if len(str(msg)) > 2000:
         with io.BytesIO(str.encode(msg)) as out_file:
             out_file.name = "output.txt"
-            bot.send_document(chat_id=update.effective_chat.id, document=out_file)
+            bot.send_document(chat_id=update.effective_chat.id,
+                              document=out_file)
     else:
         LOGGER.info(f"OUT: '{msg}'")
         bot.send_message(
@@ -70,7 +72,8 @@ def do(func, bot, update, context):
     env = namespace_of(update.message.chat_id, update, bot, context)
     os.chdir(os.getcwd())
     with open(
-        os.path.join(os.getcwd(), "tg_bot/modules/helper_funcs/temp.txt"), "w",
+            os.path.join(os.getcwd(), "tg_bot/modules/helper_funcs/temp.txt"),
+            "w",
     ) as temp:
         temp.write(body)
 
@@ -108,8 +111,14 @@ def do(func, bot, update, context):
             return result
 
 
-EVAL_HANDLER = CommandHandler("eval", evaluate, run_async=True, filters=Filters.user(OWNER_ID))
-EXEC_HANDLER = CommandHandler("exec", execute, run_async=True, filters=Filters.user(OWNER_ID))
+EVAL_HANDLER = CommandHandler("eval",
+                              evaluate,
+                              run_async=True,
+                              filters=Filters.user(OWNER_ID))
+EXEC_HANDLER = CommandHandler("exec",
+                              execute,
+                              run_async=True,
+                              filters=Filters.user(OWNER_ID))
 
 dispatcher.add_handler(EVAL_HANDLER)
 dispatcher.add_handler(EXEC_HANDLER)

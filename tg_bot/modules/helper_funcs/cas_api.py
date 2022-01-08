@@ -30,16 +30,17 @@ def offenses(user_id):
     userdata = get_user_data(user_id)
     try:
         offenses = userdata['result']['offenses']
-        return str(offenses) 
+        return str(offenses)
     except:
         return None
 
-    
+
 def timeadded(user_id):
     userdata = get_user_data(user_id)
     try:
         timeEp = userdata['result']['time_added']
-        timeHuman = datetime.datetime.utcfromtimestamp(timeEp).strftime('%H:%M:%S, %d-%m-%Y')
+        timeHuman = datetime.datetime.utcfromtimestamp(timeEp).strftime(
+            '%H:%M:%S, %d-%m-%Y')
         return timeHuman
     except:
         return None
