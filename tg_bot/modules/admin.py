@@ -583,9 +583,6 @@ SETDESC_HANDLER = CommandHandler("setdescription",
                                  filters=Filters.chat_type.groups,
                                  run_async=True)
 
-ADMIN_REFRESH_HANDLER = CommandHandler("admincache",
-                                       refresh_admin,
-                                       filters=Filters.chat_type.groups)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)
@@ -600,4 +597,3 @@ dispatcher.add_handler(DEL_CHAT_PIC_HANDLER)
 dispatcher.add_handler(SETCHAT_TITLE_HANDLER)
 dispatcher.add_handler(SETSTICKET_HANDLER)
 dispatcher.add_handler(SETDESC_HANDLER)
-dispatcher.add_handler(ADMIN_REFRESH_HANDLER)
