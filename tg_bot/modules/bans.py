@@ -349,7 +349,7 @@ def sban(update: Update, context: CallbackContext):
 @can_restrict
 @user_admin
 @loggable
-def unban(update: Update, context: CallbackContext):
+def unban(update: Update, context: CallbackContext) -> Optional[str]:
     bot = context.bot
     args = context.args
     message = update.effective_message  # type: Optional[Message]
