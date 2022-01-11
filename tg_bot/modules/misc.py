@@ -713,11 +713,11 @@ COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
 
 ECHO_HANDLER = CommandHandler("echo",
                               echo,
-                              filters=Filters.user(OWNER_ID),
+                              filters=CustomFilters.sudo_filter,
                               run_async=True)
 RECHO_HANDLER = CommandHandler("recho",
                                recho,
-                               filters=Filters.user(OWNER_ID),
+                               filters=CustomFilters.sudo_filter,
                                run_async=True)
 MD_HELP_HANDLER = CommandHandler("markdownhelp",
                                  markdown_help,
