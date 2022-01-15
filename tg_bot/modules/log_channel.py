@@ -91,6 +91,12 @@ if is_module_loaded(FILENAME):
                     log_chat_id, result +
                     "\n\nFormatting has been disabled due to an unexpected error."
                 )
+         except Unauthorized as excp:
+            if excp.message == "bot is not a member of the channel chat":
+                bot.send_message(
+                    orig_chat_id,
+                    "I don't have access to the log channel - unsetting.")
+                sql.stop_chat_logging(orig_chat_id)
 
     @user_admin
     def logging(update: Update, context: CallbackContext):
