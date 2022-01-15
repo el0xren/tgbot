@@ -576,6 +576,7 @@ def reply_filter(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user
 
     if is_approved(chat.id, user.id):
         return

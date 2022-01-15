@@ -8,7 +8,7 @@ FILENAME = __name__.rsplit(".", 1)[-1]
 if is_module_loaded(FILENAME):
     from telegram import Bot, Update, ParseMode, Message, Chat
     from telegram.error import BadRequest, Unauthorized
-    from telegram.ext import CommandHandler, run_async, Filters
+    from telegram.ext import CommandHandler, run_async, JobQueue
     from telegram.utils.helpers import escape_markdown
 
     from tg_bot import dispatcher, CallbackContext, LOGGER, LOGS
@@ -18,25 +18,24 @@ if is_module_loaded(FILENAME):
     def loggable(func):
 
         @wraps(func)
-        def log_action(update: Update, context: CallbackContext, *args,
+        def log_action(update: Update, context: CallbackContext, job_queue: JobQueue = None, *args,
                        **kwargs):
-            result = func(update, context, *args, **kwargs)
+
+            if not job_queue:
+                result = func(update, context, *args, **kwargs)
+            else:
+                result = func(update, context, job_queue, *args, **kwargs)
+
             chat = update.effective_chat  # type: Optional[Chat]
             message = update.effective_message  # type: Optional[Message]
-            if result:
-                if chat.type == chat.SUPERGROUP and chat.username:
+            if result and isinstance(result, str):
+                if message.chat.type == chat.SUPERGROUP and message.chat.username:
                     result += "\n<b>Link:</b> " \
                               "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username,
                                                                                            message.message_id)
                 log_chat = sql.get_chat_log_channel(chat.id)
                 if log_chat:
-                    send_log(bot, log_chat, chat.id, result)
-            elif result == "":
-                pass
-            else:
-                LOGGER.warning(
-                    "%s was set as loggable, but had no return statement.",
-                    func)
+                    send_log(context, log_chat, chat.id, result)
 
             return result
 
@@ -45,13 +44,13 @@ if is_module_loaded(FILENAME):
     def gloggable(func):
 
         @wraps(func)
-        def log_action(update: Update, context: CallbackContext, *args,
+        def glog_action(update: Update, context: CallbackContext, *args,
                        **kwargs):
             result = func(update, context, *args, **kwargs)
             chat = update.effective_chat  # type: Optional[Chat]
             message = update.effective_message  # type: Optional[Message]
             if result:
-                if chat.type == chat.SUPERGROUP and chat.username:
+                if message.chat.type == chat.SUPERGROUP and message.chat.username:
                     result += "\n<b>Link:</b> " \
                               "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username,
                                                                                            message.message_id)
@@ -67,7 +66,7 @@ if is_module_loaded(FILENAME):
 
             return result
 
-        return log_action
+        return glog_action
 
     def send_log(context: CallbackContext, log_chat_id: str, orig_chat_id: str,
                  result: str):
@@ -197,16 +196,13 @@ Setting the log channel is done by:
 
     LOG_HANDLER = CommandHandler("logchannel",
                                  logging,
-                                 run_async=True,
-                                 filters=Filters.chat_type.group)
+                                 run_async=True)
     SET_LOG_HANDLER = CommandHandler("setlog",
                                      setlog,
-                                     run_async=True,
-                                     filters=Filters.chat_type.group)
+                                     run_async=True)
     UNSET_LOG_HANDLER = CommandHandler("unsetlog",
                                        unsetlog,
-                                       run_async=True,
-                                       filters=Filters.chat_type.group)
+                                       run_async=True)
 
     dispatcher.add_handler(LOG_HANDLER)
     dispatcher.add_handler(SET_LOG_HANDLER)

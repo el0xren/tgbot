@@ -130,10 +130,10 @@ def del_blacklist(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user
     to_match = extract_text(message)
     if not to_match:
         return
-
     if is_approved(chat.id, user.id):
         return
     chat_filters = sql.get_chat_blacklist(chat.id)
