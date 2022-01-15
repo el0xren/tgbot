@@ -327,7 +327,6 @@ def settings_button(update: Update, context: CallbackContext):
             chat_id = mod_match.group(1)
             module = mod_match.group(2)
             chat = bot.get_chat(chat_id)
-<<<<<<< HEAD
             text = "*{}* has the following settings for the *{}* module:\n\n".format(escape_markdown(chat.title),
                                                                                      CHAT_SETTINGS[
                                                                                          module].__mod_name__) + \
@@ -340,31 +339,6 @@ def settings_button(update: Update, context: CallbackContext):
                         text="Back",
                         callback_data="stngs_back({})".format(chat_id))
                 ]]))
-=======
-            text = "*{}* has the following settings for the *{}* module:\n\n".format(
-                escape_markdown(chat.title), CHAT_SETTINGS[module].__mod_name__
-            ) + CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
-            try:
-                keyboard = CHAT_SETTINGS[module].__chat_settings_buttons__(chat_id, user.id)
-            except AttributeError:
-                keyboard = []
-            kbrd = InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="Back",
-                                callback_data="stngs_back({})".format(chat_id),
-                            )
-                        ]
-                    ]
-                )
-            keyboard.append(kbrd)
-            query.message.edit_text(
-                text=text,
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=keyboard
-            )
->>>>>>> 886c7d2ea... global fixes and enhancelments
 
         elif prev_match:
             chat_id = prev_match.group(1)
@@ -396,14 +370,9 @@ def settings_button(update: Update, context: CallbackContext):
             chat_id = back_match.group(1)
             chat = bot.get_chat(chat_id)
             query.message.edit_text(
-<<<<<<< HEAD
                 text=
                 "Hi there! There are quite a few settings for {} - go ahead and pick what "
                 "you're interested in.".format(escape_markdown(chat.title)),
-=======
-                text="Hi there! There are quite a few settings for {} - go ahead and pick what "
-                     "you're interested in.".format(escape_markdown(chat.title)),
->>>>>>> 886c7d2ea... global fixes and enhancelments
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)))
