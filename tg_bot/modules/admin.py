@@ -583,7 +583,6 @@ SETDESC_HANDLER = CommandHandler("setdescription",
                                  filters=Filters.chat_type.groups,
                                  run_async=True)
 
-
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)
 dispatcher.add_handler(UNPINALL_HANDLER)

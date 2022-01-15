@@ -197,12 +197,28 @@ That's what approvals are for - approve of trustworthy users to allow them to se
 
 __mod_name__ = "Approvals"
 
-APPROVE = DisableAbleCommandHandler("approve", approve, run_async=True, filters=Filters.chat_type.groups)
-DISAPPROVE = DisableAbleCommandHandler("unapprove", disapprove, run_async=True, filters=Filters.chat_type.groups)
-APPROVED = DisableAbleCommandHandler("approved", approved, run_async=True, filters=Filters.chat_type.groups)
-APPROVAL = DisableAbleCommandHandler("approval", approval, run_async=True, filters=Filters.chat_type.groups)
-UNAPPROVEALL = DisableAbleCommandHandler("unapproveall", unapproveall, run_async=True, filters=Filters.chat_type.groups)
-UNAPPROVEALL_BTN = CallbackQueryHandler(unapproveall_btn, pattern=r"unapproveall_.*")
+APPROVE = DisableAbleCommandHandler("approve",
+                                    approve,
+                                    run_async=True,
+                                    filters=Filters.chat_type.groups)
+DISAPPROVE = DisableAbleCommandHandler("unapprove",
+                                       disapprove,
+                                       run_async=True,
+                                       filters=Filters.chat_type.groups)
+APPROVED = DisableAbleCommandHandler("approved",
+                                     approved,
+                                     run_async=True,
+                                     filters=Filters.chat_type.groups)
+APPROVAL = DisableAbleCommandHandler("approval",
+                                     approval,
+                                     run_async=True,
+                                     filters=Filters.chat_type.groups)
+UNAPPROVEALL = DisableAbleCommandHandler("unapproveall",
+                                         unapproveall,
+                                         run_async=True,
+                                         filters=Filters.chat_type.groups)
+UNAPPROVEALL_BTN = CallbackQueryHandler(unapproveall_btn,
+                                        pattern=r"unapproveall_.*")
 
 dispatcher.add_handler(APPROVE)
 dispatcher.add_handler(DISAPPROVE)

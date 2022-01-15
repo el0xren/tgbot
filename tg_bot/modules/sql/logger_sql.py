@@ -79,11 +79,8 @@ __load_chat_log_stat_list()
 
 def migrate_chat(old_chat_id, new_chat_id):
     with LOG_SETTING_LOCK:
-        chat_notes = (
-            SESSION.query(LoggerSettings)
-            .filter(LoggerSettings.chat_id == str(old_chat_id))
-            .all()
-        )
+        chat_notes = (SESSION.query(LoggerSettings).filter(
+            LoggerSettings.chat_id == str(old_chat_id)).all())
         for note in chat_notes:
             note.chat_id = str(new_chat_id)
         SESSION.commit()

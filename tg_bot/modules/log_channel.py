@@ -18,7 +18,10 @@ if is_module_loaded(FILENAME):
     def loggable(func):
 
         @wraps(func)
-        def log_action(update: Update, context: CallbackContext, job_queue: JobQueue = None, *args,
+        def log_action(update: Update,
+                       context: CallbackContext,
+                       job_queue: JobQueue = None,
+                       *args,
                        **kwargs):
 
             if not job_queue:
@@ -45,7 +48,7 @@ if is_module_loaded(FILENAME):
 
         @wraps(func)
         def glog_action(update: Update, context: CallbackContext, *args,
-                       **kwargs):
+                        **kwargs):
             result = func(update, context, *args, **kwargs)
             chat = update.effective_chat  # type: Optional[Chat]
             message = update.effective_message  # type: Optional[Message]
@@ -91,7 +94,7 @@ if is_module_loaded(FILENAME):
                     log_chat_id, result +
                     "\n\nFormatting has been disabled due to an unexpected error."
                 )
-         except Unauthorized as excp:
+        except Unauthorized as excp:
             if excp.message == "bot is not a member of the channel chat":
                 bot.send_message(
                     orig_chat_id,
@@ -200,15 +203,9 @@ Setting the log channel is done by:
 
     __mod_name__ = "Log Channels"
 
-    LOG_HANDLER = CommandHandler("logchannel",
-                                 logging,
-                                 run_async=True)
-    SET_LOG_HANDLER = CommandHandler("setlog",
-                                     setlog,
-                                     run_async=True)
-    UNSET_LOG_HANDLER = CommandHandler("unsetlog",
-                                       unsetlog,
-                                       run_async=True)
+    LOG_HANDLER = CommandHandler("logchannel", logging, run_async=True)
+    SET_LOG_HANDLER = CommandHandler("setlog", setlog, run_async=True)
+    UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog, run_async=True)
 
     dispatcher.add_handler(LOG_HANDLER)
     dispatcher.add_handler(SET_LOG_HANDLER)
