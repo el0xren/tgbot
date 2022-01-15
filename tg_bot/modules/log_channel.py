@@ -57,7 +57,7 @@ if is_module_loaded(FILENAME):
                     result += "\n<b>Link:</b> " \
                               "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username,
                                                                                            message.message_id)
-                log_chat = GBAN_LOGS or OWNER_ID
+                log_chat = LOGS or OWNER_ID
                 if log_chat:
                     send_log(context, log_chat, chat.id, result)
             elif result == "":
