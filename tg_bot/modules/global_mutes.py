@@ -102,7 +102,7 @@ def gmute(update: Update, context: CallbackContext):
 
     if not reason:
         message.reply_text(
-            "You must provide reason!")
+            "You must provide a reason!")
         return
 
     try:
