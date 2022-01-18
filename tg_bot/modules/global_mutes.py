@@ -100,6 +100,11 @@ def gmute(update: Update, context: CallbackContext):
             "-_- So funny, lets gmute myself why don't I? Nice try.")
         return
 
+    if not reason:
+        message.reply_text(
+            "You must provide reason!")
+        return
+
     try:
         user_chat = bot.get_chat(user_id)
     except BadRequest as excp:
