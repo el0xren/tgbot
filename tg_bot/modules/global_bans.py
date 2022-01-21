@@ -59,8 +59,7 @@ def gban(update: Update, context: CallbackContext):
         return
 
     if not reason:
-        message.reply_text(
-            "You must provide a reason!")
+        message.reply_text("You must provide a reason!")
         return
 
     if user_id == sender_id:
