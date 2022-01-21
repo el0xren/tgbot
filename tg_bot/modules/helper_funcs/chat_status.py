@@ -4,7 +4,7 @@ from cachetools import TTLCache
 from threading import RLock
 from typing import Optional
 
-from telegram import User, Chat, ChatMember, Update, Bot
+from telegram import User, Chat, ChatMember, Update, Bot, TelegramError
 
 from tg_bot import dispatcher, CallbackContext, DEL_CMDS, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
@@ -44,7 +44,7 @@ def owner_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -69,7 +69,7 @@ def dev_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -95,7 +95,7 @@ def sudo_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -118,7 +118,7 @@ def support_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
 
     return is_support_plus_func
