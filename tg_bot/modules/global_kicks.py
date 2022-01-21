@@ -11,7 +11,7 @@ from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
-from tg_bot.modules.sql.users_sql import get_all_chats
+from tg_bot.modules.sql.users_sql import get_user_com_chats
 import tg_bot.modules.sql.global_kicks_sql as sql
 
 GKICK_ERRORS = {
@@ -56,7 +56,7 @@ def gkick(update: Update, context: CallbackContext):
     except TelegramError:
         pass
 
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You do not seems to be referring to a user")
         return
 
@@ -100,7 +100,7 @@ def gkick(update: Update, context: CallbackContext):
 
     message.reply_text("*Snaps with fingers* 😉")
 
-    chats = get_all_chats()
+    chats = get_user_com_chats(user_id)
     kicker = update.effective_user  # type: Optional[User]
     send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
                  "<b>Global Kick</b>" \

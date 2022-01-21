@@ -192,7 +192,7 @@ def slap(update: Update, context: CallbackContext):
                                                    msg.from_user.id)
 
     user_id = extract_user(update.effective_message, args)
-    if user_id == bot.id or user_id == 777000 or user_id == 1087968824:
+    if user_id == bot.id:
         slapped_user = bot.get_chat(user_id)
         user1 = curr_user
         if slapped_user.username:
@@ -258,20 +258,8 @@ def info(update: Update, context: CallbackContext):
     user_id = extract_user(update.effective_message, args)
     chat = update.effective_chat
 
-    if user_id and int(user_id) != 777000 and int(user_id) != 1087968824:
+    if user_id:
         user = bot.get_chat(user_id)
-
-    elif user_id and int(user_id) == 777000:
-        msg.reply_text(
-            "This is Telegram. Unless you manually entered this reserved account's ID, it is likely a old broadcast from a linked channel."
-        )
-        return
-
-    elif user_id and int(user_id) == 1087968824:
-        msg.reply_text(
-            "This is Group Anonymous Bot. Unless you manually entered this reserved account's ID, it is likely a broadcast from a linked channel or anonymously sent message."
-        )
-        return
 
     elif not msg.reply_to_message and not args:
         user = (msg.sender_chat
@@ -378,7 +366,7 @@ def getuser(update: Update, context: CallbackContext):
     user_id = extract_user(update.effective_message, args)
     chat = update.effective_chat
 
-    if user_id and int(user_id) != 777000 and int(user_id) != 1087968824:
+    if user_id:
         user = bot.get_chat(user_id)
 
     elif not msg.reply_to_message and not args:

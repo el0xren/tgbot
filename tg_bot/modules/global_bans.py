@@ -54,8 +54,13 @@ def gban(update: Update, context: CallbackContext):
     user_id, reason = extract_user_and_text(message, args)
     sender_id = update.effective_user.id
 
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
+        return
+
+    if not reason:
+        message.reply_text(
+            "You must provide a reason!")
         return
 
     if user_id == sender_id:
@@ -94,11 +99,6 @@ def gban(update: Update, context: CallbackContext):
     if user_id == bot.id:
         message.reply_text(
             "-_- So funny, lets gban myself why don't I? Nice try.")
-        return
-
-    if not reason:
-        message.reply_text(
-            "You must provide a reason!")
         return
 
     try:
@@ -236,7 +236,7 @@ def ungban(update: Update, context: CallbackContext):
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
 

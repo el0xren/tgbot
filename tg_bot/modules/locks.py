@@ -102,8 +102,6 @@ def restr_members(bot,
     for mem in members:
         if mem.user in DEV_USERS or mem.user in SUDO_USERS:
             pass
-        elif mem.user == 777000 or mem.user == 1087968824:
-            pass
         try:
             bot.restrict_chat_member(chat_id,
                                      mem.user,
@@ -175,7 +173,6 @@ def lock(update: Update, context: CallbackContext) -> str:
                                   other=True)
                     context.bot.restrict_chat_member(
                         chat.id,
-                        int(777000),
                         permissions=ChatPermissions(
                             can_send_messages=True,
                             can_send_media_messages=True,
@@ -184,7 +181,6 @@ def lock(update: Update, context: CallbackContext) -> str:
 
                     context.bot.restrict_chat_member(
                         chat.id,
-                        int(1087968824),
                         permissions=ChatPermissions(
                             can_send_messages=True,
                             can_send_media_messages=True,
@@ -272,10 +268,6 @@ def del_lockables(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user
-
-    if int(user.id) == 777000 or int(user.id) == 1087968824:
-        return
 
     user = update.effective_user
     if is_approved(chat.id, user.id):

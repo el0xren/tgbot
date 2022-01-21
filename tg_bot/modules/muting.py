@@ -26,7 +26,7 @@ def mute(update: Update, context: CallbackContext) -> str:
     sender_id = update.effective_user.id
 
     user_id = extract_user(message, args)
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -76,7 +76,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id = extract_user(message, args)
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -129,7 +129,7 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id or int(user_id) == 777000 or int(user_id) == 1087968824:
+    if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 

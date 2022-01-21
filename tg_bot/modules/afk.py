@@ -79,8 +79,7 @@ def reply_afk(update: Update, context: CallbackContext):
             elif ent.type == MessageEntity.MENTION:
                 user_id = get_user_id(message.text[ent.offset:ent.offset +
                                                    ent.length])
-                if not user_id or int(user_id) == 777000 or int(
-                        user_id) == 1087968824:
+                if not user_id:
                     # Should never happen, since for a user to become AFK they must have spoken. Maybe changed username?
                     return
                 chat = bot.get_chat(user_id)

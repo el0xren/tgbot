@@ -35,7 +35,7 @@ def warn(user: User,
         message.reply_text("Damn admins, can't even be warned!")
         return ""
 
-    if not user.id or int(user.id) == 777000 or int(user.id) == 1087968824:
+    if not user.id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -120,7 +120,7 @@ def swarn(user: User,
         message.reply_text("Damn admins, can't even be warned!")
         return ""
 
-    if not user.id or int(user.id) == 777000 or int(user.id) == 1087968824:
+    if not user.id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
@@ -211,7 +211,7 @@ def dwarn(user: User,
         message.reply_text("Damn admins, can't even be warned!")
         return ""
 
-    if not user.id or int(user.id) == 777000 or int(user.id) == 1087968824:
+    if not user.id:
         message.reply_text("You don't seem to be referring to a user.")
         return ""
 
