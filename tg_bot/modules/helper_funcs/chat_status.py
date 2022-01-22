@@ -292,7 +292,7 @@ def user_admin(func):
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
         user = update.effective_user  # type: Optional[User]
-        if user and is_user_admin(update.effective_chat, user.id):
+        if user and is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
 
         elif not user:
@@ -314,7 +314,7 @@ def user_admin_no_reply(func):
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
         bot = context.bot
         user = update.effective_user  # type: Optional[User]
-        if user and is_user_admin(update.effective_chat, user.id):
+        if user and is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
 
         elif not user:
