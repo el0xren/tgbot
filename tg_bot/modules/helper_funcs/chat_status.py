@@ -23,7 +23,7 @@ def is_whitelist_plus(_: Chat,
                       user_id: int,
                       member: ChatMember = None) -> bool:
     return any(user_id in user
-               for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS])
+               for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS, DEV_USERS])
 
 
 def owner_plus(func):
