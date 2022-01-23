@@ -15,9 +15,7 @@ def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in DEV_USERS or user_id in SUDO_USERS
 
 
-def is_support_plus(_: Chat,
-                    user_id: int,
-                    member: ChatMember = None) -> bool:
+def is_support_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in SUPPORT_USERS or user_id in SUDO_USERS
 
 
@@ -95,7 +93,8 @@ def sudo_plus(func):
                 pass
         else:
             update.effective_message.reply_text(
-                "This is a restricted command. You do not have permissions to run this.")
+                "This is a restricted command. You do not have permissions to run this."
+            )
 
     return is_sudo_plus_func
 
@@ -142,7 +141,8 @@ def can_delete(chat: Chat, bot_id: int) -> bool:
 
 def user_can_delete(chat: Chat, user_id: int) -> bool:
     mem = chat.get_member(user_id)
-    return bool(mem.can_delete_messages or mem.status == "creator" or user_id in DEV_USERS or SUDO_USERS)
+    return bool(mem.can_delete_messages or mem.status == "creator"
+                or user_id in DEV_USERS or SUDO_USERS)
 
 
 def can_change_info(chat: Chat, user: User, bot_id: int) -> bool:
@@ -151,7 +151,8 @@ def can_change_info(chat: Chat, user: User, bot_id: int) -> bool:
 
 def user_can_change_info(chat: Chat, user_id: int) -> bool:
     mem = chat.get_member(user_id)
-    return bool(mem.can_change_info or mem.status == "creator" or user_id in DEV_USERS or SUDO_USERS)
+    return bool(mem.can_change_info or mem.status == "creator"
+                or user_id in DEV_USERS or SUDO_USERS)
 
 
 def is_user_ban_protected(chat: Chat,
@@ -169,7 +170,9 @@ def is_user_ban_protected(chat: Chat,
     return member.status in ('administrator', 'creator')
 
 
-def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bool:
+def is_user_admin(update: Update,
+                  user_id: int,
+                  member: ChatMember = None) -> bool:
     chat = update.effective_chat
     msg = update.effective_message
     if chat.type == 'private' \
@@ -184,13 +187,13 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
         try:
             return user_id in ADMIN_CACHE[chat.id]
         except KeyError:
-                chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
-                admin_list = [x.user.id for x in chat_admins]
-                ADMIN_CACHE[chat.id] = admin_list
+            chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
+            admin_list = [x.user.id for x in chat_admins]
+            ADMIN_CACHE[chat.id] = admin_list
 
-                if user_id in admin_list:
-                    return True
-                return False
+            if user_id in admin_list:
+                return True
+            return False
 
 
 def is_bot_admin(chat: Chat,
