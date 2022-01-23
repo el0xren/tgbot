@@ -255,7 +255,12 @@ def info(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
     msg = update.effective_message  # type: Optional[Message]
-    user_id = extract_user(update.effective_message, args)
+    full = False
+    if msg.text.find(" -f") != -1:
+        full = True
+        msg.text = msg.text.replace(" -f", "")
+        args.remove("-f")
+    user_id = extract_user(msg, args)
     chat = update.effective_chat
 
     if user_id:
@@ -329,6 +334,10 @@ def info(update: Update, context: CallbackContext):
         text += "\n  <b>User link</b>: {}".format(mention_html(
             user.id, 'here'))
 
+        if full:
+            # text += "\n<b>Full Info:</b>" idk if this is looks better or worse
+            text += get_full_info(chat, user).replace("\n<b>", "\n  <b>")
+
         if INFOPIC:
             try:
                 profile = context.bot.get_user_profile_photos(
@@ -360,6 +369,7 @@ def info(update: Update, context: CallbackContext):
 
 
 def getuser(update: Update, context: CallbackContext):
+    # sourcery skip: remove-redundant-fstring, remove-redundant-if
     bot = context.bot
     args = context.args
     msg = update.effective_message  # type: Optional[Message]
@@ -387,6 +397,22 @@ def getuser(update: Update, context: CallbackContext):
            "\n<b>ID</b>: <code>{}</code>" \
            "\n<b>First Name</b>: {}".format(dispatcher.bot.first_name, user.id, mention_html(user.id, user.first_name))
 
+    if user.username:
+        text += "\n<b>Username</b>: @{}".format(html.escape(user.username))
+
+    text += "\n<b>Lastname</b>: <code>{}</code>".format(
+        html.escape(user.last_name or "null"))
+
+    text += get_full_info(chat, user)
+
+    bot.send_message(chat.id,
+                     text,
+                     parse_mode=ParseMode.HTML,
+                     disable_web_page_preview=True)
+
+def get_full_info(chat, user)-> str:
+    bot = dispatcher.bot
+    text = ''
     if user.id == OWNER_ID:
         text += "\n<b>User level</b>: <code>Owner</code>"
     elif user.id in DEV_USERS:
@@ -397,12 +423,6 @@ def getuser(update: Update, context: CallbackContext):
         text += "\n<b>User level</b>: <code>Support</code>"
     elif user.id in WHITELIST_USERS:
         text += "\n<b>User level</b>: <code>Whitelist</code>"
-
-    if user.username:
-        text += "\n<b>Username</b>: @{}".format(html.escape(user.username))
-
-    text += "\n<b>Lastname</b>: <code>{}</code>".format(
-        html.escape(user.last_name or "null"))
 
     text += "\n<b>Profile Pics</b>: <code>{}</code>".format(
         bot.get_user_profile_photos(user.id).total_count,
@@ -435,11 +455,7 @@ def getuser(update: Update, context: CallbackContext):
             mod_info = mod.__user_info__(user.id, chat.id).strip()
         if mod_info:
             text += "\n" + mod_info
-
-    bot.send_message(chat.id,
-                     text,
-                     parse_mode=ParseMode.HTML,
-                     disable_web_page_preview=True)
+    return text
 
 
 @user_admin
