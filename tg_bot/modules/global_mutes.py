@@ -9,7 +9,7 @@ from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_mutes_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, STRICT_GMUTE, SUPPORT_CHAT
-from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -50,6 +50,7 @@ UNGMUTE_ERRORS = {
 }
 
 
+@support_plus
 def gmute(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -230,6 +231,7 @@ def gmute(update: Update, context: CallbackContext):
         pass
 
 
+@support_plus
 def ungmute(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -309,6 +311,7 @@ def ungmute(update: Update, context: CallbackContext):
     message.reply_text("Person has been un-gmuted.")
 
 
+@support_plus
 def gmutelist(update: Update, context: CallbackContext):
     bot = context.bot
     muted_users = sql.get_gmute_list()
@@ -430,24 +433,17 @@ __mod_name__ = "Global Mutes"
 
 GMUTE_HANDLER = CommandHandler("gmute",
                                gmute,
-                               run_async=True,
-                               filters=CustomFilters.sudo_filter
-                               | CustomFilters.support_filter)
+                               run_async=True)
 UNGMUTE_HANDLER = CommandHandler("ungmute",
                                  ungmute,
-                                 run_async=True,
-                                 filters=CustomFilters.sudo_filter
-                                 | CustomFilters.support_filter)
+                                 run_async=True)
 GMUTE_LIST = CommandHandler("gmutelist",
                             gmutelist,
-                            filters=CustomFilters.sudo_filter
-                            | CustomFilters.support_filter)
-
+                            run_async=True)
 GMUTE_STATUS = CommandHandler("gmutestat",
                               gmutestat,
                               run_async=True,
                               filters=Filters.chat_type.groups)
-
 GMUTE_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups,
                                 enforce_gmute,
                                 run_async=True)

@@ -11,6 +11,7 @@ from telegram.ext.dispatcher import run_async
 import tg_bot.modules.sql.users_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, LOGGER
 from tg_bot.modules.helper_funcs.filters import CustomFilters
+from tg_bot.modules.helper_funcs.chat_status import dev_plus, sudo_plus
 
 USERS_GROUP = 4
 
@@ -47,6 +48,7 @@ def get_user_id(username):
     return None
 
 
+@dev_plus
 def broadcast(update: Update, context: CallbackContext):
     bot = context.bot
     to_send = update.effective_message.text.split(None, 1)
@@ -84,6 +86,7 @@ def log_user(update: Update, context: CallbackContext):
         sql.update_user(msg.forward_from.id, msg.forward_from.username)
 
 
+@sudo_plus
 def chats(update: Update, context: CallbackContext):
     bot = context.bot
     all_chats = sql.get_all_chats() or []
@@ -148,14 +151,12 @@ __mod_name__ = "Users"
 
 BROADCAST_HANDLER = CommandHandler("broadcast",
                                    broadcast,
-                                   filters=Filters.user(OWNER_ID),
                                    run_async=True)
 USER_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups,
                               log_user,
                               run_async=True)
 CHATLIST_HANDLER = CommandHandler("chatlist",
                                   chats,
-                                  filters=CustomFilters.sudo_filter,
                                   run_async=True)
 
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)

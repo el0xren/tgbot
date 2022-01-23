@@ -8,11 +8,12 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS
-from tg_bot.modules.helper_funcs.chat_status import sudo_plus, support_plus, whitelist_plus
+from tg_bot.modules.helper_funcs.chat_status import dev_plus, sudo_plus, support_plus, whitelist_plus
 from tg_bot.modules.log_channel import gloggable
 from tg_bot.modules.helper_funcs.extraction import extract_user
 
 
+@dev_plus
 @gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -53,6 +54,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
+@dev_plus
 @gloggable
 def removesudo(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -82,6 +84,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
         return ""
 
 
+@sudo_plus
 @gloggable
 def addsupport(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -121,6 +124,7 @@ def addsupport(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
+@sudo_plus
 @gloggable
 def removesupport(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -150,6 +154,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         return ""
 
 
+@sudo_plus
 @gloggable
 def addwhitelist(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -190,6 +195,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
+@sudo_plus
 @gloggable
 def removewhitelist(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -297,29 +303,22 @@ __mod_name__ = "Super Users"
 
 SUDO_HANDLER = CommandHandler("addsudo",
                               addsudo,
-                              filters=Filters.user(OWNER_ID),
                               run_async=True)
 UNSUDO_HANDLER = CommandHandler("removesudo",
                                 removesudo,
-                                filters=Filters.user(OWNER_ID),
                                 run_async=True)
 SUPPORT_HANDLER = CommandHandler("addsupport",
                                  addsupport,
-                                 filters=Filters.user(OWNER_ID),
                                  run_async=True)
 UNSUPPORT_HANDLER = CommandHandler("removesupport",
                                    removesupport,
-                                   filters=Filters.user(OWNER_ID),
                                    run_async=True)
 WHITELIST_HANDLER = CommandHandler("addwhitelist",
                                    addwhitelist,
-                                   filters=Filters.user(OWNER_ID),
                                    run_async=True)
 UNWHITELIST_HANDLER = CommandHandler("removewhitelist",
                                      removewhitelist,
-                                     filters=Filters.user(OWNER_ID),
                                      run_async=True)
-
 DEVLIST_HANDLER = CommandHandler(("devlist"), devlist, run_async=True)
 SUDOLIST_HANDLER = CommandHandler(("sudolist"), sudolist, run_async=True)
 SUPPORTLIST_HANDLER = CommandHandler(("supportlist"),

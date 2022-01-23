@@ -7,7 +7,7 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS
-from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -36,6 +36,7 @@ GKICK_ERRORS = {
 }
 
 
+@support_plus
 def gkick(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -131,6 +132,7 @@ def gkick(update: Update, context: CallbackContext):
             pass
 
 
+@support_plus
 def gkickset(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -166,6 +168,7 @@ def gkickset(update: Update, context: CallbackContext):
     return
 
 
+@support_plus
 def gkickreset(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -216,19 +219,13 @@ def __user_info__(user_id):
 
 GKICK_HANDLER = CommandHandler("gkick",
                                gkick,
-                               run_async=True,
-                               filters=CustomFilters.sudo_filter
-                               | CustomFilters.support_filter)
+                               run_async=True)
 SET_HANDLER = CommandHandler("gkickset",
                              gkickset,
-                             run_async=True,
-                             filters=CustomFilters.sudo_filter
-                             | CustomFilters.support_filter)
+                             run_async=True)
 RESET_HANDLER = CommandHandler("gkickreset",
                                gkickreset,
-                               run_async=True,
-                               filters=CustomFilters.sudo_filter
-                               | CustomFilters.support_filter)
+                               run_async=True)
 
 dispatcher.add_handler(GKICK_HANDLER)
 dispatcher.add_handler(SET_HANDLER)

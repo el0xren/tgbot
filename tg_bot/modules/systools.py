@@ -12,8 +12,10 @@ from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS
 from tg_bot.modules.sql.systools_sql import last_speedtest
+from tg_bot.modules.helper_funcs.chat_status import owner_plus, dev_plus, sudo_plus
 
 
+@owner_plus
 def shell(update: Update, context: CallbackContext):
     command = update.message.text.split(' ', 1)
     if len(command) == 1:
@@ -31,12 +33,14 @@ def shell(update: Update, context: CallbackContext):
         parse_mode="HTML")
 
 
+@dev_plus
 def logs(update: Update, context: CallbackContext):
     user = update.effective_user
     with open("log.txt", "rb") as f:
         context.bot.send_document(document=f, filename=f.name, chat_id=user.id)
 
 
+@dev_plus
 def leave(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -76,6 +80,7 @@ def leave_cb(update: Update, context: CallbackContext):
     callback.answer(text="Left chat")
 
 
+@owner_plus
 def get_bot_ip(update: Update, context: CallbackContext):
     """ Sends the bot's IP address, so as to be able to ssh in if necessary.
         OWNER ONLY.
@@ -84,6 +89,7 @@ def get_bot_ip(update: Update, context: CallbackContext):
     update.message.reply_text(res.text)
 
 
+@sudo_plus
 def ping(update: Update, context: CallbackContext):
     message = update.effective_message
     user = update.effective_user
@@ -102,6 +108,7 @@ def ping(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML)
 
 
+@dev_plus
 def speedtest(update: Update, context: CallbackContext):
     now = datetime.now()
     if last_speedtest.date is not None and (
@@ -134,11 +141,9 @@ def speedtest(update: Update, context: CallbackContext):
 
 SHELL_HANDLER = CommandHandler(["sh", "shell"],
                                shell,
-                               filters=Filters.user(OWNER_ID),
                                run_async=True)
 LOG_HANDLER = CommandHandler("logs",
                              logs,
-                             filters=Filters.user(OWNER_ID),
                              run_async=True)
 LEAVE_HANDLER = CommandHandler("leave", leave, run_async=True)
 LEAVE_CALLBACK = CallbackQueryHandler(leave_cb,
@@ -146,12 +151,10 @@ LEAVE_CALLBACK = CallbackQueryHandler(leave_cb,
                                       run_async=True)
 IP_HANDLER = CommandHandler("ip",
                             get_bot_ip,
-                            filters=Filters.user(OWNER_ID),
                             run_async=True)
 PING_HANDLER = CommandHandler("ping", ping, run_async=True)
 SPEEDTEST_HANDLER = CommandHandler("speedtest",
                                    speedtest,
-                                   filters=Filters.user(SUDO_USERS),
                                    run_async=True)
 
 dispatcher.add_handler(SHELL_HANDLER)

@@ -12,11 +12,11 @@ ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
 
 
 def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
-    return user_id in DEV_USERS or user_id in SUDO_USERS
+    return user_id in SUDO_USERS or user_id in DEV_USERS
 
 
 def is_support_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
-    return user_id in SUPPORT_USERS or user_id in SUDO_USERS
+    return user_id in SUPPORT_USERS or user_id in DEV_USERS or user_id in SUDO_USERS
 
 
 def is_whitelist_plus(_: Chat,

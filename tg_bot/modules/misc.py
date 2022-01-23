@@ -24,7 +24,7 @@ from tg_bot.__main__ import STATS, USER_INFO, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
-from tg_bot.modules.helper_funcs.chat_status import user_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, sudo_plus
 
 RUN_STRINGS = (
     "Where do you think you're going?",
@@ -538,6 +538,7 @@ def get_time(update: Update, context: CallbackContext):
                     time_there, location))
 
 
+@sudo_plus
 def echo(update: Update, context: CallbackContext):
     bot = context.bot
     args = update.effective_message.text.split(None, 1)
@@ -549,6 +550,7 @@ def echo(update: Update, context: CallbackContext):
     message.delete()
 
 
+@sudo_plus
 def recho(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -668,6 +670,7 @@ def markdown_help(update: Update, context: CallbackContext):
         "[button2](buttonurl://google.com:same)")
 
 
+@sudo_plus
 def stats(update: Update, context: CallbackContext):
     bot = context.bot
     update.effective_message.reply_text(
@@ -688,9 +691,7 @@ __help__ = """
 __mod_name__ = "Misc"
 
 ID_HANDLER = DisableAbleCommandHandler("id", get_id, run_async=True)
-
 TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
-
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, run_async=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
@@ -698,23 +699,18 @@ GETUSER_HANDLER = DisableAbleCommandHandler("getuser", getuser, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
-
 ECHO_HANDLER = CommandHandler("echo",
                               echo,
-                              filters=CustomFilters.sudo_filter,
                               run_async=True)
 RECHO_HANDLER = CommandHandler("recho",
                                recho,
-                               filters=CustomFilters.sudo_filter,
                                run_async=True)
 MD_HELP_HANDLER = CommandHandler("markdownhelp",
                                  markdown_help,
                                  filters=Filters.private,
                                  run_async=True)
-
 STATS_HANDLER = CommandHandler("stats",
                                stats,
-                               filters=CustomFilters.sudo_filter,
                                run_async=True)
 GDPR_HANDLER = CommandHandler("gdpr",
                               gdpr,

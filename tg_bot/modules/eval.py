@@ -5,7 +5,8 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout
 
-from tg_bot import dispatcher, LOGGER, OWNER_ID
+from tg_bot import dispatcher, LOGGER
+from tg_bot.modules.helper_funcs.chat_status import owner_plus
 from telegram import ParseMode, Update
 from telegram.ext import CommandHandler, Filters, CallbackContext
 
@@ -49,11 +50,13 @@ def send(msg, bot, update):
         )
 
 
+@owner_plus
 def evaluate(update: Update, context: CallbackContext):
     bot = context.bot
     send(do(eval, bot, update, context), bot, update)
 
 
+@owner_plus
 def execute(update: Update, context: CallbackContext):
     bot = context.bot
     send(do(exec, bot, update, context), bot, update)
@@ -114,12 +117,10 @@ def do(func, bot, update, context):
 
 EVAL_HANDLER = CommandHandler("eval",
                               evaluate,
-                              run_async=True,
-                              filters=Filters.user(OWNER_ID))
+                              run_async=True)
 EXEC_HANDLER = CommandHandler("exec",
                               execute,
-                              run_async=True,
-                              filters=Filters.user(OWNER_ID))
+                              run_async=True)
 
 dispatcher.add_handler(EVAL_HANDLER)
 dispatcher.add_handler(EXEC_HANDLER)

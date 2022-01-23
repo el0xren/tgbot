@@ -9,7 +9,7 @@ from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_bans_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN, SUPPORT_CHAT, LOGS
-from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
+from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -46,6 +46,7 @@ UNGBAN_ERRORS = {
 }
 
 
+@support_plus
 def gban(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -229,6 +230,7 @@ def gban(update: Update, context: CallbackContext):
         pass
 
 
+@support_plus
 def ungban(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -297,6 +299,7 @@ def ungban(update: Update, context: CallbackContext):
     message.reply_text("Person has been un-gbanned.")
 
 
+@support_plus
 def gbanlist(update: Update, context: CallbackContext):
     bot = context.bot
     banned_users = sql.get_gban_list()
@@ -422,24 +425,17 @@ __mod_name__ = "Global Bans"
 
 GBAN_HANDLER = CommandHandler("gban",
                               gban,
-                              run_async=True,
-                              filters=CustomFilters.sudo_filter
-                              | CustomFilters.support_filter)
+                              run_async=True)
 UNGBAN_HANDLER = CommandHandler("ungban",
                                 ungban,
-                                run_async=True,
-                                filters=CustomFilters.sudo_filter
-                                | CustomFilters.support_filter)
+                                run_async=True)
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
-                           filters=CustomFilters.sudo_filter
-                           | CustomFilters.support_filter)
-
+                           run_async=True)
 GBAN_STATUS = CommandHandler("gbanstat",
                              gbanstat,
                              run_async=True,
                              filters=Filters.chat_type.groups)
-
 GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups,
                                enforce_gban,
                                run_async=True)
