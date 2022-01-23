@@ -155,14 +155,16 @@ def user_can_change_info(chat: Chat, user_id: int) -> bool:
                 or user_id in DEV_USERS or SUDO_USERS)
 
 
-def is_user_ban_protected(chat: Chat,
-                          user_id: int,
-                          member: ChatMember = None) -> bool:
+def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = None) -> bool:
+    chat = update.effective_chat
+    msg = update.effective_message
     if chat.type == 'private' \
             or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
             or user_id in WHITELIST_USERS \
-            or chat.all_members_are_administrators:
+            or chat.all_members_are_administrators \
+            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None
+            and msg.reply_to_message.sender_chat.type != "channel"):
         return True
 
     if not member:
