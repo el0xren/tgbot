@@ -54,6 +54,100 @@ def addsudo(update: Update, context: CallbackContext) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
+@sudo_plus
+@gloggable
+def addsupport(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
+    args = context.args
+    message = update.effective_message
+    user = update.effective_user
+    user_id = extract_user(message, args)
+    user_member = update.effective_chat.get_member(user_id)
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
+        data = json.load(infile)
+    if user_id in DEV_USERS:
+        message.reply_text("Huh? he is more than support!")
+        return ""
+    if user_id in SUDO_USERS:
+        if user.id in DEV_USERS:
+            message.reply_text("This member is a sudo user. Demoting to support.")
+            data["sudos"].remove(user_id)
+            SUDO_USERS.remove(user_id)
+        else:
+            message.reply_text("This user is already sudo")
+            return ""
+    if user_id in SUPPORT_USERS:
+        message.reply_text("This user is already a support user.")
+        return ""
+    if user_id in WHITELIST_USERS:
+        message.reply_text(
+            "This user is already a whitelisted user. Promoting to support.")
+        data['whitelists'].remove(user_id)
+        WHITELIST_USERS.remove(user_id)
+    data['supports'].append(user_id)
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'w') as outfile:
+        json.dump(data, outfile, indent=4)
+    SUPPORT_USERS.append(user_id)
+    update.effective_message.reply_text(
+        "Successfully promoted {} to support!".format(
+            user_member.user.first_name))
+    return "<b>{}:</b>" \
+           "\n#SUPPORT" \
+           "\n<b>Admin:</b> {}" \
+           "\n<b>User:</b> {}".format(html.escape(update.effective_chat.title),
+                                      mention_html(user.id, user.first_name),
+                                      mention_html(user_member.user.id, user_member.user.first_name))
+
+
+@sudo_plus
+@gloggable
+def addwhitelist(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
+    args = context.args
+    message = update.effective_message
+    user = update.effective_user
+    user_id = extract_user(message, args)
+    user_member = update.effective_chat.get_member(user_id)
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'r') as infile:
+        data = json.load(infile)
+    if user_id in DEV_USERS:
+        message.reply_text("Huh? he is more than whitelist!")
+        return ""
+    if user_id in SUDO_USERS:
+        if user.id in DEV_USERS:
+            message.reply_text("This member is a sudo user. Demoting to whitelist.")
+            data["sudos"].remove(user_id)
+            SUDO_USERS.remove(user_id)
+        else:
+            message.reply_text("This user is already sudo")
+            return ""
+    if user_id in SUPPORT_USERS:
+        message.reply_text(
+            "This user is already a support user. Demoting to whitelist.")
+        data['supports'].remove(user_id)
+        SUPPORT_USERS.remove(user_id)
+    if user_id in WHITELIST_USERS:
+        message.reply_text("This user is already a whitelisted user.")
+        return ""
+    data['whitelists'].append(user_id)
+    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
+              'w') as outfile:
+        json.dump(data, outfile, indent=4)
+    WHITELIST_USERS.append(user_id)
+    update.effective_message.reply_text(
+        "Successfully promoted {} to whitelist!".format(
+            user_member.user.first_name))
+    return "<b>{}:</b>" \
+           "\n#WHITELIST" \
+           "\n<b>Admin:</b> {}" \
+           "\n<b>User:</b> {}".format(html.escape(update.effective_chat.title),
+                                      mention_html(user.id, user.first_name),
+                                      mention_html(user_member.user.id, user_member.user.first_name))
+
+
 @dev_plus
 @gloggable
 def removesudo(update: Update, context: CallbackContext) -> str:
@@ -86,46 +180,6 @@ def removesudo(update: Update, context: CallbackContext) -> str:
 
 @sudo_plus
 @gloggable
-def addsupport(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    args = context.args
-    message = update.effective_message
-    user = update.effective_user
-    user_id = extract_user(message, args)
-    user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
-    if user_id in SUDO_USERS:
-        message.reply_text("This member is a sudo user. Demoting to support.")
-        data['sudos'].remove(user_id)
-        SUDO_USERS.remove(user_id)
-    if user_id in SUPPORT_USERS:
-        message.reply_text("This user is already a support user.")
-        return ""
-    if user_id in WHITELIST_USERS:
-        message.reply_text(
-            "This user is already a whitelisted user. Promoting to support.")
-        data['whitelists'].remove(user_id)
-        WHITELIST_USERS.remove(user_id)
-    data['supports'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'w') as outfile:
-        json.dump(data, outfile, indent=4)
-    SUPPORT_USERS.append(user_id)
-    update.effective_message.reply_text(
-        "Successfully promoted {} to support!".format(
-            user_member.user.first_name))
-    return "<b>{}:</b>" \
-           "\n#SUPPORT" \
-           "\n<b>Admin:</b> {}" \
-           "\n<b>User:</b> {}".format(html.escape(update.effective_chat.title),
-                                      mention_html(user.id, user.first_name),
-                                      mention_html(user_member.user.id, user_member.user.first_name))
-
-
-@sudo_plus
-@gloggable
 def removesupport(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -152,47 +206,6 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     else:
         message.reply_text("This user is not a support user!")
         return ""
-
-
-@sudo_plus
-@gloggable
-def addwhitelist(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    args = context.args
-    message = update.effective_message
-    user = update.effective_user
-    user_id = extract_user(message, args)
-    user_member = update.effective_chat.get_member(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'r') as infile:
-        data = json.load(infile)
-    if user_id in SUDO_USERS:
-        message.reply_text(
-            "This member is a sudo user. Demoting to whitelist.")
-        data['sudos'].remove(user_id)
-        SUDO_USERS.remove(user_id)
-    if user_id in SUPPORT_USERS:
-        message.reply_text(
-            "This user is already a support user. Demoting to whitelist.")
-        data['supports'].remove(user_id)
-        SUPPORT_USERS.remove(user_id)
-    if user_id in WHITELIST_USERS:
-        message.reply_text("This user is already a whitelisted user.")
-        return ""
-    data['whitelists'].append(user_id)
-    with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
-              'w') as outfile:
-        json.dump(data, outfile, indent=4)
-    WHITELIST_USERS.append(user_id)
-    update.effective_message.reply_text(
-        "Successfully promoted {} to whitelist!".format(
-            user_member.user.first_name))
-    return "<b>{}:</b>" \
-           "\n#WHITELIST" \
-           "\n<b>Admin:</b> {}" \
-           "\n<b>User:</b> {}".format(html.escape(update.effective_chat.title),
-                                      mention_html(user.id, user.first_name),
-                                      mention_html(user_member.user.id, user_member.user.first_name))
 
 
 @sudo_plus
