@@ -13,7 +13,7 @@ from telegram.error import BadRequest
 
 @loggable
 @user_admin
-def approve(update, context):
+def approve(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
@@ -42,7 +42,8 @@ def approve(update, context):
         return ""
     sql.approve(message.chat_id, user_id)
     message.reply_text(
-        f"[{member.user['first_name']}](tg://user?id={member.user['id']}) has been approved in {chat_title}! They will now be ignored by automated admin actions like locks, blocklists, and antiflood.",
+        f"[{member.user['first_name']}](tg://user?id={member.user['id']}) has been approved in {chat_title}! They "
+        f"will now be ignored by automated admin actions like locks, blocklists, and antiflood.",
         parse_mode=ParseMode.MARKDOWN,
     )
     log_message = (
@@ -56,7 +57,7 @@ def approve(update, context):
 
 @loggable
 @user_admin
-def disapprove(update, context):
+def disapprove(update: Update, context: CallbackContext):
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
@@ -91,7 +92,7 @@ def disapprove(update, context):
 
 
 @user_admin
-def approved(update, context):
+def approved(update: Update, context: CallbackContext):
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
