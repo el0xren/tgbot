@@ -431,15 +431,9 @@ you and your groups by removing spam flooders as quickly as possible. They can b
 
 __mod_name__ = "Global Mutes"
 
-GMUTE_HANDLER = CommandHandler("gmute",
-                               gmute,
-                               run_async=True)
-UNGMUTE_HANDLER = CommandHandler("ungmute",
-                                 ungmute,
-                                 run_async=True)
-GMUTE_LIST = CommandHandler("gmutelist",
-                            gmutelist,
-                            run_async=True)
+GMUTE_HANDLER = CommandHandler("gmute", gmute, run_async=True)
+UNGMUTE_HANDLER = CommandHandler("ungmute", ungmute, run_async=True)
+GMUTE_LIST = CommandHandler("gmutelist", gmutelist, run_async=True)
 GMUTE_STATUS = CommandHandler("gmutestat",
                               gmutestat,
                               run_async=True,

@@ -71,7 +71,8 @@ def addsupport(update: Update, context: CallbackContext) -> str:
         return ""
     if user_id in SUDO_USERS:
         if user.id in DEV_USERS:
-            message.reply_text("This member is a sudo user. Demoting to support.")
+            message.reply_text(
+                "This member is a sudo user. Demoting to support.")
             data["sudos"].remove(user_id)
             SUDO_USERS.remove(user_id)
         else:
@@ -118,7 +119,8 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
         return ""
     if user_id in SUDO_USERS:
         if user.id in DEV_USERS:
-            message.reply_text("This member is a sudo user. Demoting to whitelist.")
+            message.reply_text(
+                "This member is a sudo user. Demoting to whitelist.")
             data["sudos"].remove(user_id)
             SUDO_USERS.remove(user_id)
         else:
@@ -314,15 +316,9 @@ __help__ = """
 
 __mod_name__ = "Super Users"
 
-SUDO_HANDLER = CommandHandler("addsudo",
-                              addsudo,
-                              run_async=True)
-UNSUDO_HANDLER = CommandHandler("removesudo",
-                                removesudo,
-                                run_async=True)
-SUPPORT_HANDLER = CommandHandler("addsupport",
-                                 addsupport,
-                                 run_async=True)
+SUDO_HANDLER = CommandHandler("addsudo", addsudo, run_async=True)
+UNSUDO_HANDLER = CommandHandler("removesudo", removesudo, run_async=True)
+SUPPORT_HANDLER = CommandHandler("addsupport", addsupport, run_async=True)
 UNSUPPORT_HANDLER = CommandHandler("removesupport",
                                    removesupport,
                                    run_async=True)

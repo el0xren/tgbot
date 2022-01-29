@@ -410,7 +410,8 @@ def getuser(update: Update, context: CallbackContext):
                      parse_mode=ParseMode.HTML,
                      disable_web_page_preview=True)
 
-def get_full_info(chat, user)-> str:
+
+def get_full_info(chat, user) -> str:
     bot = dispatcher.bot
     text = ''
     if user.id == OWNER_ID:
@@ -716,19 +717,13 @@ GETUSER_HANDLER = DisableAbleCommandHandler("getuser", getuser, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
-ECHO_HANDLER = CommandHandler("echo",
-                              echo,
-                              run_async=True)
-RECHO_HANDLER = CommandHandler("recho",
-                               recho,
-                               run_async=True)
+ECHO_HANDLER = CommandHandler("echo", echo, run_async=True)
+RECHO_HANDLER = CommandHandler("recho", recho, run_async=True)
 MD_HELP_HANDLER = CommandHandler("markdownhelp",
                                  markdown_help,
                                  filters=Filters.private,
                                  run_async=True)
-STATS_HANDLER = CommandHandler("stats",
-                               stats,
-                               run_async=True)
+STATS_HANDLER = CommandHandler("stats", stats, run_async=True)
 GDPR_HANDLER = CommandHandler("gdpr",
                               gdpr,
                               filters=Filters.private,

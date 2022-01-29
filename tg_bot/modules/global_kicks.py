@@ -217,15 +217,9 @@ def __user_info__(user_id):
     return text
 
 
-GKICK_HANDLER = CommandHandler("gkick",
-                               gkick,
-                               run_async=True)
-SET_HANDLER = CommandHandler("gkickset",
-                             gkickset,
-                             run_async=True)
-RESET_HANDLER = CommandHandler("gkickreset",
-                               gkickreset,
-                               run_async=True)
+GKICK_HANDLER = CommandHandler("gkick", gkick, run_async=True)
+SET_HANDLER = CommandHandler("gkickset", gkickset, run_async=True)
+RESET_HANDLER = CommandHandler("gkickreset", gkickreset, run_async=True)
 
 dispatcher.add_handler(GKICK_HANDLER)
 dispatcher.add_handler(SET_HANDLER)

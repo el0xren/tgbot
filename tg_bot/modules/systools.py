@@ -139,23 +139,15 @@ def speedtest(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML)
 
 
-SHELL_HANDLER = CommandHandler(["sh", "shell"],
-                               shell,
-                               run_async=True)
-LOG_HANDLER = CommandHandler("logs",
-                             logs,
-                             run_async=True)
+SHELL_HANDLER = CommandHandler(["sh", "shell"], shell, run_async=True)
+LOG_HANDLER = CommandHandler("logs", logs, run_async=True)
 LEAVE_HANDLER = CommandHandler("leave", leave, run_async=True)
 LEAVE_CALLBACK = CallbackQueryHandler(leave_cb,
                                       pattern=r"leavechat_cb_",
                                       run_async=True)
-IP_HANDLER = CommandHandler("ip",
-                            get_bot_ip,
-                            run_async=True)
+IP_HANDLER = CommandHandler("ip", get_bot_ip, run_async=True)
 PING_HANDLER = CommandHandler("ping", ping, run_async=True)
-SPEEDTEST_HANDLER = CommandHandler("speedtest",
-                                   speedtest,
-                                   run_async=True)
+SPEEDTEST_HANDLER = CommandHandler("speedtest", speedtest, run_async=True)
 
 dispatcher.add_handler(SHELL_HANDLER)
 dispatcher.add_handler(LOG_HANDLER)

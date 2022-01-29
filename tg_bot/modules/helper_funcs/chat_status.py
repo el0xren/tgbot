@@ -22,8 +22,9 @@ def is_support_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
 def is_whitelist_plus(_: Chat,
                       user_id: int,
                       member: ChatMember = None) -> bool:
-    return any(user_id in user
-               for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS, DEV_USERS])
+    return any(
+        user_id in user
+        for user in [WHITELIST_USERS, SUPPORT_USERS, SUDO_USERS, DEV_USERS])
 
 
 def owner_plus(func):
@@ -155,7 +156,9 @@ def user_can_change_info(chat: Chat, user_id: int) -> bool:
                 or user_id in DEV_USERS or SUDO_USERS)
 
 
-def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = None) -> bool:
+def is_user_ban_protected(update: Update,
+                          user_id: int,
+                          member: ChatMember = None) -> bool:
     chat = update.effective_chat
     msg = update.effective_message
     if chat.type == 'private' \

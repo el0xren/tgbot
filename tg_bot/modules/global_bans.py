@@ -423,15 +423,9 @@ you and your groups by removing spam flooders as quickly as possible. They can b
 
 __mod_name__ = "Global Bans"
 
-GBAN_HANDLER = CommandHandler("gban",
-                              gban,
-                              run_async=True)
-UNGBAN_HANDLER = CommandHandler("ungban",
-                                ungban,
-                                run_async=True)
-GBAN_LIST = CommandHandler("gbanlist",
-                           gbanlist,
-                           run_async=True)
+GBAN_HANDLER = CommandHandler("gban", gban, run_async=True)
+UNGBAN_HANDLER = CommandHandler("ungban", ungban, run_async=True)
+GBAN_LIST = CommandHandler("gbanlist", gbanlist, run_async=True)
 GBAN_STATUS = CommandHandler("gbanstat",
                              gbanstat,
                              run_async=True,

@@ -115,12 +115,8 @@ def do(func, bot, update, context):
             return result
 
 
-EVAL_HANDLER = CommandHandler("eval",
-                              evaluate,
-                              run_async=True)
-EXEC_HANDLER = CommandHandler("exec",
-                              execute,
-                              run_async=True)
+EVAL_HANDLER = CommandHandler("eval", evaluate, run_async=True)
+EXEC_HANDLER = CommandHandler("exec", execute, run_async=True)
 
 dispatcher.add_handler(EVAL_HANDLER)
 dispatcher.add_handler(EXEC_HANDLER)
