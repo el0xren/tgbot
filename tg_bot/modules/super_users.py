@@ -34,6 +34,10 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
@@ -75,6 +79,10 @@ def addsupport(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
@@ -123,6 +131,10 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
@@ -171,6 +183,10 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
@@ -201,6 +217,10 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
@@ -231,6 +251,10 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     user = update.effective_user
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
     with open('{}/tg_bot/elevated_users.json'.format(os.getcwd()),
               'r') as infile:
         data = json.load(infile)
