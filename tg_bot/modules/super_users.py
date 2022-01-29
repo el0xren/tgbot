@@ -13,6 +13,18 @@ from tg_bot.modules.log_channel import gloggable
 from tg_bot.modules.helper_funcs.extraction import extract_user
 
 
+def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
+    bot = context.bot
+    if not user_id:
+        return "Nice try... Nope! Provide me an valid User ID."
+
+    elif user_id == bot.id:
+        return "This does not work that way."
+
+    else:
+        return None
+
+
 @dev_plus
 @gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
