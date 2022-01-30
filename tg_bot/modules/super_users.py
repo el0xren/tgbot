@@ -1,6 +1,7 @@
 import html
 import json
 import os
+from typing import Optional
 
 from telegram import Message, Update, Bot, User, Chat, ParseMode
 from telegram.error import BadRequest, TelegramError
