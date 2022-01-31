@@ -5,6 +5,12 @@ import sys
 import telegram.ext as tg
 from configparser import ConfigParser
 
+
+def get_user_list(__init__, key):
+    with open("{}/tg_bot/{}".format(os.getcwd(), __init__), "r") as json_file:
+        return json.load(json_file)[key]
+
+
 # enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -37,14 +43,10 @@ NO_LOAD = ahegaoconfig.get("NO_LOAD").split()
 NO_LOAD = list(map(str, NO_LOAD))
 WEBHOOK = ahegaoconfig.getboolean("WEBHOOK", False)
 URL = ahegaoconfig.get("URL", None)
-DEV_USERS = ahegaoconfig.get("DEV_USERS").split()
-DEV_USERS = list(map(int, DEV_USERS))
-SUDO_USERS = ahegaoconfig.get("SUDO_USERS").split()
-SUDO_USERS = list(map(int, SUDO_USERS))
-SUPPORT_USERS = ahegaoconfig.get("SUPPORT_USERS").split()
-SUPPORT_USERS = list(map(int, SUPPORT_USERS))
-WHITELIST_USERS = ahegaoconfig.get("WHITELIST_USERS").split()
-WHITELIST_USERS = list(map(int, WHITELIST_USERS))
+DEV_USERS = get_user_list("elevated_users.json", "devs")
+SUDO_USERS = get_user_list("elevated_users.json", "sudos")
+SUPPORT_USERS = get_user_list("elevated_users.json", "supports")
+WHITELIST_USERS = get_user_list("elevated_users.json", "whitelists")
 CERT_PATH = ahegaoconfig.get("CERT_PATH", None)
 PORT = ahegaoconfig.getint("PORT", None)
 INFOPIC = ahegaoconfig.getboolean("INFOPIC", False)
