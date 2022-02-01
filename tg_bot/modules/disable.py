@@ -47,7 +47,8 @@ if is_module_loaded(FILENAME):
 
                 # disabled, admincmd, user admin
                 if sql.is_command_disabled(chat.id, command):
-                    if command in ADMIN_CMDS and is_user_admin(update, user.id):
+                    if command in ADMIN_CMDS and is_user_admin(
+                            update, user.id):
                         pass
                     else:
                         return None

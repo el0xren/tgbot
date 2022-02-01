@@ -61,7 +61,8 @@ SUPPORT_CHAT = ahegaoconfig.get("SUPPORT_CHAT", None)
 START_STICKER = ahegaoconfig.get("START_STICKER", None)
 LOGS = ahegaoconfig.getfloat("LOGS", None)
 BACKUP_PASS = ahegaoconfig.get("BACKUP_PASS")
-IGNORE_PENDING_REQUESTS = ahegaoconfig.getboolean("IGNORE_PENDING_REQUESTS", False)
+IGNORE_PENDING_REQUESTS = ahegaoconfig.getboolean("IGNORE_PENDING_REQUESTS",
+                                                  False)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
