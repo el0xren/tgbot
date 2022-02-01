@@ -9,3 +9,4 @@ tg_bot/elevated_users.json
 *.txt
 backups/
 config.ini
+venv/
