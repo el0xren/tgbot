@@ -79,7 +79,7 @@ class CustomCommandHandler(tg.CommandHandler):
     def check_update(self, update):
         if super().check_update(update) and not (sql.is_restr_locked(
                 update.effective_chat.id, 'messages') and not is_user_admin(
-                    update.effective_chat, update.effective_user.id)):
+                    update, update.effective_user.id)):
             args = update.effective_message.text.split()[1:]
             filter_result = self.filters(update)
             if filter_result:
