@@ -168,7 +168,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     if user_id in SUDO_USERS:
         message.reply_text("Demoting to normal user")
         SUDO_USERS.remove(user_id)
-        sql.remove_superuser(user_id, "sardegnas")
+        sql.remove_superuser(user_id)
         return "<b>{}:</b>" \
            "\n#UNSUDO" \
            "\n<b>Admin:</b> {}" \
@@ -196,7 +196,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     if user_id in SUPPORT_USERS:
         message.reply_text("Demoting to normal user")
         SUPPORT_USERS.remove(user_id)
-        sql.remove_superuser(user_id, "sardegnas")
+        sql.remove_superuser(user_id)
         return "<b>{}:</b>" \
            "\n#UNSUPPORT" \
            "\n<b>Admin:</b> {}" \
@@ -224,7 +224,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     if user_id in WHITELIST_USERS:
         message.reply_text("Demoting to normal user")
         WHITELIST_USERS.remove(user_id)
-        sql.remove_superuser(user_id, "sardegnas")
+        sql.remove_superuser(user_id)
         return "<b>{}:</b>" \
            "\n#UNWHITELIST" \
            "\n<b>Admin:</b> {}" \
