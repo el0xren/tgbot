@@ -370,7 +370,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
         message.reply_text("How would I unban myself if I wasn't here...?")
         return ""
 
-    if is_user_in_chat(update, user_id):
+    if is_user_in_chat(chat, user_id):
         message.reply_text(
             "Why are you trying to unban someone that's already in the chat?")
         return ""

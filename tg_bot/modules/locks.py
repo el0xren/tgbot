@@ -304,6 +304,7 @@ def del_lockables(update: Update, context: CallbackContext):
 
 @user_not_admin
 def rest_handler(update: Update, context: CallbackContext):
+    bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     for restriction, filter in RESTRICTION_TYPES.items():

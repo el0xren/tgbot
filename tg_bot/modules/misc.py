@@ -564,7 +564,10 @@ def echo(update: Update, context: CallbackContext):
         message.reply_to_message.reply_text(args[1])
     else:
         message.reply_text(args[1], quote=False)
-    message.delete()
+    try:
+        message.delete()
+    except BadRequest:
+        pass
 
 
 @sudo_plus
@@ -581,10 +584,8 @@ def recho(update: Update, context: CallbackContext):
     if len(to_send) >= 2:
         try:
             bot.sendMessage(int(chat_id), str(to_send))
-        except TelegramError:
-            message.reply_text(
-                "Couldn't send the message. Perhaps I'm not part of that group?"
-            )
+        except BadRequest:
+            pass
 
 
 def flash(update: Update, context: CallbackContext):
