@@ -51,7 +51,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
         message.reply_text(
             "This user is already a whitelisted user. Promoting to sudo.")
         WHITELIST_USERS.remove(user_id)
-    sql.set_royal_role(user_id, "sudos")
+    sql.set_superuser_role(user_id, "sudos")
     SUDO_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to sudo!".format(
@@ -95,7 +95,7 @@ def addsupport(update: Update, context: CallbackContext) -> str:
         message.reply_text(
             "This user is already a whitelisted user. Promoting to support.")
         WHITELIST_USERS.remove(user_id)
-    sql.set_royal_role(user_id, "supports")
+    sql.set_superuser_role(user_id, "supports")
     SUPPORT_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to support!".format(
@@ -139,7 +139,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     if user_id in WHITELIST_USERS:
         message.reply_text("This user is already a whitelisted user.")
         return ""
-    sql.set_royal_role(user_id, "whitelists")
+    sql.set_superuser_role(user_id, "whitelists")
     WHITELIST_USERS.append(user_id)
     update.effective_message.reply_text(
         "Successfully promoted {} to whitelist!".format(
@@ -168,7 +168,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     if user_id in SUDO_USERS:
         message.reply_text("Demoting to normal user")
         SUDO_USERS.remove(user_id)
-        sql.set_royal_role(user_id, "sardegnas")
+        sql.remove_superuser(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNSUDO" \
            "\n<b>Admin:</b> {}" \
@@ -196,7 +196,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     if user_id in SUPPORT_USERS:
         message.reply_text("Demoting to normal user")
         SUPPORT_USERS.remove(user_id)
-        sql.set_royal_role(user_id, "sardegnas")
+        sql.remove_superuser(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNSUPPORT" \
            "\n<b>Admin:</b> {}" \
@@ -224,7 +224,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     if user_id in WHITELIST_USERS:
         message.reply_text("Demoting to normal user")
         WHITELIST_USERS.remove(user_id)
-        sql.set_royal_role(user_id, "sardegnas")
+        sql.remove_superuser(user_id, "sardegnas")
         return "<b>{}:</b>" \
            "\n#UNWHITELIST" \
            "\n<b>Admin:</b> {}" \

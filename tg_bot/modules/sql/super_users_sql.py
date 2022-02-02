@@ -8,7 +8,7 @@ from sqlalchemy.dialects import postgresql
 
 
 class SuperUsers(BASE):
-    __tablename__ = "royals"
+    __tablename__ = "superusers"
 
     user_id = Column(BigInteger, primary_key=True)
     role_name = Column(String(255))
