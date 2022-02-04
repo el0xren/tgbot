@@ -1,9 +1,10 @@
+import html
 import random
 from typing import Optional
 
-from telegram import Message, Update, Bot, User
-from telegram import MessageEntity
-from telegram.ext import Filters, MessageHandler, run_async
+from telegram import Message, MessageEntity, Update
+from telegram.ext import Filters, MessageHandler
+from telegram.error import BadRequest
 
 from tg_bot import dispatcher, CallbackContext
 from tg_bot.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
@@ -68,43 +69,61 @@ def no_longer_afk(update: Update, context: CallbackContext):
 def reply_afk(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message  # type: Optional[Message]
+    userc = update.effective_user
+    userc_id = userc.id
     entities = message.parse_entities(
         [MessageEntity.TEXT_MENTION, MessageEntity.MENTION])
     if message.entities and entities:
+        check_users = []
         for ent in entities:
             if ent.type == MessageEntity.TEXT_MENTION:
                 user_id = ent.user.id
                 fst_name = ent.user.first_name
 
-            elif ent.type == MessageEntity.MENTION:
-                user_id = get_user_id(message.text[ent.offset:ent.offset +
-                                                   ent.length])
-                if not user_id:
-                    # Should never happen, since for a user to become AFK they must have spoken. Maybe changed username?
+                if user_id in check_users:
                     return
-                chat = bot.get_chat(user_id)
-                fst_name = chat.first_name
+                check_users.append(user_id)
 
-            else:
+            if ent.type != MessageEntity.MENTION:
                 return
 
-            check_afk(update, context, user_id, fst_name)
+            user_id = get_user_id(message.text[ent.offset:ent.offset +
+                                                   ent.length])
+            if not user_id:
+                # Should never happen, since for a user to become AFK they must have spoken. Maybe changed username?
+                return
+
+            if user_id in check_users:
+                return
+            check_users.append(user_id)
+
+            try:
+                chat = bot.get_chat(user_id)
+            except BadRequest:
+                return
+            fst_name = chat.first_name
+
+            check_afk(update, context, user_id, fst_name, userc_id)
 
     elif message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         fst_name = message.reply_to_message.from_user.first_name
-        check_afk(update, context, user_id, fst_name)
+        check_afk(update, context, user_id, fst_name, userc_id)
 
 
-def check_afk(update: Update, context: CallbackContext, user_id, fst_name):
-    if sql.is_afk(user_id):
-        user = sql.check_afk_status(user_id)
-        if not user.reason:
+def check_afk(update, context, user_id, fst_name, userc_id):
+    if int(userc_id) == int(user_id):
+        return
+    is_afk, reason = sql.check_afk_status(user_id)
+    if is_afk:
+        if not reason:
             res = "{}".format(random.choice(AFK_STRINGS))
+            update.effective_message.reply_text(res, parse_mode=None)
         else:
             res = "{} is AFK! says its because of: \n{}".format(
-                fst_name, user.reason)
-        update.effective_message.reply_text(res)
+                html.escape(fst_name), html.escape(reason)
+            )
+            update.effective_message.reply_text(res, parse_mode="html")
 
 
 def __gdpr__(user_id):
@@ -114,7 +133,6 @@ def __gdpr__(user_id):
 __help__ = """
  - /afk <reason>: mark yourself as AFK.
  - brb <reason>: same as the afk command - but not a command.
-
 When marked as AFK, any mentions will be replied to with a message to say you're not available!
 """
 
