@@ -249,6 +249,8 @@ def devlist(update: Update, context: CallbackContext):
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
+            if user.first_name == "":
+                continue
             msg += f"• {mention_html(user_id, user.first_name)}\n"
         except TelegramError:
             pass
@@ -265,6 +267,8 @@ def sudolist(update: Update, context: CallbackContext):
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
+            if user.first_name == "":
+                continue
             msg += f"• {mention_html(user_id, user.first_name)}\n"
         except TelegramError:
             pass
@@ -280,6 +284,8 @@ def supportlist(update: Update, context: CallbackContext):
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
+            if user.first_name == "":
+                continue
             msg += f"• {mention_html(user_id, user.first_name)}\n"
         except TelegramError:
             pass
@@ -295,6 +301,8 @@ def whitelistlist(update: Update, context: CallbackContext):
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
+            if user.first_name == "":
+                continue
             msg += f"• {mention_html(user_id, user.first_name)}\n"
         except TelegramError:
             pass
