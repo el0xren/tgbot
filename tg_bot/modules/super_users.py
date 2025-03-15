@@ -37,6 +37,11 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
@@ -77,6 +82,11 @@ def addsupport(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
@@ -121,6 +131,11 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
@@ -165,6 +180,11 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
@@ -193,6 +213,11 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
@@ -221,6 +246,11 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = update.effective_chat.get_member(user_id)
     reply = check_user_id(user_id, bot)
+
+    if not user_id:
+        message.reply_text("Invalid user!")
+        return ""
+
     if reply:
         message.reply_text(reply)
         return ""
