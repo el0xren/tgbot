@@ -8,6 +8,7 @@ import logging
 from urllib.parse import urljoin
 from html import escape
 from bs4 import BeautifulSoup
+from requests import get
 
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, CallbackContext, Filters
@@ -231,15 +232,16 @@ def gsm_command(update: Update, context: CallbackContext):
             return
         data = fetch_device_info(url)
         caption = f"<b>{data['title']}</b>\n{data['specs']}"
-        buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("View full details.", url=data['url'])]
-        ])
+        buttons = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("View full details.", url=data["url"])]])
         if data["image"]:
             try:
-                message.reply_photo(photo=data["image"],
-                                    caption=caption,
-                                    parse_mode=ParseMode.HTML,
-                                    reply_markup=buttons)
+                message.reply_photo(
+                    photo=data["image"],
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=buttons,
+                )
             except Exception as e:
                 logger.error(f"Photo send error: {e}")
                 message.reply_text(caption,
@@ -291,6 +293,54 @@ def get_sdk(update: Update, context: CallbackContext):
     )
 
 
+def kernelsu(update: Update, context: CallbackContext):
+    message = update.effective_message
+    chat = update.effective_chat
+    repos = [
+        ("KernelSU", "tiann/KernelSU"),
+        ("KernelSU-Next", "KernelSU-Next/KernelSU-Next"),
+    ]
+
+    msg = "*Latest KernelSU Releases:*\n\n"
+
+    for repo_name, repo_path in repos:
+        try:
+            api_url = f"https://api.github.com/repos/{repo_path}/releases/latest"
+            response = get(api_url, headers=HEADERS)
+            response.raise_for_status()
+            data = response.json()
+
+            msg += f"*{repo_name}:*\n"
+            msg += f'• Release - [{data["tag_name"]}]({data["html_url"]})\n'
+
+            apk_assets = [
+                asset for asset in data["assets"]
+                if asset["name"].lower().endswith(".apk")
+            ]
+            if apk_assets:
+                for asset in apk_assets:
+                    msg += (
+                        f'• APK - [{asset["name"]}]({asset["browser_download_url"]})\n'
+                    )
+            else:
+                msg += "• APK - No APK assets found\n"
+
+            msg += "\n"
+
+        except Exception as e:
+            msg += f"*{repo_name}:* Error fetching data ({str(e)})\n\n"
+            continue
+
+    if "Error fetching data" in msg:
+        msg += "Failed to fetch releases, try again later."
+
+    message.reply_text(
+        text=msg,
+        parse_mode=ParseMode.MARKDOWN,
+        disable_web_page_preview=True,
+    )
+
+
 __help__ = """
 *GSM Arena Lookup:*
 Get specs and images of any phone.
@@ -306,3 +356,4 @@ __mod_name__ = "Android"
 
 dispatcher.add_handler(CommandHandler("gsm", gsm_command, run_async=True))
 dispatcher.add_handler(CommandHandler("sdk", get_sdk, run_async=True))
+dispatcher.add_handler(CommandHandler("kernelsu", kernelsu, run_async=True))
