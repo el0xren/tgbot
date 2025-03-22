@@ -384,6 +384,11 @@ def orangefox(update: Update, context: CallbackContext):
 
     else:
         page = loads(link.content)
+        file_id = page["data"][0]["_id"] if "data" in page else ""
+        link = get(f"https://api.orangefox.download/v3/devices/get?codename={device}")
+        page = loads(link.content)
+        if "detail" in page and page["detail"] == "Not Found":
+        page = loads(link.content)
         dl_file = page['file_name']
         build_type = page['build_type']
         version = page['version']
