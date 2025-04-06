@@ -394,7 +394,7 @@ def orangefox(update: Update, context: CallbackContext):
         version = page['version']
         changelog = page['changelog']
         size = page['size_human']
-        dl_link = page['url']
+        dl_link = page["mirrors"][next(iter(page["mirrors"]))]
         date = page['date']
         md5 = page['md5']
         message = f'<b>Latest OrangeFox Recovery for the {device}</b>\n\n'
