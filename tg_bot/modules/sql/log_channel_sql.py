@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, func, distinct
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class GroupLogs(BASE):
@@ -15,7 +15,7 @@ class GroupLogs(BASE):
         self.log_channel = str(log_channel)
 
 
-GroupLogs.__table__.create(checkfirst=True)
+GroupLogs.__table__.create(bind=engine,checkfirst=True)
 
 LOGS_INSERTION_LOCK = threading.RLock()
 

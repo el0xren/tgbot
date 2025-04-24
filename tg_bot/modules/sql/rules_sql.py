@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, UnicodeText, func, distinct
 
-from tg_bot.modules.sql import SESSION, BASE
+from tg_bot.modules.sql import SESSION, BASE, engine
 
 
 class Rules(BASE):
@@ -17,7 +17,7 @@ class Rules(BASE):
         return "<Chat {} rules: {}>".format(self.chat_id, self.rules)
 
 
-Rules.__table__.create(checkfirst=True)
+Rules.__table__.create(bind=engine, checkfirst=True)
 
 INSERTION_LOCK = threading.RLock()
 

@@ -4,7 +4,7 @@ from typing import Union
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, BigInteger
 
 from tg_bot.modules.helper_funcs.msg_types import Types
-from tg_bot.modules.sql import SESSION, BASE
+from tg_bot.modules.sql import SESSION, BASE, engine
 
 DEFAULT_WELCOME = "Hey {first}, how are you?"
 DEFAULT_GOODBYE = "Nice knowing ya!"
@@ -76,10 +76,10 @@ class CleanServiceSetting(BASE):
         return "<Chat used clean service ({})>".format(self.chat_id)
 
 
-Welcome.__table__.create(checkfirst=True)
-WelcomeButtons.__table__.create(checkfirst=True)
-GoodbyeButtons.__table__.create(checkfirst=True)
-CleanServiceSetting.__table__.create(checkfirst=True)
+Welcome.__table__.create(bind=engine, checkfirst=True)
+WelcomeButtons.__table__.create(bind=engine, checkfirst=True)
+GoodbyeButtons.__table__.create(bind=engine, checkfirst=True)
+CleanServiceSetting.__table__.create(bind=engine, checkfirst=True)
 
 INSERTION_LOCK = threading.RLock()
 WELC_BTN_LOCK = threading.RLock()

@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, UnicodeText, Boolean, Integer, BigInteger
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class AFK(BASE):
@@ -21,7 +21,7 @@ class AFK(BASE):
         return "afk_status for {}".format(self.user_id)
 
 
-AFK.__table__.create(checkfirst=True)
+AFK.__table__.create(bind=engine,checkfirst=True)
 INSERTION_LOCK = threading.RLock()
 
 AFK_USERS = {}

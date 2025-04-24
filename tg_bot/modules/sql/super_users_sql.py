@@ -2,7 +2,7 @@ import threading
 import traceback
 
 from sqlalchemy.sql.sqltypes import BigInteger
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 from sqlalchemy import Column, String
 from sqlalchemy.dialects import postgresql
 
@@ -21,7 +21,7 @@ class SuperUsers(BASE):
         return f"<superuser {self.user_id} with role {self.role_name}>"
 
 
-SuperUsers.__table__.create(checkfirst=True)
+SuperUsers.__table__.create(bind=engine, checkfirst=True)
 
 
 def is_superuser(user_id: int, role: str = None):

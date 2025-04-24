@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, UnicodeText, Integer, BigInteger, String, Boolean
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class GloballyMutedUsers(BASE):
@@ -40,8 +40,8 @@ class GmuteSettings(BASE):
         return "<Gmute setting {} ({})>".format(self.chat_id, self.setting)
 
 
-GloballyMutedUsers.__table__.create(checkfirst=True)
-GmuteSettings.__table__.create(checkfirst=True)
+GloballyMutedUsers.__table__.create(bind=engine, checkfirst=True)
+GmuteSettings.__table__.create(bind=engine, checkfirst=True)
 
 GMUTED_USERS_LOCK = threading.RLock()
 GMUTE_SETTING_LOCK = threading.RLock()

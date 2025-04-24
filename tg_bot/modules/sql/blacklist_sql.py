@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import func, distinct, Column, String, UnicodeText
 
-from tg_bot.modules.sql import SESSION, BASE
+from tg_bot.modules.sql import SESSION, BASE, engine
 
 
 class BlackListFilters(BASE):
@@ -24,7 +24,7 @@ class BlackListFilters(BASE):
             and self.trigger == other.trigger)
 
 
-BlackListFilters.__table__.create(checkfirst=True)
+BlackListFilters.__table__.create(bind=engine, checkfirst=True)
 
 BLACKLIST_FILTER_INSERTION_LOCK = threading.RLock()
 

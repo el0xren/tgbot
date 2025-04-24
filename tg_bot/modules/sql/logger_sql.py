@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, Boolean
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class LoggerSettings(BASE):
@@ -18,7 +18,7 @@ class LoggerSettings(BASE):
         return "<Chat log setting {} ({})>".format(self.chat_id, self.setting)
 
 
-LoggerSettings.__table__.create(checkfirst=True)
+LoggerSettings.__table__.create(bind=engine, checkfirst=True)
 
 LOG_SETTING_LOCK = threading.RLock()
 

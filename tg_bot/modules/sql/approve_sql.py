@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, UnicodeText, Integer, func, distinct
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class Approvals(BASE):
@@ -18,7 +18,7 @@ class Approvals(BASE):
         return "<Approve %s>" % self.user_id
 
 
-Approvals.__table__.create(checkfirst=True)
+Approvals.__table__.create(bind=engine, checkfirst=True)
 
 APPROVE_INSERTION_LOCK = threading.RLock()
 

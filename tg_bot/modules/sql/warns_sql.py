@@ -3,7 +3,7 @@ import threading
 from sqlalchemy import Integer, BigInteger, Column, String, UnicodeText, func, distinct, Boolean
 from sqlalchemy.dialects import postgresql
 
-from tg_bot.modules.sql import SESSION, BASE
+from tg_bot.modules.sql import SESSION, BASE, engine
 
 
 class Warns(BASE):
@@ -61,9 +61,9 @@ class WarnSettings(BASE):
                                                     self.warn_limit)
 
 
-Warns.__table__.create(checkfirst=True)
-WarnFilters.__table__.create(checkfirst=True)
-WarnSettings.__table__.create(checkfirst=True)
+Warns.__table__.create(bind=engine, checkfirst=True)
+WarnFilters.__table__.create(bind=engine, checkfirst=True)
+WarnSettings.__table__.create(bind=engine, checkfirst=True)
 
 WARN_INSERTION_LOCK = threading.RLock()
 WARN_FILTER_INSERTION_LOCK = threading.RLock()

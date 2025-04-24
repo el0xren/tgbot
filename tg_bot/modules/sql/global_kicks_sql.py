@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, UnicodeText, Integer, BigInteger, String, Boolean
 
-from tg_bot.modules.sql import BASE, SESSION
+from tg_bot.modules.sql import BASE, SESSION, engine
 
 
 class GloballyKickedUsers(BASE):
@@ -24,7 +24,7 @@ class GloballyKickedUsers(BASE):
         }
 
 
-GloballyKickedUsers.__table__.create(checkfirst=True)
+GloballyKickedUsers.__table__.create(bind=engine, checkfirst=True)
 
 
 def gkick_user(user_id, name, increment):
