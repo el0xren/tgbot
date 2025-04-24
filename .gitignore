@@ -11,3 +11,5 @@ backups/
 config.ini
 venv/
 *:Zone.Identifier
+alembic/
+alembic.ini
