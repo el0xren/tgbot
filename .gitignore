@@ -10,3 +10,4 @@ tg_bot/elevated_users.json
 backups/
 config.ini
 venv/
+*:Zone.Identifier
