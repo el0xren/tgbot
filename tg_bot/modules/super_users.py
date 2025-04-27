@@ -188,6 +188,9 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     if reply:
         message.reply_text(reply)
         return ""
+    if user_id in DEV_USERS:
+        message.reply_text("Huh? he is more than sudo!")
+        return ""
     if user_id in SUDO_USERS:
         message.reply_text("Demoting to normal user")
         SUDO_USERS.remove(user_id)
