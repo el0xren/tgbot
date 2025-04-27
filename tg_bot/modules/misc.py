@@ -10,7 +10,7 @@ from time import sleep
 
 import requests
 import tg_bot.modules.helper_funcs.cas_api as cas
-from telegram import Message, Chat, Update, Bot, MessageEntity
+from telegram import Message, Chat, User, Update, Bot, MessageEntity
 from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
@@ -254,200 +254,117 @@ def get_id(update: Update, context: CallbackContext):
 def info(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
+    chat = update.effective_chat
     full = False
+
+    # Check for full info flag
     if msg.text.find(" -f") != -1:
         full = True
         msg.text = msg.text.replace(" -f", "")
-        args.remove("-f")
-    user_id = extract_user(msg, args)
-    chat = update.effective_chat
+        args = [arg for arg in args if arg != "-f"]
 
+    # Extract user ID
+    user_id = extract_user(msg, args)
     if user_id:
         user = bot.get_chat(user_id)
-
     elif not msg.reply_to_message and not args:
-        user = (msg.sender_chat
-                if msg.sender_chat is not None else msg.from_user)
-
+        user = msg.sender_chat if msg.sender_chat else msg.from_user
     elif not msg.reply_to_message and (
             not args or
-        (len(args) >= 1 and not args[0].startswith("@")
-         and not args[0].isdigit()
-         and not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
+            (args and not args[0].startswith("@") and not args[0].isdigit() and
+             not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
         msg.reply_text("I can't extract a user from this.")
         return
-
     else:
         return
 
-    if hasattr(user, 'type') and user.type != "private":
-        text = (f"<b>Chat info: </b>"
-                f"\n  <b>ID</b>: <code>{user.id}</code>"
-                f"\n  <b>Title</b>: {user.title}")
+    # Initialize text for response
+    is_chat = hasattr(user, 'type') and user.type != "private"
+    text = f"<b>{'Chat' if is_chat else 'User'} Info</b>:\n"
+    text += f"  <b>ID</b>: <code>{user.id}</code>\n"
+    text += f"  <b>{'Title' if is_chat else 'First Name'}</b>: {user.title if is_chat else mention_html(user.id, user.first_name)}\n"
 
-        if user.username:
-            text += f"\n  <b>Username</b>: @{html.escape(user.username)}"
-            text += f"\n  <b>Chat Type</b>: {user.type.capitalize()}"
+    if not is_chat:
+        text += f"  <b>Last Name</b>: {html.escape(user.last_name or 'null')}\n"
+    if user.username:
+        text += f"  <b>Username</b>: @{html.escape(user.username)}\n"
+    if is_chat:
+        text += f"  <b>Chat Type</b>: {user.type.capitalize()}\n"
 
-        if INFOPIC:
-            try:
-                profile = bot.getChat(user.id).photo
-                _file = bot.get_file(profile["big_file_id"])
-                _file.download(f"{user.id}.png")
-
-                msg.reply_document(
-                    document=open(f"{user.id}.png", "rb"),
-                    caption=(text),
-                    parse_mode=ParseMode.HTML,
-                )
-
-                os.remove(f"{user.id}.png")
-            # Incase chat don't have profile pic, send normal text
-            except:
-                msg.reply_text(text,
-                               parse_mode=ParseMode.HTML,
-                               disable_web_page_preview=True)
-
-        else:
-            msg.reply_text(text,
-                           parse_mode=ParseMode.HTML,
-                           disable_web_page_preview=True)
-    else:
-        text = "<b>User info</b>:" \
-               "\n  <b>ID</b>: <code>{}</code>" \
-               "\n  <b>First Name</b>: {}".format(user.id, user.first_name or user.title)
-
-        text += "\n  <b>Lastname</b>: {}".format(
-            html.escape(user.last_name or "null"))
-
-        if user.username:
-            text += "\n  <b>Username</b>: @{}".format(
-                html.escape(user.username))
-
+    # Get full user info if applicable
+    if not is_chat:
         try:
-            text += "\n  <b>Profile Pics</b>: <code>{}</code>".format(
-                bot.get_user_profile_photos(user.id).total_count or "??")
+            profile_pics = bot.get_user_profile_photos(user.id).total_count or "??"
+            text += f"  <b>Profile Pics</b>: <code>{profile_pics}</code>\n"
         except BadRequest:
             pass
-
-        text += "\n  <b>User link</b>: {}".format(mention_html(
-            user.id, 'here'))
-
+        text += f"  <b>User link</b>: {mention_html(user.id, 'here')}\n"
         if full:
-            # text += "\n<b>Full Info:</b>" idk if this is looks better or worse
-            text += get_full_info(chat, user).replace("\n<b>", "\n  <b>")
+            text += get_full_user_info(chat, user, bot)
 
-        if INFOPIC:
-            try:
-                profile = context.bot.get_user_profile_photos(
-                    user.id).photos[0][-1]
-                _file = bot.get_file(profile["file_id"])
-                _file.download(f"{user.id}.png")
-
-                msg.reply_document(
-                    document=open(f"{user.id}.png", "rb"),
-                    caption=(text),
-                    parse_mode=ParseMode.HTML,
-                )
-
-                os.remove(f"{user.id}.png")
-            # Incase user don't have profile pic, send normal text
-            except IndexError:
-                msg.reply_text(text,
-                               parse_mode=ParseMode.HTML,
-                               disable_web_page_preview=True)
-            except BadRequest:
-                msg.reply_text(text,
-                               parse_mode=ParseMode.HTML,
-                               disable_web_page_preview=True)
-
-        else:
-            msg.reply_text(text,
-                           parse_mode=ParseMode.HTML,
-                           disable_web_page_preview=True)
-
-
-def getuser(update: Update, context: CallbackContext):
-    # sourcery skip: remove-redundant-fstring, remove-redundant-if
-    bot = context.bot
-    args = context.args
-    msg = update.effective_message  # type: Optional[Message]
-    user_id = extract_user(update.effective_message, args)
-    chat = update.effective_chat
-
-    if user_id:
-        user = bot.get_chat(user_id)
-
-    elif not msg.reply_to_message and not args:
-        user = msg.from_user
-
-    elif not msg.reply_to_message and (
-            not args or
-        (len(args) >= 1 and not args[0].startswith("@")
-         and not args[0].isdigit()
-         and not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
-        msg.reply_text("I can't extract a user from this.")
-        return
-
+    # Handle profile picture if INFOPIC is enabled
+    if is_chat and INFOPIC:
+        try:
+            profile = bot.get_chat(user.id).photo
+            _file = bot.get_file(profile["big_file_id"])
+            _file.download(f"{user.id}.png")
+            msg.reply_document(
+                document=open(f"{user.id}.png", "rb"),
+                caption=text,
+                parse_mode=ParseMode.HTML,
+            )
+            os.remove(f"{user.id}.png")
+        except (BadRequest, KeyError):
+            msg.reply_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    elif not is_chat and INFOPIC:
+        try:
+            profile = context.bot.get_user_profile_photos(user.id).photos[0][-1]
+            _file = bot.get_file(profile["file_id"])
+            _file.download(f"{user.id}.png")
+            msg.reply_document(
+                document=open(f"{user.id}.png", "rb"),
+                caption=text,
+                parse_mode=ParseMode.HTML,
+            )
+            os.remove(f"{user.id}.png")
+        except (IndexError, BadRequest):
+            msg.reply_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     else:
-        return
+        msg.reply_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
-    text = "<b>User info from {} Database</b>" \
-           "\n<b>ID</b>: <code>{}</code>" \
-           "\n<b>First Name</b>: {}".format(dispatcher.bot.first_name, user.id, mention_html(user.id, user.first_name))
-
-    if user.username:
-        text += "\n<b>Username</b>: @{}".format(html.escape(user.username))
-
-    text += "\n<b>Lastname</b>: <code>{}</code>".format(
-        html.escape(user.last_name or "null"))
-
-    text += get_full_info(chat, user)
-
-    bot.send_message(chat.id,
-                     text,
-                     parse_mode=ParseMode.HTML,
-                     disable_web_page_preview=True)
-
-
-def get_full_info(chat, user) -> str:
-    bot = dispatcher.bot
-    text = ''
+def get_full_user_info(chat, user, bot) -> str:
+    text = ""
+    # User level checks
     if user.id == OWNER_ID:
-        text += "\n<b>User level</b>: <code>Owner</code>"
+        text += f"  <b>User level</b>: <code>Owner</code>\n"
     elif user.id in DEV_USERS:
-        text += "\n<b>User level</b>: <code>Developer</code>"
+        text += f"  <b>User level</b>: <code>Developer</code>\n"
     elif user.id in SUDO_USERS:
-        text += "\n<b>User level</b>: <code>Sudo</code>"
+        text += f"  <b>User level</b>: <code>Sudo</code>\n"
     elif user.id in SUPPORT_USERS:
-        text += "\n<b>User level</b>: <code>Support</code>"
+        text += f"  <b>User level</b>: <code>Support</code>\n"
     elif user.id in WHITELIST_USERS:
-        text += "\n<b>User level</b>: <code>Whitelist</code>"
+        text += f"  <b>User level</b>: <code>Whitelist</code>\n"
 
-    text += "\n<b>Profile Pics</b>: <code>{}</code>".format(
-        bot.get_user_profile_photos(user.id).total_count,
-        parse_mode=ParseMode.HTML)
-
+    # Chat member status
     try:
         user_member = chat.get_member(user.id)
-
-        if user_member.status == "left":
-            text += f"\n<b>Presence</b>: <code>Not here</code>"
-        elif user_member.status == "kicked":
-            text += f"\n<b>Presence</b>: <code>Banned</code>"
-        elif user_member.status == "member":
-            text += f"\n<b>Presence</b>: <code>Detected</code>"
-        elif user_member.status == "administrator" or "creator":
-            text += f"\n<b>Presence</b>: <code>Admin</code>"
-            result = bot.get_chat_member(chat.id, user.id)
-            if result.custom_title:
-                text += f"\n<b>Title</b>: <code>{result.custom_title}</code>"
+        status = user_member.status
+        if status == "left":
+            text += f"  <b>Presence</b>: <code>Not here</code>\n"
+        elif status == "kicked":
+            text += f"  <b>Presence</b>: <code>Banned</code>\n"
+        elif status == "member":
+            text += f"  <b>Presence</b>: <code>Detected</code>\n"
+        elif status in ("administrator", "creator"):
+            text += f"  <b>Presence</b>: <code>Admin</code>\n"
+            if user_member.custom_title:
+                text += f"  <b>Title</b>: <code>{user_member.custom_title}</code>\n"
     except BadRequest:
         pass
 
-    result = cas.banchecker(user.id)
-    text += "\n<b>CAS Banned</b>: <code>{}</code>".format(str(result))
+    text += f"  <b>CAS Banned</b>: <code>{cas.banchecker(user.id)}</code>\n"
 
     for mod in USER_INFO:
         try:
@@ -455,7 +372,7 @@ def get_full_info(chat, user) -> str:
         except TypeError:
             mod_info = mod.__user_info__(user.id, chat.id).strip()
         if mod_info:
-            text += "\n" + mod_info
+            text += f"  {mod_info}\n"
     return text
 
 
@@ -714,7 +631,6 @@ TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, run_async=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
-GETUSER_HANDLER = DisableAbleCommandHandler("getuser", getuser, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
@@ -735,7 +651,6 @@ dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
-dispatcher.add_handler(GETUSER_HANDLER)
 dispatcher.add_handler(GINFO_HANDLER)
 dispatcher.add_handler(FLASH_HANDLER)
 dispatcher.add_handler(COWSAY_HANDLER)
