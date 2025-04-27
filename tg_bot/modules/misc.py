@@ -522,6 +522,8 @@ def flash(update: Update, context: CallbackContext):
                            parse_mode=ParseMode.MARKDOWN)
         return
 
+    escaped_string = html.escape(string[:30])
+
     if len(string) > 30:
         message.reply_text(
             "Your message exceeded limit.\nShortening it to 30 characters.")
@@ -531,14 +533,14 @@ def flash(update: Update, context: CallbackContext):
                                                     parse_mode=ParseMode.HTML)
         sleep(randint(1, 3))
         flash.edit_text(
-            f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
+            f"Flashing <code>{escaped_string}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
             parse_mode=ParseMode.HTML)
     else:
         flash = message.reply_text("<code>Flashing...</code>",
                                    parse_mode=ParseMode.HTML)
         sleep(randint(1, 3))
         flash.edit_text(
-            f"Flashing <code>{string[:30]}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
+            f"Flashing <code>{escaped_string}.zip</code> succesfully failed!\nBecause: <code>{random.choice(FLASH_STRINGS)}</code>",
             parse_mode=ParseMode.HTML)
 
 
