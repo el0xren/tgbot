@@ -175,17 +175,20 @@ def is_user_ban_protected(update: Update,
     return member.status in ('administrator', 'creator')
 
 
-def is_user_admin(update: Update,
-                  user_id: int,
-                  member: ChatMember = None) -> bool:
-    chat = update.effective_chat
-    msg = update.effective_message
+def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMember = None) -> bool:
+    if isinstance(chat_or_update, Update):
+        chat = chat_or_update.effective_chat
+        msg = chat_or_update.effective_message
+    else:
+        chat = chat_or_update
+        msg = None
+
     if chat.type == 'private' \
             or user_id in DEV_USERS \
             or user_id in SUDO_USERS \
             or chat.all_members_are_administrators \
-            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
-            msg.reply_to_message.sender_chat.type != "channel"):
+            or (msg and msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
+                msg.reply_to_message.sender_chat.type != "channel"):
         return True
 
     if not member:
