@@ -11,3 +11,4 @@ cowsay==5.0
 configparser==7.1.0
 six==1.16.0
 urllib3==1.26.9
+Pillow==11.2.1
