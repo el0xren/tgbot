@@ -25,6 +25,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.chat_status import user_admin, sudo_plus
+from tg_bot.modules.helper_funcs.permissions import AdminPerms
 
 RUN_STRINGS = (
     "Where do you think you're going?",
@@ -376,6 +377,50 @@ def get_full_user_info(chat, user, bot) -> str:
     return text
 
 
+def permissions(update: Update, context: CallbackContext):
+    """Command handler to display user info and permissions in a chat."""
+    chat = update.effective_chat
+    user = update.effective_user  # Default to the user who sent the command
+
+    # Optionally extract user from reply or arguments
+    if update.effective_message.reply_to_message:
+        user = update.effective_message.reply_to_message.from_user
+    elif context.args:
+        user_id = extract_user(update.effective_message, context.args)
+        if user_id:
+            try:
+                user = context.bot.get_chat(user_id)
+            except BadRequest:
+                update.effective_message.reply_text("Could not find that user.")
+                return
+        else:
+            update.effective_message.reply_text("I can't extract a user from this.")
+            return
+
+    # Generate user info and admin permissions
+    bot = context.bot
+    text = "<b>User Info:</b>\n"
+    text += f"  User: {html.escape(user.first_name)}\n"
+    text += f"  ID: <code>{user.id}</code>\n"
+
+    # Permissions section
+    try:
+        member = bot.get_chat_member(chat.id, user.id)
+        if member.status in ("administrator", "creator"):
+            text += "\n<b>Permissions:</b>\n"
+            for perm in AdminPerms:
+                has_perm = getattr(member, perm.value, False)
+                perms_name = perm.name.replace('_', ' ').title()
+                text += f" • {perms_name}: <code>{str(has_perm)}</code>\n"
+        else:
+            text += "\n<b>Permissions:</b> <code>Not an admin</code>\n"
+    except BadRequest as e:
+        text += f"\n<b>Error:</b> <code>Could not retrieve permissions: {e}</code>\n"
+
+    # Send response
+    update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
 @user_admin
 def ginfo(update: Update, context: CallbackContext):
     bot = context.bot
@@ -633,6 +678,7 @@ TIME_HANDLER = CommandHandler("time", get_time, run_async=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, run_async=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, run_async=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, run_async=True)
+PERMISSIONS_HANDLER = DisableAbleCommandHandler("permissions", permissions, run_async=True)
 GINFO_HANDLER = DisableAbleCommandHandler("ginfo", ginfo, run_async=True)
 FLASH_HANDLER = DisableAbleCommandHandler("flash", flash, run_async=True)
 COWSAY_HANDLER = DisableAbleCommandHandler("cowsay", cowsay, run_async=True)
@@ -653,6 +699,7 @@ dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
+dispatcher.add_handler(PERMISSIONS_HANDLER)
 dispatcher.add_handler(GINFO_HANDLER)
 dispatcher.add_handler(FLASH_HANDLER)
 dispatcher.add_handler(COWSAY_HANDLER)
