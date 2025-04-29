@@ -2,6 +2,9 @@ import datetime
 import importlib
 import re
 import logging
+import traceback
+import html
+import json
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User
@@ -11,10 +14,8 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryH
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
+from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
-# needed to dynamically load modules
-# NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
@@ -77,7 +78,6 @@ for module_name in ALL_MODULES:
     if hasattr(imported_module, "__help__") and imported_module.__help__:
         HELPABLE[imported_module.__mod_name__.lower()] = imported_module
 
-    # Chats to migrate on chat_migrated events
     if hasattr(imported_module, "__migrate__"):
         MIGRATEABLE.append(imported_module)
 
@@ -103,7 +103,6 @@ for module_name in ALL_MODULES:
         USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
 
-# do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
@@ -163,35 +162,53 @@ def start(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Yo, whadup?")
 
 
-# for test purposes
-def error_callback(update, context):
-    bot = context.bot
-    error = context.error
-    try:
-        raise error
-    except Unauthorized:
-        print("no nono1")
-        print(error)
-        # remove update.message.chat_id from conversation list
-    except BadRequest:
-        print("no nono2")
-        print("BadRequest caught")
-        print(error)
+def error_callback(update: Update, context: CallbackContext):
+    LOGGER.error("Exception while handling an update:", exc_info=context.error)
+    DEVELOPER_CHAT_ID = OWNER_ID
+    support_chat_attempted = False
 
-        # handle malformed requests - read more below!
-    except TimedOut:
-        print("no nono3")
-        # handle slow connection problems
-    except NetworkError:
-        print("no nono4")
-        # handle other connection problems
-    except ChatMigrated as err:
-        print("no nono5")
-        print(err)
-        # the chat_id of a group has changed, use e.new_chat_id instead
+    if SUPPORT_CHAT:
+        if isinstance(SUPPORT_CHAT, str):
+            chat_id_input = f"@{SUPPORT_CHAT}" if not SUPPORT_CHAT.startswith('@') else SUPPORT_CHAT
+            try:
+                chat = context.bot.get_chat(chat_id_input)
+                DEVELOPER_CHAT_ID = chat.id
+            except TelegramError:
+                support_chat_attempted = True
+        elif isinstance(SUPPORT_CHAT, int):
+            DEVELOPER_CHAT_ID = SUPPORT_CHAT
+
+    if not DEVELOPER_CHAT_ID:
+        return
+
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"An exception was raised while handling an update\n"
+        f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>"
+    )
+
+    if len(message) > 4096:
+        message = message[:4000] + "\n... (truncated)"
+
+    try:
+        context.bot.send_message(
+            chat_id=DEVELOPER_CHAT_ID,
+            text=message,
+            parse_mode=ParseMode.HTML
+        )
     except TelegramError:
-        print(error)
-        # handle all other telegram related errors
+        if support_chat_attempted and OWNER_ID and DEVELOPER_CHAT_ID != OWNER_ID:
+            context.bot.send_message(
+                chat_id=OWNER_ID,
+                text=message,
+                parse_mode=ParseMode.HTML
+            )
 
 
 def help_button(update: Update, context: CallbackContext):
@@ -236,7 +253,6 @@ def help_button(update: Update, context: CallbackContext):
                                     reply_markup=InlineKeyboardMarkup(
                                         paginate_modules(0, HELPABLE, "help")))
 
-        # ensure no spinny white circle
         bot.answer_callback_query(query.id)
     except BadRequest as excp:
         if excp.message == "Message is not modified":
@@ -251,12 +267,10 @@ def help_button(update: Update, context: CallbackContext):
 
 def get_help(update: Update, context: CallbackContext):
     bot = context.bot
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
 
-    # ONLY send help in PM
     if chat.type != chat.PRIVATE:
-
         update.effective_message.reply_text(
             "Contact me in PM to get the list of possible commands.",
             reply_markup=InlineKeyboardMarkup([[
@@ -377,7 +391,6 @@ def settings_button(update: Update, context: CallbackContext):
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)))
 
-        # ensure no spinny white circle
         bot.answer_callback_query(query.id)
     except BadRequest as excp:
         if excp.message == "Message is not modified":
@@ -393,12 +406,11 @@ def settings_button(update: Update, context: CallbackContext):
 
 def get_settings(update: Update, context: CallbackContext):
     bot = context.bot
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    msg = update.effective_message
     args = msg.text.split(None, 1)
 
-    # ONLY send settings in PM
     if chat.type != chat.PRIVATE:
         if is_user_admin(chat, user.id):
             text = "Click here to get this chat's settings, as well as yours."
@@ -418,7 +430,7 @@ def get_settings(update: Update, context: CallbackContext):
 
 def migrate_chats(update: Update, context: CallbackContext):
     bot = context.bot
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
         new_chat = msg.migrate_to_chat_id
@@ -436,21 +448,72 @@ def migrate_chats(update: Update, context: CallbackContext):
     raise DispatcherHandlerStop
 
 
+def test_error(update: Update, context: CallbackContext):
+    raise Exception("This is a test error!")
+
+
+def get_chat_id(update: Update, context: CallbackContext):
+    update.effective_message.reply_text(f"Chat ID: {update.effective_chat.id}")
+
+
+def debug_config(update: Update, context: CallbackContext):
+    support_chat_status = SUPPORT_CHAT if SUPPORT_CHAT else "Not set"
+    owner_id_status = OWNER_ID if OWNER_ID else "Not set"
+    support_chat_id = None
+
+    if SUPPORT_CHAT:
+        if isinstance(SUPPORT_CHAT, str):
+            chat_id_input = f"@{SUPPORT_CHAT}" if not SUPPORT_CHAT.startswith('@') else SUPPORT_CHAT
+            try:
+                chat = context.bot.get_chat(chat_id_input)
+                support_chat_id = chat.id
+                support_chat_status = f"{chat_id_input} (resolved to {support_chat_id})"
+            except TelegramError as e:
+                support_chat_status = f"{chat_id_input} (failed to resolve: {e})"
+        elif isinstance(SUPPORT_CHAT, int):
+            support_chat_id = SUPPORT_CHAT
+            support_chat_status = f"{SUPPORT_CHAT} (numeric ID)"
+
+    support_chat_test = "Not tested"
+    if support_chat_id:
+        try:
+            context.bot.send_message(chat_id=support_chat_id, text="Test message from debug_config")
+            support_chat_test = "Message sent successfully"
+        except TelegramError as e:
+            support_chat_test = f"Failed to send message: {e}"
+
+    owner_id_test = "Not tested"
+    if OWNER_ID:
+        try:
+            context.bot.send_message(chat_id=OWNER_ID, text="Test message from debug_config")
+            owner_id_test = "Message sent successfully"
+        except TelegramError as e:
+            owner_id_test = f"Failed to send message: {e}"
+
+    update.effective_message.reply_text(
+        f"Debug Configuration:\n"
+        f"SUPPORT_CHAT: {support_chat_status}\n"
+        f"SUPPORT_CHAT Test: {support_chat_test}\n"
+        f"OWNER_ID: {owner_id_status}\n"
+        f"OWNER_ID Test: {owner_id_test}"
+    )
+
+
 def main():
     start_handler = CommandHandler("start", start, run_async=True)
-
     help_handler = CommandHandler("help", get_help, run_async=True)
     help_callback_handler = CallbackQueryHandler(help_button,
                                                  pattern=r"help_",
                                                  run_async=True)
-
     settings_handler = CommandHandler("settings", get_settings, run_async=True)
     settings_callback_handler = CallbackQueryHandler(settings_button,
                                                      pattern=r"stngs_",
                                                      run_async=True)
-
     migrate_handler = MessageHandler(Filters.status_update.migrate,
                                      migrate_chats)
+    test_error_handler = CommandHandler("testerror", test_error, run_async=True)
+    chat_id_handler = CommandHandler("chatid", get_chat_id, run_async=True)
+    debug_config_handler = CommandHandler("debugconfig", debug_config, run_async=True)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -458,11 +521,11 @@ def main():
     dispatcher.add_handler(help_callback_handler)
     dispatcher.add_handler(settings_callback_handler)
     dispatcher.add_handler(migrate_handler)
+    dispatcher.add_handler(test_error_handler)
+    dispatcher.add_handler(chat_id_handler)
+    dispatcher.add_handler(debug_config_handler)
 
-    # dispatcher.add_error_handler(error_callback)
-
-    # add antiflood processor
-    #Dispatcher.process_update = process_update
+    dispatcher.add_error_handler(error_callback)
 
     if WEBHOOK:
         LOGGER.info("Using webhooks.")
@@ -476,11 +539,16 @@ def main():
 
     else:
         if SUPPORT_CHAT:
-            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
+            try:
+                dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
+            except TelegramError:
+                send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS,
+                             "I'm awake now!")
         else:
-            send_to_list(dispatcher.bot, SUDO_USERS + SUPPORT_USERS,
+            send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS,
                          "I'm awake now!")
-        logging.info(f"Bot username: @{dispatcher.bot.username}")
+        LOGGER.info(f"Configuration: SUPPORT_CHAT={SUPPORT_CHAT}, OWNER_ID={OWNER_ID}")
+        LOGGER.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15,
                               read_latency=4,
@@ -491,51 +559,6 @@ def main():
 
 CHATS_CNT = {}
 CHATS_TIME = {}
-"""
-def process_update(self, update):
-    # An error happened while polling
-    if isinstance(update, TelegramError):
-        try:
-            self.dispatch_error(None, update)
-        except Exception:
-            self.logger.exception('An uncaught error was raised while handling the error')
-        return
-    now = datetime.datetime.utcnow()
-    cnt = CHATS_CNT.get(update.effective_chat.id, 0)
-    t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
-    if t and now > t + datetime.timedelta(0, 1):
-        CHATS_TIME[update.effective_chat.id] = now
-        cnt = 0
-    else:
-        cnt += 1
-    if cnt > 10:
-        return
-    CHATS_CNT[update.effective_chat.id] = cnt
-    for group in self.groups:
-        try:
-            for handler in (x for x in self.handlers[group] if x.check_update(update)):
-                handler.handle_update(update, self)
-                check = handler.check_update(update)
-                context = CallbackContext.from_update(update, self)
-                handler.handle_update(update, self, check, context)
-                break
-        # Stop processing with any other handler.
-        except DispatcherHandlerStop:
-            self.logger.debug('Stopping further handlers due to DispatcherHandlerStop')
-            break
-        # Dispatch any error.
-        except TelegramError as te:
-            self.logger.warning('A TelegramError was raised while processing the Update')
-            try:
-                self.dispatch_error(update, te)
-            except DispatcherHandlerStop:
-                self.logger.debug('Error handler stopped further handlers')
-                break
-            except Exception:
-                self.logger.exception('An uncaught error was raised while handling the error')
-        # Errors should not stop the thread.
-        except Exception:
-            self.logger.exception('An uncaught error was raised while processing the update')"""
 
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
