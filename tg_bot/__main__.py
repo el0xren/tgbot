@@ -5,7 +5,10 @@ import logging
 import traceback
 import html
 import json
+import sys
+import time
 from typing import Optional, List
+from io import BytesIO
 
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -164,51 +167,129 @@ def start(update: Update, context: CallbackContext):
 
 def error_callback(update: Update, context: CallbackContext):
     LOGGER.error("Exception while handling an update:", exc_info=context.error)
+
     DEVELOPER_CHAT_ID = OWNER_ID
     support_chat_attempted = False
 
+    # Resolve SUPPORT_CHAT if provided
     if SUPPORT_CHAT:
         if isinstance(SUPPORT_CHAT, str):
             chat_id_input = f"@{SUPPORT_CHAT}" if not SUPPORT_CHAT.startswith('@') else SUPPORT_CHAT
             try:
                 chat = context.bot.get_chat(chat_id_input)
                 DEVELOPER_CHAT_ID = chat.id
-            except TelegramError:
+            except TelegramError as e:
+                LOGGER.warning(f"Failed to resolve SUPPORT_CHAT: {e}")
                 support_chat_attempted = True
         elif isinstance(SUPPORT_CHAT, int):
             DEVELOPER_CHAT_ID = SUPPORT_CHAT
 
-    if not DEVELOPER_CHAT_ID:
-        return
-
-    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
-    tb_string = "".join(tb_list)
-
-    update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    message = (
-        f"An exception was raised while handling an update\n"
-        f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
-        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-        f"<pre>{html.escape(tb_string)}</pre>"
-    )
-
-    if len(message) > 4096:
-        message = message[:4000] + "\n... (truncated)"
-
+    # Prepare traceback and context info
     try:
-        context.bot.send_message(
-            chat_id=DEVELOPER_CHAT_ID,
-            text=message,
-            parse_mode=ParseMode.HTML
+        tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+        tb_string = "".join(tb_list)
+
+        update_str = {}
+        if isinstance(update, Update):
+            update_dict = update.to_dict()
+            message = update_dict.get("message", {})
+            update_str = {
+                "update_id": update_dict.get("update_id"),
+                "chat": {
+                    "id": message.get("chat", {}).get("id"),
+                    "type": message.get("chat", {}).get("type"),
+                    "username": message.get("chat", {}).get("username"),
+                    "title": message.get("chat", {}).get("title")
+                } if message.get("chat") else None,
+                "from": {
+                    "id": message.get("from", {}).get("id"),
+                    "first_name": message.get("from", {}).get("first_name"),
+                    "username": message.get("from", {}).get("username")
+                } if message.get("from") else None,
+                "text": message.get("text"),
+                "entities": message.get("entities")
+            }
+
+        # Summary for the chat message
+        summary = (
+            f"<b>Error:</b> {str(context.error)}\n"
+            f"<b>Severity:</b> Critical\n"
+            f"<b>Timestamp:</b> {datetime.datetime.now(datetime.UTC).isoformat()}\n"
+            f"<b>Bot:</b> @{context.bot.username}\n"
+            f"<b>Python:</b> {sys.version.split()[0]}\n"
+            f"📎 See attached file for full traceback."
         )
-    except TelegramError:
-        if support_chat_attempted and OWNER_ID and DEVELOPER_CHAT_ID != OWNER_ID:
-            context.bot.send_message(
-                chat_id=OWNER_ID,
-                text=message,
-                parse_mode=ParseMode.HTML
-            )
+
+        # Full report for the document
+        full_message = (
+            f"Error: {str(context.error)}\n"
+            f"Severity: Critical\n"
+            f"Timestamp: {datetime.datetime.now(datetime.UTC).isoformat()}\n"
+            f"Bot: @{context.bot.username}\n"
+            f"Python: {sys.version.split()[0]}\n\n"
+            f"Update:\n{json.dumps(update_str, indent=2, ensure_ascii=False)}\n\n"
+            f"Chat Data:\n{context.chat_data}\n\n"
+            f"User Data:\n{context.user_data}\n\n"
+            f"Traceback:\n{tb_string}"
+        )
+
+    except Exception as e:
+        LOGGER.error(f"Failed to generate traceback message: {e}", exc_info=True)
+        summary = f"Error: {str(context.error)}\n(Failed to format traceback due to: {str(e)})"
+        full_message = summary
+
+    file = BytesIO(full_message.encode('utf-8'))
+    file.name = f"traceback_{int(time.time())}.txt"
+    file.seek(0)
+
+    def send_traceback(bot, chat_id):
+        try:
+            bot.send_message(chat_id=chat_id, text=summary, parse_mode=ParseMode.HTML)
+            LOGGER.info(f"Summary sent to {chat_id}")
+        except TelegramError as e:
+            LOGGER.warning(f"Failed to send summary to {chat_id}: {e}")
+
+        try:
+            file.seek(0)
+            bot.send_document(chat_id=chat_id, document=file)
+            LOGGER.info(f"Traceback sent to {chat_id}")
+            return True
+        except TelegramError as e:
+            LOGGER.warning(f"Failed to send traceback to {chat_id}: {e}")
+            return False
+
+    # Try SUPPORT_CHAT / resolved DEVELOPER_CHAT_ID
+    if DEVELOPER_CHAT_ID:
+        for _ in range(2):
+            if send_traceback(context.bot, DEVELOPER_CHAT_ID):
+                return
+            time.sleep(1)
+
+    # Fallback to OWNER_ID
+    if support_chat_attempted and OWNER_ID and DEVELOPER_CHAT_ID != OWNER_ID:
+        for _ in range(2):
+            if send_traceback(context.bot, OWNER_ID):
+                return
+            time.sleep(1)
+
+    # Fallback to DEV_USERS
+    if DEV_USERS:
+        for user_id in DEV_USERS:
+            if isinstance(user_id, int):
+                for _ in range(2):
+                    if send_traceback(context.bot, user_id):
+                        return
+                    time.sleep(1)
+
+    # Last resort fallback
+    fallback_users = set()
+    for group in (SUDO_USERS, SUPPORT_USERS, DEV_USERS):
+        fallback_users.update(uid for uid in group if isinstance(uid, int))
+
+    for user_id in fallback_users:
+        if send_traceback(context.bot, user_id):
+            LOGGER.info("Traceback summary sent to fallback user list.")
+            return
 
 
 def help_button(update: Update, context: CallbackContext):
