@@ -168,22 +168,6 @@ def start(update: Update, context: CallbackContext):
 def error_callback(update: Update, context: CallbackContext):
     LOGGER.error("Exception while handling an update:", exc_info=context.error)
 
-    DEVELOPER_CHAT_ID = OWNER_ID
-    support_chat_attempted = False
-
-    # Resolve SUPPORT_CHAT if provided
-    if SUPPORT_CHAT:
-        if isinstance(SUPPORT_CHAT, str):
-            chat_id_input = f"@{SUPPORT_CHAT}" if not SUPPORT_CHAT.startswith('@') else SUPPORT_CHAT
-            try:
-                chat = context.bot.get_chat(chat_id_input)
-                DEVELOPER_CHAT_ID = chat.id
-            except TelegramError as e:
-                LOGGER.warning(f"Failed to resolve SUPPORT_CHAT: {e}")
-                support_chat_attempted = True
-        elif isinstance(SUPPORT_CHAT, int):
-            DEVELOPER_CHAT_ID = SUPPORT_CHAT
-
     # Prepare traceback and context info
     try:
         tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
@@ -210,7 +194,7 @@ def error_callback(update: Update, context: CallbackContext):
                 "entities": message.get("entities")
             }
 
-        # Summary for the chat message
+        # Summary for message
         summary = (
             f"<b>Error:</b> {str(context.error)}\n"
             f"<b>Severity:</b> Critical\n"
@@ -220,7 +204,7 @@ def error_callback(update: Update, context: CallbackContext):
             f"📎 See attached file for full traceback."
         )
 
-        # Full report for the document
+        # Full document
         full_message = (
             f"Error: {str(context.error)}\n"
             f"Severity: Critical\n"
@@ -242,54 +226,20 @@ def error_callback(update: Update, context: CallbackContext):
     file.name = f"traceback_{int(time.time())}.txt"
     file.seek(0)
 
-    def send_traceback(bot, chat_id):
-        try:
-            bot.send_message(chat_id=chat_id, text=summary, parse_mode=ParseMode.HTML)
-            LOGGER.info(f"Summary sent to {chat_id}")
-        except TelegramError as e:
-            LOGGER.warning(f"Failed to send summary to {chat_id}: {e}")
-
-        try:
-            file.seek(0)
-            bot.send_document(chat_id=chat_id, document=file)
-            LOGGER.info(f"Traceback sent to {chat_id}")
-            return True
-        except TelegramError as e:
-            LOGGER.warning(f"Failed to send traceback to {chat_id}: {e}")
-            return False
-
-    # Try SUPPORT_CHAT / resolved DEVELOPER_CHAT_ID
-    if DEVELOPER_CHAT_ID:
-        for _ in range(2):
-            if send_traceback(context.bot, DEVELOPER_CHAT_ID):
-                return
-            time.sleep(1)
-
-    # Fallback to OWNER_ID
-    if support_chat_attempted and OWNER_ID and DEVELOPER_CHAT_ID != OWNER_ID:
-        for _ in range(2):
-            if send_traceback(context.bot, OWNER_ID):
-                return
-            time.sleep(1)
-
-    # Fallback to DEV_USERS
+    recipients = set()
+    if isinstance(OWNER_ID, int):
+        recipients.add(OWNER_ID)
     if DEV_USERS:
-        for user_id in DEV_USERS:
-            if isinstance(user_id, int):
-                for _ in range(2):
-                    if send_traceback(context.bot, user_id):
-                        return
-                    time.sleep(1)
+        recipients.update(uid for uid in DEV_USERS if isinstance(uid, int))
 
-    # Last resort fallback
-    fallback_users = set()
-    for group in (SUDO_USERS, SUPPORT_USERS, DEV_USERS):
-        fallback_users.update(uid for uid in group if isinstance(uid, int))
-
-    for user_id in fallback_users:
-        if send_traceback(context.bot, user_id):
-            LOGGER.info("Traceback summary sent to fallback user list.")
-            return
+    for user_id in recipients:
+        try:
+            context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
+            file.seek(0)
+            context.bot.send_document(chat_id=user_id, document=file)
+            LOGGER.info(f"Traceback sent to {user_id}")
+        except TelegramError as e:
+            LOGGER.warning(f"Failed to send to {user_id}: {e}")
 
 
 def help_button(update: Update, context: CallbackContext):
