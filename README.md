@@ -24,6 +24,8 @@ Once you've setup your database and your configuration (see below) is complete, 
 
 `python3 -m tg_bot`
 
+## Credits
+[PaulSonOfLars](https://github.com/PaulSonOfLars)
 
 ## Setting up the bot (Read this before trying to use!):
 Please make sure to use python3.6, as I cannot guarantee everything will work as expected on older python versions!
