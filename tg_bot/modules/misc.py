@@ -180,45 +180,40 @@ def runs(update: Update, context: CallbackContext):
 def slap(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
 
-    # reply to correct message
-    reply_text = msg.reply_to_message.reply_text if msg.reply_to_message else msg.reply_text
-
-    # get user who sent message
-    if msg.from_user.username:
-        curr_user = "@" + escape_markdown(msg.from_user.username)
+    from_user = msg.from_user
+    if from_user.username:
+        curr_user = f"@{escape_markdown(from_user.username)}"
     else:
-        curr_user = "[{}](tg://user?id={})".format(msg.from_user.first_name,
-                                                   msg.from_user.id)
+        curr_user = f"[{escape_markdown(from_user.first_name)}](tg://user?id={from_user.id})"
 
-    user_id = extract_user(update.effective_message, args)
-    if user_id == bot.id:
-        slapped_user = bot.get_chat(user_id)
-        user1 = curr_user
-        if slapped_user.username:
-            user2 = "@" + escape_markdown(slapped_user.username)
+    user_id = extract_user(msg, args)
+
+    if user_id and user_id != bot.id:
+        target_user = bot.get_chat(user_id)
+        if target_user.username:
+            target = f"@{escape_markdown(target_user.username)}"
         else:
-            user2 = "[{}](tg://user?id={})".format(slapped_user.first_name,
-                                                   slapped_user.id)
-
-    # if no target found, bot targets the sender
+            target = f"[{escape_markdown(target_user.first_name)}](tg://user?id={target_user.id})"
+        user1 = curr_user
+        user2 = target
     else:
-        user1 = "[{}](tg://user?id={})".format(bot.first_name, bot.id)
+        user1 = f"[{escape_markdown(bot.first_name)}](tg://user?id={bot.id})"
         user2 = curr_user
 
-    temp = random.choice(SLAP_TEMPLATES)
-    item = random.choice(ITEMS)
-    hit = random.choice(HIT)
-    throw = random.choice(THROW)
+    text = random.choice(SLAP_TEMPLATES).format(
+        user1=user1,
+        user2=user2,
+        item=random.choice(ITEMS),
+        hits=random.choice(HIT),
+        throws=random.choice(THROW)
+    )
 
-    repl = temp.format(user1=user1,
-                       user2=user2,
-                       item=item,
-                       hits=hit,
-                       throws=throw)
-
-    reply_text(repl, parse_mode=ParseMode.MARKDOWN)
+    if msg.reply_to_message:
+        msg.reply_to_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+    else:
+        msg.chat.send_message(text, parse_mode=ParseMode.MARKDOWN)
 
 
 def get_id(update: Update, context: CallbackContext):
