@@ -9,19 +9,17 @@ import sys
 import time
 from typing import Optional, List
 from io import BytesIO
-from tg_bot.modules.utilities import shorten_links
 
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
-from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler, Updater
+from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
 from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
 from tg_bot.modules import ALL_MODULES
-from tg_bot.modules.utilities import shorten_links
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -557,7 +555,6 @@ def main():
     dispatcher.add_handler(test_error_handler)
     dispatcher.add_handler(chat_id_handler)
     dispatcher.add_handler(debug_config_handler)
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, shorten_links))
 
     dispatcher.add_error_handler(error_callback)
 
