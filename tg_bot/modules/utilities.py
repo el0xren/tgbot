@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Filters
 from tg_bot import dispatcher
 from tg_bot.modules.sql import utilities_sql as sql
+from tg_bot.modules.helper_funcs.chat_status import user_admin
 
 SHORTENER_DOMAINS = {
     "bit.ly",
@@ -48,7 +49,6 @@ URL_REGEX = r"^(?:https?://)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[-a-zA-Z0-9._~:
 
 
 def validate_url(url: str) -> bool:
-    """Validate if the string is a proper URL."""
     try:
         test_url = url if url.startswith(
             ("http://", "https://")) else "https://" + url
@@ -93,10 +93,17 @@ def validate_url(url: str) -> bool:
         return False
 
 
+@user_admin
 def shortening_toggle(update: Update, context: CallbackContext) -> None:
-    """Toggle or check URL shortening status for the chat."""
     chat_id = update.effective_chat.id
     args = context.args
+
+    if update.effective_chat.type == "private":
+        update.message.reply_text(
+            "This command can only be used in groups, not in private messages.",
+            parse_mode="HTML",
+        )
+        return
 
     if not args:
         is_enabled = sql.is_shortening_enabled(chat_id)
@@ -149,7 +156,6 @@ def extract_domain(url: str) -> str:
 
 def is_local_or_private(url: str) -> bool:
     try:
-        # Add scheme if missing
         test_url = url if url.startswith(
             ("http://", "https://")) else "https://" + url
         parsed = urllib.parse.urlparse(test_url)
@@ -190,6 +196,51 @@ def shorten_url(url: str) -> str:
         return url
 
 
+def shorten_command(update: Update, context: CallbackContext) -> None:
+    message = update.effective_message
+
+    if not context.args:
+        message.reply_text(
+            "Please provide a URL to shorten.\nUsage: /shorten <url>",
+            parse_mode="HTML")
+        return
+
+    url = context.args[0]
+
+    if is_local_or_private(url):
+        message.reply_text("Cannot shorten local or private IP addresses.",
+                           parse_mode="HTML")
+        return
+
+    domain = extract_domain(url)
+    if not domain:
+        message.reply_text("Invalid URL format.", parse_mode="HTML")
+        return
+
+    if domain in SHORTENER_DOMAINS:
+        message.reply_text("This URL is already from a shortening service.",
+                           parse_mode="HTML")
+        return
+
+    if not validate_url(url):
+        message.reply_text("Invalid URL. Please provide a valid URL.",
+                           parse_mode="HTML")
+        return
+
+    status_msg = message.reply_text("Shortening URL...")
+
+    shortened = shorten_url(url)
+
+    if shortened != url:
+        status_msg.edit_text(
+            f"<b>Original</b>: {url}\n<b>Shortened</b>: {shortened}",
+            disable_web_page_preview=True,
+            parse_mode="HTML",
+        )
+    else:
+        status_msg.edit_text("Failed to shorten this URL.", parse_mode="HTML")
+
+
 def shorten_links(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
     chat_id = update.effective_chat.id
@@ -211,6 +262,8 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
 
     shortened_map = {}
     invalid_urls = []
+    valid_urls_count = 0
+
     for url in set(urls):
         if is_local_or_private(url):
             invalid_urls.append(url)
@@ -221,20 +274,34 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
             invalid_urls.append(url)
             continue
 
-        if validate_url(url):
-            shortened_map[url] = shorten_url(url)
+        if not validate_url(url):
+            invalid_urls.append(url)
+            continue
+
+        shortened = shorten_url(url)
+        if shortened != url:
+            shortened_map[url] = shortened
+            valid_urls_count += 1
         else:
-            shortened_map[url] = url
             invalid_urls.append(url)
 
-    if any(short != original for original, short in shortened_map.items()):
-        new_text = message.text
-        for original, short in shortened_map.items():
-            new_text = new_text.replace(original, short)
+    if valid_urls_count > 0:
+        result_text = ""
+
+        if valid_urls_count == 1:
+            original = next(iter(shortened_map.keys()))
+            shortened = shortened_map[original]
+            result_text = f"<b>Original</b>: {original}\n<b>Shortened</b>: {shortened}"
+        else:
+            result_text = "<b>Shortened Links</b>:\n\n"
+            for original, short in shortened_map.items():
+                result_text += (
+                    f"<b>Original</b>: {original}\n<b>Shortened</b>: {short}\n\n"
+                )
 
         try:
             status_msg.edit_text(
-                f"<b>Shortened</b>:\n{new_text}",
+                result_text,
                 disable_web_page_preview=True,
                 parse_mode="HTML",
             )
@@ -246,18 +313,37 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
                 pass
     else:
         try:
-            invalid_list = "\n".join(f"- {url}" for url in invalid_urls)
-            status_msg.edit_text(
-                f"No valid links to shorten. Invalid or private links:\n{invalid_list}",
-                disable_web_page_preview=True,
-            )
+            if invalid_urls:
+                invalid_list = "\n".join(f"- {url}" for url in invalid_urls)
+                status_msg.edit_text(
+                    f"No valid links to shorten. Invalid or private links:\n{invalid_list}",
+                    disable_web_page_preview=True,
+                )
+            else:
+                status_msg.edit_text(
+                    "No valid links to shorten.",
+                    disable_web_page_preview=True,
+                )
         except Exception as e:
             print(f"Failed to edit message with invalid links: {e}")
 
 
+__help__ = """
+*Admin only:*
+ - /shortening <enable/disable>: Without args it will check if it's enabled or disabled in chat \
+else it will enable or disable shortening in the chat. Only works in groups, not in private messages.
+
+*For all users:*
+ - /shorten <url>: Manually shorten a URL (works in private messages and groups regardless of settings).
+"""
+
+__mod_name__ = "Utilities"
+
 SHORTENING_HANDLER = CommandHandler("shortening", shortening_toggle)
+SHORTEN_COMMAND_HANDLER = CommandHandler("shorten", shorten_command)
 SHORTEN_LINK_HANDLER = MessageHandler(Filters.text & Filters.chat_type.groups,
                                       shorten_links)
 
 dispatcher.add_handler(SHORTENING_HANDLER)
+dispatcher.add_handler(SHORTEN_COMMAND_HANDLER)
 dispatcher.add_handler(SHORTEN_LINK_HANDLER)
