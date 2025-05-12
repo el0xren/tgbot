@@ -1,4 +1,4 @@
-img align="right" width="260" height="260" alt="MissAhegaoBot" src="https://i.ibb.co/QfBPjQL/Avatars-Xyju6-Oujg-Jzzrbp9-bg6-Ny-A-t500x500.jpg">
+<img align="right" width="260" height="260" alt="MissAhegaoBot" src="https://i.ibb.co/QfBPjQL/Avatars-Xyju6-Oujg-Jzzrbp9-bg6-Ny-A-t500x500.jpg">
 
 # **MissAhegaoBot**
 > *"She bans. She slaps. She runs on Python. She's single."*
