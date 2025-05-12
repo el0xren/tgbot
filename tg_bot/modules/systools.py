@@ -25,7 +25,10 @@ def shell(update: Update, context: CallbackContext):
     msg = update.message.reply_text(f"~$ {command}")
     out = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = out.communicate()
-    output = str(stderr.decode() + stdout.decode())
+    
+    import html
+    output = html.escape(stderr.decode() + stdout.decode())
+    
     update.message.bot.edit_message_text(
         f"<b>~$ {command}</b>\n<code>{output}</code>",
         chat_id=update.message.chat_id,
