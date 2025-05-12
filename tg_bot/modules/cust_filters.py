@@ -45,15 +45,12 @@ def list_handlers(update: Update, context: CallbackContext):
             filter_list, parse_mode=telegram.ParseMode.MARKDOWN)
 
 
-# NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def filters(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
-    args = msg.text.split(
-        None,
-        1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
+    args = msg.text.split(None, 1)
 
     if len(args) < 2:
         return
@@ -61,7 +58,6 @@ def filters(update: Update, context: CallbackContext):
     extracted = split_quotes(args[1])
     if len(extracted) < 1:
         return
-    # set trigger -> lower, so as to avoid adding duplicate filters with different cases
     keyword = extracted[0].lower()
 
     is_sticker = False
@@ -72,12 +68,9 @@ def filters(update: Update, context: CallbackContext):
     is_video = False
     buttons = []
 
-    # determine what the contents of the filter are - text, image, sticker, etc
     if len(extracted) >= 2:
-        offset = len(extracted[1]) - len(
-            msg.text)  # set correct offset relative to command + notename
-        content, buttons = button_markdown_parser(
-            extracted[1], entities=msg.parse_entities(), offset=offset)
+        offset = len(extracted[1]) - len(msg.text)
+        content, buttons = button_markdown_parser(extracted[1], entities=msg.parse_entities(), offset=offset)
         content = content.strip()
         if not content:
             msg.reply_text(
@@ -94,8 +87,7 @@ def filters(update: Update, context: CallbackContext):
         is_document = True
 
     elif msg.reply_to_message and msg.reply_to_message.photo:
-        content = msg.reply_to_message.photo[
-            -1].file_id  # last elem = best quality
+        content = msg.reply_to_message.photo[-1].file_id  # last elem = best quality
         is_image = True
 
     elif msg.reply_to_message and msg.reply_to_message.audio:
@@ -120,14 +112,12 @@ def filters(update: Update, context: CallbackContext):
         if handler.filters == (keyword, chat.id):
             dispatcher.remove_handler(handler, HANDLER_GROUP)
 
-    sql.add_filter(chat.id, keyword, content, is_sticker, is_document,
-                   is_image, is_audio, is_voice, is_video, buttons)
+    sql.add_filter(chat.id, keyword, content, is_sticker, is_document, is_image, is_audio, is_voice, is_video, buttons)
 
     msg.reply_text("Handler '{}' added!".format(keyword))
-    raise DispatcherHandlerStop
+    return
 
 
-# NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def stop_filter(update: Update, context: CallbackContext):
     bot = context.bot
@@ -138,7 +128,6 @@ def stop_filter(update: Update, context: CallbackContext):
         return
 
     chat_filters = sql.get_chat_triggers(chat.id)
-
     if not chat_filters:
         update.effective_message.reply_text("No filters are active here!")
         return
@@ -146,9 +135,8 @@ def stop_filter(update: Update, context: CallbackContext):
     for keyword in chat_filters:
         if keyword == args[1]:
             sql.remove_filter(chat.id, args[1])
-            update.effective_message.reply_text(
-                "Yep, I'll stop replying to that.")
-            raise DispatcherHandlerStop
+            update.effective_message.reply_text("Yep, I'll stop replying to that.")
+            return
 
     update.effective_message.reply_text(
         "That's not a current filter - run /filters for all active filters.")
@@ -167,53 +155,53 @@ def reply_filter(update: Update, context: CallbackContext):
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
             filt = sql.get_filter(chat.id, keyword)
-            if filt.is_sticker:
-                message.reply_sticker(filt.reply)
-            elif filt.is_document:
-                message.reply_document(filt.reply)
-            elif filt.is_image:
-                message.reply_photo(filt.reply)
-            elif filt.is_audio:
-                message.reply_audio(filt.reply)
-            elif filt.is_voice:
-                message.reply_voice(filt.reply)
-            elif filt.is_video:
-                message.reply_video(filt.reply)
-            elif filt.has_markdown:
-                buttons = sql.get_buttons(chat.id, filt.keyword)
-                keyb = build_keyboard(buttons)
-                keyboard = InlineKeyboardMarkup(keyb)
+            if filt:
+                if filt.is_sticker:
+                    message.reply_sticker(filt.reply)
+                elif filt.is_document:
+                    message.reply_document(filt.reply)
+                elif filt.is_image:
+                    message.reply_photo(filt.reply)
+                elif filt.is_audio:
+                    message.reply_audio(filt.reply)
+                elif filt.is_voice:
+                    message.reply_voice(filt.reply)
+                elif filt.is_video:
+                    message.reply_video(filt.reply)
+                elif filt.has_markdown:
+                    buttons = sql.get_buttons(chat.id, filt.keyword)
+                    keyb = build_keyboard(buttons)
+                    keyboard = InlineKeyboardMarkup(keyb)
 
-                try:
-                    message.reply_text(filt.reply,
-                                       parse_mode=ParseMode.MARKDOWN,
-                                       disable_web_page_preview=True,
-                                       reply_markup=keyboard)
-                except BadRequest as excp:
-                    if excp.message == "Unsupported url protocol":
+                    try:
                         message.reply_text(
-                            "You seem to be trying to use an unsupported url protocol. Telegram "
-                            "doesn't support buttons for some protocols, such as tg://. Please try "
-                            "again, or ask in @MarieSupport for help.")
-                    elif excp.message == "Reply message not found":
-                        bot.send_message(chat.id,
-                                         filt.reply,
-                                         parse_mode=ParseMode.MARKDOWN,
-                                         disable_web_page_preview=True,
-                                         reply_markup=keyboard)
-                    else:
-                        message.reply_text(
-                            "This note could not be sent, as it is incorrectly formatted. Ask in "
-                            "@MarieSupport if you can't figure out why!")
-                        LOGGER.warning("Message %s could not be parsed",
-                                       str(filt.reply))
-                        LOGGER.exception(
-                            "Could not parse filter %s in chat %s",
-                            str(filt.keyword), str(chat.id))
-
-            else:
-                # LEGACY - all new filters will have has_markdown set to True.
-                message.reply_text(filt.reply)
+                            filt.reply,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                            reply_markup=keyboard,
+                        )
+                    except BadRequest as excp:
+                        if excp.message == "Unsupported url protocol":
+                            message.reply_text(
+                                "You seem to be trying to use an unsupported url protocol. Telegram "
+                                "doesn't support buttons for some protocols, such as tg://. Please try "
+                                "again, or ask in @MarieSupport for help."
+                            )
+                        elif excp.message == "Reply message not found":
+                            bot.send_message(
+                                chat.id,
+                                filt.reply,
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=True,
+                                reply_markup=keyboard,
+                            )
+                        else:
+                            message.reply_text(
+                                "This note could not be sent, as it is incorrectly formatted. Ask in "
+                                "@MarieSupport if you can't figure out why!"
+                            )
+                else:
+                    message.reply_text(filt.reply)
             break
 
 
@@ -248,8 +236,7 @@ FILTER_HANDLER = CommandHandler("filter", filters)
 STOP_HANDLER = CommandHandler("stop", stop_filter)
 LIST_HANDLER = DisableAbleCommandHandler("filters",
                                          list_handlers,
-                                         admin_ok=True,
-                                         run_async=True)
+                                         admin_ok=True)
 CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text,
                                      reply_filter,
                                      run_async=True)

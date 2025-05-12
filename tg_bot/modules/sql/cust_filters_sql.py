@@ -132,8 +132,11 @@ def remove_filter(chat_id, keyword):
     with CUST_FILT_LOCK:
         filt = SESSION.query(CustomFilters).get((str(chat_id), keyword))
         if filt:
-            if keyword in CHAT_FILTERS.get(str(chat_id), []):  # Sanity check
-                CHAT_FILTERS.get(str(chat_id), []).remove(keyword)
+            chat_id_str = str(chat_id)
+            if chat_id_str in CHAT_FILTERS and keyword in CHAT_FILTERS[chat_id_str]:
+                CHAT_FILTERS[chat_id_str].remove(keyword)
+                if not CHAT_FILTERS[chat_id_str]:
+                    del CHAT_FILTERS[chat_id_str]
 
             with BUTTON_LOCK:
                 prev_buttons = SESSION.query(Buttons).filter(
@@ -205,19 +208,19 @@ def num_chats():
 def __load_chat_filters():
     global CHAT_FILTERS
     try:
+        CHAT_FILTERS = {}  # Clear existing cache
         chats = SESSION.query(CustomFilters.chat_id).distinct().all()
-        for (chat_id, ) in chats:  # remove tuple by ( ,)
+        for (chat_id,) in chats:
             CHAT_FILTERS[chat_id] = []
 
         all_filters = SESSION.query(CustomFilters).all()
         for x in all_filters:
-            CHAT_FILTERS[x.chat_id] += [x.keyword]
+            CHAT_FILTERS[x.chat_id].append(x.keyword)
 
         CHAT_FILTERS = {
             x: sorted(set(y), key=lambda i: (-len(i), i))
             for x, y in CHAT_FILTERS.items()
         }
-
     finally:
         SESSION.close()
 
