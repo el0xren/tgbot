@@ -509,7 +509,7 @@ def error_callback(update: Update, context: CallbackContext):
             recipients.update(uid for uid in DEV_USERS if isinstance(uid, int))
         for user_id in recipients:
             try:
-                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.MARKDOWN)
+                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
                 file.seek(0)
                 context.bot.send_document(chat_id=user_id, document=file)
                 LOGGER.info(f"Traceback sent to {user_id}")
@@ -524,7 +524,7 @@ def error_callback(update: Update, context: CallbackContext):
         file.seek(0)
         for user_id in recipients:
             try:
-                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.MARKDOWN)
+                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
                 file.seek(0)
                 context.bot.send_document(chat_id=user_id, document=file)
                 LOGGER.info(f"Traceback sent to {user_id}")
