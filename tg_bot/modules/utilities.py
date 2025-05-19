@@ -244,9 +244,10 @@ __mod_name__ = "Utilities"
 
 SHORTENING_HANDLER = CommandHandler("shortening", shortening_toggle)
 SHORTEN_COMMAND_HANDLER = CommandHandler("shorten", shorten_command)
-SHORTEN_LINK_HANDLER = MessageHandler(Filters.text & Filters.chat_type.groups, shorten_links)
-
+SHORTEN_LINK_HANDLER = MessageHandler(
+    Filters.text & Filters.chat_type.groups & ~Filters.command & ~Filters.regex(r'^/.*@MissMedusaBot\b'),
+    shorten_links
+)
 dispatcher.add_handler(SHORTENING_HANDLER)
 dispatcher.add_handler(SHORTEN_COMMAND_HANDLER)
-dispatcher.add_handler(SHORTEN_LINK_HANDLER)
-            
+dispatcher.add_handler(SHORTEN_LINK_HANDLER, group=10)
