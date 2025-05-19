@@ -654,6 +654,38 @@ def stats(update: Update, context: CallbackContext):
         "Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
 
 
+URL_REGEX = r'(https?://\S+)'
+
+def shorten_url(url: str) -> str:
+    try:
+        response = requests.get("https://is.gd/create.php", params={
+            "format": "simple",
+            "url": url
+        }, timeout=5)
+        return response.text if response.status_code == 200 else url
+    except Exception as e:
+        print(f"Error shortening URL {url}: {e}")
+        return url
+
+def shorten_links(update: Update, context: CallbackContext) -> None:
+    if not update.message or not update.message.text:
+        return
+
+    original_text = update.message.text
+    urls = re.findall(URL_REGEX, original_text)
+
+    if not urls:
+        return
+
+    shortened_map = {url: shorten_url(url) for url in urls}
+    new_text = original_text
+    for long_url, short_url in shortened_map.items():
+        new_text = new_text.replace(long_url, short_url)
+
+    if new_text != original_text:
+        update.message.reply_text(f"🔗 Shortened Links:\n{new_text}")
+
+
 # /ip is for private use
 __help__ = """
  - /id: get the current group id. If used by replying to a message, gets that user's id.
