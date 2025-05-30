@@ -43,6 +43,7 @@ def send(update, message, keyboard, backup_message):
     chat = update.effective_chat
     cleanserv = sql.clean_service(chat.id)
     reply = update.message.message_id
+
     # Clean service welcome
     if cleanserv:
         try:
@@ -50,6 +51,9 @@ def send(update, message, keyboard, backup_message):
         except BadRequest:
             pass
         reply = False
+
+    msg = None  # <--- Default assignment
+
     try:
         msg = update.effective_message.reply_text(
             message,
@@ -64,20 +68,7 @@ def send(update, message, keyboard, backup_message):
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=keyboard,
                 quote=False)
-    except IndexError:
-        msg = update.effective_message.reply_text(
-            markdown_parser(backup_message + "\nNote: the current message was "
-                            "invalid due to markdown issues. Could be "
-                            "due to the user's name."),
-            parse_mode=ParseMode.MARKDOWN)
-    except KeyError:
-        msg = update.effective_message.reply_text(
-            markdown_parser(backup_message + "\nNote: the current message is "
-                            "invalid due to an issue with some misplaced "
-                            "curly brackets. Please update"),
-            parse_mode=ParseMode.MARKDOWN)
-    except BadRequest as excp:
-        if excp.message == "Button_url_invalid":
+        elif excp.message == "Button_url_invalid":
             msg = update.effective_message.reply_text(
                 markdown_parser(
                     backup_message +
@@ -105,10 +96,31 @@ def send(update, message, keyboard, backup_message):
         else:
             msg = update.effective_message.reply_text(
                 markdown_parser(backup_message +
-                                "\nNote: An error occured when sending the "
+                                "\nNote: An error occurred when sending the "
                                 "custom message. Please update."),
                 parse_mode=ParseMode.MARKDOWN)
             LOGGER.exception()
+
+    except IndexError:
+        msg = update.effective_message.reply_text(
+            markdown_parser(backup_message + "\nNote: the current message was "
+                            "invalid due to markdown issues. Could be "
+                            "due to the user's name."),
+            parse_mode=ParseMode.MARKDOWN)
+    except KeyError:
+        msg = update.effective_message.reply_text(
+            markdown_parser(backup_message + "\nNote: the current message is "
+                            "invalid due to an issue with some misplaced "
+                            "curly brackets. Please update"),
+            parse_mode=ParseMode.MARKDOWN)
+
+    # Final fallback: still unassigned?
+    if msg is None:
+        msg = update.effective_message.reply_text(
+            markdown_parser(backup_message +
+                            "\nNote: an unknown error occurred while sending the welcome message."),
+            parse_mode=ParseMode.MARKDOWN)
+        LOGGER.error("Fallback triggered in send(); original message couldn't be sent.")
 
     return msg
 
