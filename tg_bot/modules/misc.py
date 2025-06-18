@@ -27,9 +27,6 @@ from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.chat_status import user_admin, sudo_plus
 from tg_bot.modules.helper_funcs.permissions import AdminPerms
 
-STATS = []
-USER_INFO = []
-
 RUN_STRINGS = (
     "Where do you think you're going?",
     "Huh? what? did they get away?",

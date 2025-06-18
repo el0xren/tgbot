@@ -9,11 +9,6 @@ import sys
 import time
 from typing import Optional, List
 from io import BytesIO
-from threading import Timer
-from configparser import ConfigParser
-import ast
-import copy
-import os
 
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -21,8 +16,6 @@ from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, Cha
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
@@ -68,283 +61,49 @@ STATS = []
 USER_INFO = []
 DATA_IMPORT = []
 DATA_EXPORT = []
+
 CHAT_SETTINGS = {}
 USER_SETTINGS = {}
+
 GDPR = []
 
-module_handlers = {}
+for module_name in ALL_MODULES:
+    imported_module = importlib.import_module("tg_bot.modules." + module_name)
+    if not hasattr(imported_module, "__mod_name__"):
+        imported_module.__mod_name__ = imported_module.__name__
 
+    if not imported_module.__mod_name__.lower() in IMPORTED:
+        IMPORTED[imported_module.__mod_name__.lower()] = imported_module
+    else:
+        raise Exception(
+            "Can't have two modules with the same name! Please change one")
 
-_original_add_handler = Dispatcher.add_handler
-def tracked_add_handler(self, handler, group=0):
-    module_name = getattr(handler.callback, "__module__", None)
-    if module_name and module_name.startswith("tg_bot.modules."):
-        module_name = module_name.split(".")[-1]
-        if module_name not in module_handlers:
-            module_handlers[module_name] = []
-        module_handlers[module_name].append(handler)
-    _original_add_handler(self, handler, group)
-Dispatcher.add_handler = tracked_add_handler
+    if hasattr(imported_module, "__help__") and imported_module.__help__:
+        HELPABLE[imported_module.__mod_name__.lower()] = imported_module
 
+    if hasattr(imported_module, "__migrate__"):
+        MIGRATEABLE.append(imported_module)
 
-class ModuleReloadHandler(FileSystemEventHandler):
-    def __init__(self, dispatcher, imported, helpable, migrateable, stats, user_info, data_import, data_export, chat_settings, user_settings, gdpr):
-        self.dispatcher = dispatcher
-        self.imported = imported
-        self.helptable = helpable
-        self.migrateable = migrateable
-        self.stats = stats
-        self.user_info = user_info
-        self.data_import = data_import
-        self.data_export = data_export
-        self.chat_settings = chat_settings
-        self.user_settings = user_settings
-        self.gdpr = gdpr
-        self.reload_timer = None
-        self.pending_reload = None
-        self.previous_state = {}
+    if hasattr(imported_module, "__stats__"):
+        STATS.append(imported_module)
 
-    def validate_module(self, file_path):
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                ast.parse(f.read())
-            return True
-        except SyntaxError as e:
-            LOGGER.error(f"Syntax error in {file_path}: {e}")
-            return False
+    if hasattr(imported_module, "__gdpr__"):
+        GDPR.append(imported_module)
 
-    def schedule_reload(self, module_name, module_path):
-        if self.reload_timer:
-            self.reload_timer.cancel()
-        self.pending_reload = (module_name, module_path)
-        self.reload_timer = Timer(1.0, self.perform_reload)
-        self.reload_timer.start()
+    if hasattr(imported_module, "__user_info__"):
+        USER_INFO.append(imported_module)
 
-    def perform_reload(self):
-        if not self.pending_reload:
-            return
-        module_name, module_path = self.pending_reload
-        module_path_full = f"tg_bot.modules.{module_name}"
+    if hasattr(imported_module, "__import_data__"):
+        DATA_IMPORT.append(imported_module)
 
-        self.previous_state = {
-            "imported": self.imported.get(module_name),
-            "helptable": self.helptable.get(module_name),
-            "migrateable": self.migrateable.copy(),
-            "stats": self.stats.copy(),
-            "user_info": self.user_info.copy(),
-            "data_import": self.data_import.copy(),
-            "data_export": self.data_export.copy(),
-            "chat_settings": self.chat_settings.get(module_name),
-            "user_settings": self.user_settings.get(module_name),
-            "gdpr": self.gdpr.copy(),
-            "handlers": module_handlers.get(module_name, []).copy()
-        }
+    if hasattr(imported_module, "__export_data__"):
+        DATA_EXPORT.append(imported_module)
 
-        try:
-            for handler in module_handlers.get(module_name, []):
-                self.dispatcher.remove_handler(handler)
-            module_handlers[module_name] = []
+    if hasattr(imported_module, "__chat_settings__"):
+        CHAT_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
-            imported_module = importlib.import_module(module_path_full)
-            importlib.reload(imported_module)
-            imported_module.__mod_name__ = imported_module.__name__
-
-            if module_name in self.imported:
-                del self.imported[module_name]
-            self.imported[imported_module.__mod_name__.lower()] = imported_module
-
-            if hasattr(imported_module, "__help__") and imported_module.__help__:
-                self.helptable[imported_module.__mod_name__.lower()] = imported_module
-            else:
-                self.helptable.pop(imported_module.__mod_name__.lower(), None)
-
-            if hasattr(imported_module, "__migrate__"):
-                if imported_module not in self.migrateable:
-                    self.migrateable.append(imported_module)
-            else:
-                self.migrateable[:] = [m for m in self.migrateable if m != imported_module]
-
-            if hasattr(imported_module, "__stats__"):
-                if imported_module not in self.stats:
-                    self.stats.append(imported_module)
-            else:
-                self.stats[:] = [m for m in self.stats if m != imported_module]
-
-            if hasattr(imported_module, "__gdpr__"):
-                if imported_module not in self.gdpr:
-                    self.gdpr.append(imported_module)
-            else:
-                self.gdpr[:] = [m for m in self.gdpr if m != imported_module]
-
-            if hasattr(imported_module, "__user_info__"):
-                if imported_module not in self.user_info:
-                    self.user_info.append(imported_module)
-            else:
-                self.user_info[:] = [m for m in self.user_info if m != imported_module]
-
-            if hasattr(imported_module, "__import_data__"):
-                if imported_module not in self.data_import:
-                    self.data_import.append(imported_module)
-            else:
-                self.data_import[:] = [m for m in self.data_import if m != imported_module]
-
-            if hasattr(imported_module, "__export_data__"):
-                if imported_module not in self.data_export:
-                    self.data_export.append(imported_module)
-            else:
-                self.data_export[:] = [m for m in self.data_export if m != imported_module]
-
-            if hasattr(imported_module, "__chat_settings__"):
-                self.chat_settings[imported_module.__mod_name__.lower()] = imported_module
-            else:
-                self.chat_settings.pop(imported_module.__mod_name__.lower(), None)
-
-            if hasattr(imported_module, "__user_settings__"):
-                self.user_settings[imported_module.__mod_name__.lower()] = imported_module
-            else:
-                self.user_settings.pop(imported_module.__mod_name__.lower(), None)
-
-            LOGGER.info(f"Successfully reloaded module {module_name}")
-            send_to_list(
-                self.dispatcher.bot,
-                DEV_USERS,
-                f"Module {module_name} reloaded successfully."
-            )
-        except Exception as e:
-            LOGGER.error(f"Failed to reload module {module_name}: {e}", exc_info=True)
-            if self.previous_state["imported"] is not None:
-                self.imported[module_name] = self.previous_state["imported"]
-            if self.previous_state["helptable"] is not None:
-                self.helptable[module_name] = self.previous_state["helptable"]
-            self.migrateable[:] = self.previous_state["migrateable"]
-            self.stats[:] = self.previous_state["stats"]
-            self.user_info[:] = self.previous_state["user_info"]
-            self.data_import[:] = self.previous_state["data_import"]
-            self.data_export[:] = self.previous_state["data_export"]
-            if self.previous_state["chat_settings"] is not None:
-                self.chat_settings[module_name] = self.previous_state["chat_settings"]
-            if self.previous_state["user_settings"] is not None:
-                self.user_settings[module_name] = self.previous_state["user_settings"]
-            self.gdpr[:] = self.previous_state["gdpr"]
-            for handler in self.previous_state["handlers"]:
-                self.dispatcher.add_handler(handler)
-            module_handlers[module_name] = self.previous_state["handlers"]
-            send_to_list(
-                self.dispatcher.bot,
-                DEV_USERS,
-                f"Failed to reload module {module_name}: {str(e)}. Rolled back to previous state."
-            )
-
-    def on_modified(self, event):
-        if event.is_directory or not event.src_path.endswith(".py"):
-            return
-        module_name = os.path.basename(event.src_path)[:-3]
-        if not self.validate_module(event.src_path):
-            send_to_list(
-                self.dispatcher.bot,
-                DEV_USERS,
-                f"Module {module_name} has syntax errors. Reload skipped."
-            )
-            return
-        self.schedule_reload(module_name, event.src_path)
-
-
-def setup_hot_reload(dispatcher):
-    observer = Observer()
-    event_handler = ModuleReloadHandler(
-        dispatcher,
-        IMPORTED,
-        HELPABLE,
-        MIGRATEABLE,
-        STATS,
-        USER_INFO,
-        DATA_IMPORT,
-        DATA_EXPORT,
-        CHAT_SETTINGS,
-        USER_SETTINGS,
-        GDPR
-    )
-    observer.schedule(event_handler, path="tg_bot/modules/", recursive=False)
-    observer.start()
-    LOGGER.info("Hot-reload watcher started for tg_bot/modules/")
-    return observer
-
-
-class ConfigReloadHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        if event.is_directory or not event.src_path.endswith("config.ini"):
-            return
-        LOGGER.info("Detected change in config.ini. Reloading configuration...")
-        try:
-            parser = ConfigParser()
-            parser.read("config.ini")
-            global ahegaoconfig, TOKEN, OWNER_ID, SUPPORT_CHAT
-            ahegaoconfig = parser["ahegaoconfig"]
-            TOKEN = ahegaoconfig.get("TOKEN")
-            OWNER_ID = ahegaoconfig.getint("OWNER_ID")
-            SUPPORT_CHAT = ahegaoconfig.get("SUPPORT_CHAT")
-            LOGGER.info("Configuration reloaded successfully")
-            send_to_list(
-                dispatcher.bot,
-                DEV_USERS,
-                "Configuration (config.ini) reloaded successfully."
-            )
-        except Exception as e:
-            LOGGER.error(f"Failed to reload config.ini: {e}", exc_info=True)
-            send_to_list(
-                dispatcher.bot,
-                DEV_USERS,
-                f"Failed to reload config.ini: {str(e)}"
-            )
-
-
-def setup_config_reload():
-    observer = Observer()
-    event_handler = ConfigReloadHandler()
-    observer.schedule(event_handler, path=".", recursive=False)
-    observer.start()
-    LOGGER.info("Config reload watcher started for config.ini")
-    return observer
-
-
-def load_modules():
-    for module_name in ALL_MODULES:
-        imported_module = importlib.import_module("tg_bot.modules." + module_name)
-        if not hasattr(imported_module, "__mod_name__"):
-            imported_module.__mod_name__ = imported_module.__name__
-
-        if not imported_module.__mod_name__.lower() in IMPORTED:
-            IMPORTED[imported_module.__mod_name__.lower()] = imported_module
-        else:
-            raise Exception(
-                "Can't have two modules with the same name! Please change one")
-
-        if hasattr(imported_module, "__help__") and imported_module.__help__:
-            HELPABLE[imported_module.__mod_name__.lower()] = imported_module
-
-        if hasattr(imported_module, "__migrate__"):
-            MIGRATEABLE.append(imported_module)
-
-        if hasattr(imported_module, "__stats__"):
-            STATS.append(imported_module)
-
-        if hasattr(imported_module, "__gdpr__"):
-            GDPR.append(imported_module)
-
-        if hasattr(imported_module, "__user_info__"):
-            USER_INFO.append(imported_module)
-
-        if hasattr(imported_module, "__import_data__"):
-            DATA_IMPORT.append(imported_module)
-
-        if hasattr(imported_module, "__export_data__"):
-            DATA_EXPORT.append(imported_module)
-
-        if hasattr(imported_module, "__chat_settings__"):
-            CHAT_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
-
-        if hasattr(imported_module, "__user_settings__"):
-            USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
+    if hasattr(imported_module, "__user_settings__"):
+        USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
 
 def send_help(chat_id, text, keyboard=None):
@@ -406,60 +165,14 @@ def start(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Yo, whadup?")
 
 
-def reload_module(update: Update, context: CallbackContext):
-    LOGGER.info("Received /reload command")
-    user_id = update.effective_user.id
-    if user_id not in DEV_USERS:
-        LOGGER.warning(f"Unauthorized /reload attempt by user {user_id}")
-        update.effective_message.reply_text("Only dev users can reload modules!")
-        return
-    args = context.args
-    if not args:
-        LOGGER.info("No module specified for /reload")
-        update.effective_message.reply_text("Please specify a module to reload, e.g., /reload admin")
-        return
-    module_name = args[0].lower()
-    LOGGER.info(f"Attempting to reload module: {module_name}")
-    if module_name not in ALL_MODULES:
-        LOGGER.warning(f"Module {module_name} not in ALL_MODULES")
-        update.effective_message.reply_text(f"Module {module_name} not found in ALL_MODULES!")
-        return
-    module_path = os.path.join("tg_bot", "modules", f"{module_name}.py")
-    if not os.path.exists(module_path):
-        LOGGER.error(f"Module file not found: {module_path}")
-        update.effective_message.reply_text(f"Module file {module_name}.py not found!")
-        return
-    try:
-        handler = ModuleReloadHandler(
-            dispatcher,
-            IMPORTED,
-            HELPABLE,
-            MIGRATEABLE,
-            STATS,
-            USER_INFO,
-            DATA_IMPORT,
-            DATA_EXPORT,
-            CHAT_SETTINGS,
-            USER_SETTINGS,
-            GDPR
-        )
-        if not handler.validate_module(module_path):
-            LOGGER.error(f"Module {module_name} has syntax errors")
-            update.effective_message.reply_text(f"Module {module_name} has syntax errors. Reload skipped.")
-            return
-        LOGGER.info(f"Scheduling reload for {module_name}")
-        handler.schedule_reload(module_name, module_path)
-        update.effective_message.reply_text(f"Scheduled reload for module {module_name}")
-    except Exception as e:
-        LOGGER.error(f"Failed to process /reload for {module_name}: {e}", exc_info=True)
-        update.effective_message.reply_text(f"Failed to reload module {module_name}: {str(e)}")
-
-
 def error_callback(update: Update, context: CallbackContext):
     LOGGER.error("Exception while handling an update:", exc_info=context.error)
+
+    # Prepare traceback and context info
     try:
         tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
         tb_string = "".join(tb_list)
+
         update_str = {}
         if isinstance(update, Update):
             update_dict = update.to_dict()
@@ -480,6 +193,8 @@ def error_callback(update: Update, context: CallbackContext):
                 "text": message.get("text"),
                 "entities": message.get("entities")
             }
+
+        # Summary for message
         summary = (
             f"<b>Error:</b> {str(context.error)}\n"
             f"<b>Severity:</b> Critical\n"
@@ -488,6 +203,8 @@ def error_callback(update: Update, context: CallbackContext):
             f"<b>Python:</b> {sys.version.split()[0]}\n"
             f"📎 See attached file for full traceback."
         )
+
+        # Full document
         full_message = (
             f"Error: {str(context.error)}\n"
             f"Severity: Critical\n"
@@ -499,37 +216,30 @@ def error_callback(update: Update, context: CallbackContext):
             f"User Data:\n{context.user_data}\n\n"
             f"Traceback:\n{tb_string}"
         )
-        file = BytesIO(full_message.encode('utf-8'))
-        file.name = f"traceback_{int(time.time())}.txt"
-        file.seek(0)
-        recipients = set()
-        if isinstance(OWNER_ID, int):
-            recipients.add(OWNER_ID)
-        if DEV_USERS:
-            recipients.update(uid for uid in DEV_USERS if isinstance(uid, int))
-        for user_id in recipients:
-            try:
-                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
-                file.seek(0)
-                context.bot.send_document(chat_id=user_id, document=file)
-                LOGGER.info(f"Traceback sent to {user_id}")
-            except TelegramError as e:
-                LOGGER.warning(f"Failed to send to {user_id}: {e}")
+
     except Exception as e:
         LOGGER.error(f"Failed to generate traceback message: {e}", exc_info=True)
         summary = f"Error: {str(context.error)}\n(Failed to format traceback due to: {str(e)})"
         full_message = summary
-        file = BytesIO(full_message.encode('utf-8'))
-        file.name = f"traceback_{int(time.time())}.txt"
-        file.seek(0)
-        for user_id in recipients:
-            try:
-                context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
-                file.seek(0)
-                context.bot.send_document(chat_id=user_id, document=file)
-                LOGGER.info(f"Traceback sent to {user_id}")
-            except TelegramError as e:
-                LOGGER.warning(f"Failed to send to {user_id}: {e}")
+
+    file = BytesIO(full_message.encode('utf-8'))
+    file.name = f"traceback_{int(time.time())}.txt"
+    file.seek(0)
+
+    recipients = set()
+    if isinstance(OWNER_ID, int):
+        recipients.add(OWNER_ID)
+    if DEV_USERS:
+        recipients.update(uid for uid in DEV_USERS if isinstance(uid, int))
+
+    for user_id in recipients:
+        try:
+            context.bot.send_message(chat_id=user_id, text=summary, parse_mode=ParseMode.HTML)
+            file.seek(0)
+            context.bot.send_document(chat_id=user_id, document=file)
+            LOGGER.info(f"Traceback sent to {user_id}")
+        except TelegramError as e:
+            LOGGER.warning(f"Failed to send to {user_id}: {e}")
 
 
 def help_button(update: Update, context: CallbackContext):
@@ -551,6 +261,7 @@ def help_button(update: Update, context: CallbackContext):
                                             text="Back",
                                             callback_data="help_back")
                                     ]]))
+
         elif prev_match:
             curr_page = int(prev_match.group(1))
             query.message.edit_text(HELP_STRINGS,
@@ -558,6 +269,7 @@ def help_button(update: Update, context: CallbackContext):
                                     reply_markup=InlineKeyboardMarkup(
                                         paginate_modules(
                                             curr_page - 1, HELPABLE, "help")))
+
         elif next_match:
             next_page = int(next_match.group(1))
             query.message.edit_text(HELP_STRINGS,
@@ -565,11 +277,13 @@ def help_button(update: Update, context: CallbackContext):
                                     reply_markup=InlineKeyboardMarkup(
                                         paginate_modules(
                                             next_page + 1, HELPABLE, "help")))
+
         elif back_match:
             query.message.edit_text(text=HELP_STRINGS,
                                     parse_mode=ParseMode.MARKDOWN,
                                     reply_markup=InlineKeyboardMarkup(
                                         paginate_modules(0, HELPABLE, "help")))
+
         bot.answer_callback_query(query.id)
     except BadRequest as excp:
         if excp.message == "Message is not modified":
@@ -586,6 +300,7 @@ def get_help(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
+
     if chat.type != chat.PRIVATE:
         update.effective_message.reply_text(
             "Contact me in PM to get the list of possible commands.",
@@ -595,6 +310,7 @@ def get_help(update: Update, context: CallbackContext):
                                          bot.username))
             ]]))
         return
+
     elif len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
         module = args[1].lower()
         text = "Here is the available help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
@@ -604,6 +320,7 @@ def get_help(update: Update, context: CallbackContext):
             InlineKeyboardMarkup([[
                 InlineKeyboardButton(text="Back", callback_data="help_back")
             ]]))
+
     else:
         send_help(chat.id, HELP_STRINGS)
 
@@ -618,17 +335,20 @@ def send_settings(chat_id, user_id, user=False):
                                         "These are your current settings:" +
                                         "\n\n" + settings,
                                         parse_mode=ParseMode.MARKDOWN)
+
         else:
             dispatcher.bot.send_message(
                 user_id,
                 "Seems like there aren't any user specific settings available :'(",
                 parse_mode=ParseMode.MARKDOWN)
+
     else:
         if CHAT_SETTINGS:
             chat_name = dispatcher.bot.getChat(chat_id).title
             dispatcher.bot.send_message(
                 user_id,
-                text="Which module would you like to check {}'s settings for?".format(chat_name),
+                text="Which module would you like to check {}'s settings for?".
+                format(chat_name),
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)))
         else:
@@ -664,6 +384,7 @@ def settings_button(update: Update, context: CallbackContext):
                         text="Back",
                         callback_data="stngs_back({})".format(chat_id))
                 ]]))
+
         elif prev_match:
             chat_id = prev_match.group(1)
             curr_page = int(prev_match.group(2))
@@ -676,6 +397,7 @@ def settings_button(update: Update, context: CallbackContext):
                                      CHAT_SETTINGS,
                                      "stngs",
                                      chat=chat_id)))
+
         elif next_match:
             chat_id = next_match.group(1)
             next_page = int(next_match.group(2))
@@ -688,15 +410,18 @@ def settings_button(update: Update, context: CallbackContext):
                                      CHAT_SETTINGS,
                                      "stngs",
                                      chat=chat_id)))
+
         elif back_match:
             chat_id = back_match.group(1)
             chat = bot.get_chat(chat_id)
             query.message.edit_text(
-                text="Hi there! There are quite a few settings for {} - go ahead and pick what "
+                text=
+                "Hi there! There are quite a few settings for {} - go ahead and pick what "
                 "you're interested in.".format(escape_markdown(chat.title)),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)))
+
         bot.answer_callback_query(query.id)
     except BadRequest as excp:
         if excp.message == "Message is not modified":
@@ -706,7 +431,8 @@ def settings_button(update: Update, context: CallbackContext):
         elif excp.message == "Message can't be deleted":
             pass
         else:
-            LOGGER.exception("Exception in settings buttons. %s", str(query.data))
+            LOGGER.exception("Exception in settings buttons. %s",
+                             str(query.data))
 
 
 def get_settings(update: Update, context: CallbackContext):
@@ -715,6 +441,7 @@ def get_settings(update: Update, context: CallbackContext):
     user = update.effective_user
     msg = update.effective_message
     args = msg.text.split(None, 1)
+
     if chat.type != chat.PRIVATE:
         if is_user_admin(chat, user.id):
             text = "Click here to get this chat's settings, as well as yours."
@@ -727,6 +454,7 @@ def get_settings(update: Update, context: CallbackContext):
                            ]]))
         else:
             text = "Click here to check your settings."
+
     else:
         send_settings(chat.id, user.id, True)
 
@@ -742,9 +470,11 @@ def migrate_chats(update: Update, context: CallbackContext):
         new_chat = update.effective_chat.id
     else:
         return
+
     LOGGER.info("Migrating from %s, to %s", str(old_chat), str(new_chat))
     for mod in MIGRATEABLE:
         mod.__migrate__(old_chat, new_chat)
+
     LOGGER.info("Successfully migrated!")
     raise DispatcherHandlerStop
 
@@ -761,6 +491,7 @@ def debug_config(update: Update, context: CallbackContext):
     support_chat_status = SUPPORT_CHAT if SUPPORT_CHAT else "Not set"
     owner_id_status = OWNER_ID if OWNER_ID else "Not set"
     support_chat_id = None
+
     if SUPPORT_CHAT:
         if isinstance(SUPPORT_CHAT, str):
             chat_id_input = f"@{SUPPORT_CHAT}" if not SUPPORT_CHAT.startswith('@') else SUPPORT_CHAT
@@ -773,6 +504,7 @@ def debug_config(update: Update, context: CallbackContext):
         elif isinstance(SUPPORT_CHAT, int):
             support_chat_id = SUPPORT_CHAT
             support_chat_status = f"{SUPPORT_CHAT} (numeric ID)"
+
     support_chat_test = "Not tested"
     if support_chat_id:
         try:
@@ -780,6 +512,7 @@ def debug_config(update: Update, context: CallbackContext):
             support_chat_test = "Message sent successfully"
         except TelegramError as e:
             support_chat_test = f"Failed to send message: {e}"
+
     owner_id_test = "Not tested"
     if OWNER_ID:
         try:
@@ -787,6 +520,7 @@ def debug_config(update: Update, context: CallbackContext):
             owner_id_test = "Message sent successfully"
         except TelegramError as e:
             owner_id_test = f"Failed to send message: {e}"
+
     update.effective_message.reply_text(
         f"Debug Configuration:\n"
         f"SUPPORT_CHAT: {support_chat_status}\n"
@@ -795,20 +529,22 @@ def debug_config(update: Update, context: CallbackContext):
         f"OWNER_ID Test: {owner_id_test}"
     )
 
-def main():
-    load_modules()
-    LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
 
+def main():
     start_handler = CommandHandler("start", start, run_async=True)
     help_handler = CommandHandler("help", get_help, run_async=True)
-    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_", run_async=True)
+    help_callback_handler = CallbackQueryHandler(help_button,
+                                                 pattern=r"help_",
+                                                 run_async=True)
     settings_handler = CommandHandler("settings", get_settings, run_async=True)
-    settings_callback_handler = CallbackQueryHandler(settings_button, pattern=r"stngs_", run_async=True)
-    migrate_handler = MessageHandler(Filters.status_update.migrate, migrate_chats)
+    settings_callback_handler = CallbackQueryHandler(settings_button,
+                                                     pattern=r"stngs_",
+                                                     run_async=True)
+    migrate_handler = MessageHandler(Filters.status_update.migrate,
+                                     migrate_chats)
     test_error_handler = CommandHandler("testerror", test_error, run_async=True)
     chat_id_handler = CommandHandler("chatid", get_chat_id, run_async=True)
     debug_config_handler = CommandHandler("debugconfig", debug_config, run_async=True)
-    reload_handler = CommandHandler("reload", reload_module, run_async=True)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -819,42 +555,42 @@ def main():
     dispatcher.add_handler(test_error_handler)
     dispatcher.add_handler(chat_id_handler)
     dispatcher.add_handler(debug_config_handler)
-    dispatcher.add_error_handler(error_callback)
-    dispatcher.add_handler(reload_handler)
 
-    module_observer = setup_hot_reload(dispatcher)
-    config_observer = setup_config_reload()
+    dispatcher.add_error_handler(error_callback)
 
     if WEBHOOK:
         LOGGER.info("Using webhooks.")
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+
         if CERT_PATH:
-            updater.bot.set_webhook(url=URL + TOKEN, certificate=open(CERT_PATH, 'rb'))
+            updater.bot.set_webhook(url=URL + TOKEN,
+                                    certificate=open(CERT_PATH, 'rb'))
         else:
             updater.bot.set_webhook(url=URL + TOKEN)
+
     else:
         if SUPPORT_CHAT:
             try:
                 dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I'm awake now!")
             except TelegramError:
-                send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS, "I'm awake now!")
+                send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS,
+                             "I'm awake now!")
         else:
-            send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS, "I'm awake now!")
+            send_to_list(dispatcher.bot, DEV_USERS + SUDO_USERS,
+                         "I'm awake now!")
         LOGGER.info(f"Configuration: SUPPORT_CHAT={SUPPORT_CHAT}, OWNER_ID={OWNER_ID}")
         LOGGER.info(f"Bot username: @{dispatcher.bot.username}")
         LOGGER.info("Using long polling.")
-        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=IGNORE_PENDING_REQUESTS)
+        updater.start_polling(timeout=15,
+                              read_latency=4,
+                              drop_pending_updates=IGNORE_PENDING_REQUESTS)
 
-    try:
-        updater.idle()
-    finally:
-        module_observer.stop()
-        config_observer.stop()
-        module_observer.join()
-        config_observer.join()
+    updater.idle()
+
 
 CHATS_CNT = {}
 CHATS_TIME = {}
 
 if __name__ == '__main__':
+    LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     main()
