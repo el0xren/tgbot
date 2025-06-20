@@ -6,14 +6,13 @@ from telegram.error import BadRequest, TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
 from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus, validate_user
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
 from tg_bot.modules.sql.users_sql import get_user_com_chats
 import tg_bot.modules.sql.global_kicks_sql as sql
-
 
 GKICK_ERRORS = {
     "User is an administrator of the chat",
@@ -34,9 +33,8 @@ GKICK_ERRORS = {
     "Method is available only for supergroups",
     "Can't remove chat owner",
     "User not found",
-    "Chat_id is empty",  # Added to handle empty chat_id error
+    "Chat_id is empty",
 }
-
 
 @support_plus
 def gkick(update: Update, context: CallbackContext) -> Optional[str]:
@@ -46,6 +44,19 @@ def gkick(update: Update, context: CallbackContext) -> Optional[str]:
     kicker = update.effective_user  # type: Optional[User]
 
     user_id, reason = extract_user_and_text(message, args)
+    LOGGER.debug(f"gkick: user_id={user_id}, reason={reason}, kicker_id={kicker.id}")
+
+    if not user_id:
+        if message.reply_to_message:
+            message.reply_text(
+                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
+                "Please use @username or user ID.",
+                parse_mode=ParseMode.HTML)
+        else:
+            message.reply_text(
+                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
+                parse_mode=ParseMode.HTML)
+        return ""
 
     if not reason:
         message.reply_text("You must provide a reason.", parse_mode=ParseMode.HTML)
@@ -101,7 +112,6 @@ def gkick(update: Update, context: CallbackContext) -> Optional[str]:
                      html=True)
         return ""
 
-
 @support_plus
 def gkickset(update: Update, context: CallbackContext) -> Optional[str]:
     bot = context.bot
@@ -109,6 +119,20 @@ def gkickset(update: Update, context: CallbackContext) -> Optional[str]:
     message = update.effective_message
     kicker = update.effective_user  # type: Optional[User]
     user_id, value = extract_user_and_text(message, args)
+
+    LOGGER.debug(f"gkickset: user_id={user_id}, value={value}, kicker_id={kicker.id}")
+
+    if not user_id:
+        if message.reply_to_message:
+            message.reply_text(
+                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
+                "Please use @username or user ID.",
+                parse_mode=ParseMode.HTML)
+        else:
+            message.reply_text(
+                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
+                parse_mode=ParseMode.HTML)
+        return ""
 
     user_chat = validate_user(update, context, user_id, kicker.id)
     if not user_chat:
@@ -118,17 +142,21 @@ def gkickset(update: Update, context: CallbackContext) -> Optional[str]:
         message.reply_text("You must provide a value to set.", parse_mode=ParseMode.HTML)
         return ""
 
-    if not value.isdigit():
+    if not value.strip().isdigit():
         message.reply_text("Value must be a number!", parse_mode=ParseMode.HTML)
         return ""
 
-    value = int(value)
-    sql.gkick_setvalue(user_id, user_chat.username, value)
-    message.reply_text(
-        f"Set gkick value for {mention_html(user_chat.id, user_chat.first_name)} to {value}.",
-        parse_mode=ParseMode.HTML)
-    return ""
-
+    value = int(value.strip())
+    try:
+        sql.gkick_setvalue(user_id, user_chat.username or str(user_id), value)
+        message.reply_text(
+            f"Set gkick value for {mention_html(user_chat.id, user_chat.first_name)} to {value}.",
+            parse_mode=ParseMode.HTML)
+        return ""
+    except Exception as excp:
+        LOGGER.error(f"Error setting gkick value for user {user_id}: {excp}")
+        message.reply_text(f"Failed to set gkick value: {str(excp)}", parse_mode=ParseMode.HTML)
+        return ""
 
 @support_plus
 def gkickreset(update: Update, context: CallbackContext) -> Optional[str]:
@@ -137,16 +165,34 @@ def gkickreset(update: Update, context: CallbackContext) -> Optional[str]:
     kicker = update.effective_user  # type: Optional[User]
     user_id, _ = extract_user_and_text(message, args)
 
+    LOGGER.debug(f"gkickreset: user_id={user_id}, kicker_id={kicker.id}")
+
+    if not user_id:
+        if message.reply_to_message:
+            message.reply_text(
+                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
+                "Please use @username or user ID.",
+                parse_mode=ParseMode.HTML)
+        else:
+            message.reply_text(
+                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
+                parse_mode=ParseMode.HTML)
+        return ""
+
     user_chat = validate_user(update, context, user_id, kicker.id)
     if not user_chat:
         return ""
 
-    sql.gkick_reset(user_id)
-    message.reply_text(
-        f"Reset gkick for {mention_html(user_chat.id, user_chat.first_name)}.",
-        parse_mode=ParseMode.HTML)
-    return ""
-
+    try:
+        sql.gkick_reset(user_id)
+        message.reply_text(
+            f"Reset gkick for {mention_html(user_chat.id, user_chat.first_name)}.",
+            parse_mode=ParseMode.HTML)
+        return ""
+    except Exception as excp:
+        LOGGER.error(f"Error resetting gkick for user {user_id}: {excp}")
+        message.reply_text(f"Failed to reset gkick: {str(excp)}", parse_mode=ParseMode.HTML)
+        return ""
 
 def __user_info__(user_id):
     times = sql.get_times(user_id)
@@ -159,7 +205,6 @@ def __user_info__(user_id):
         text = text.format("<code>No</code>")
 
     return text
-
 
 __help__ = """
 *Support users only:*

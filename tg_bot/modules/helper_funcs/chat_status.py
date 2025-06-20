@@ -4,11 +4,51 @@ from cachetools import TTLCache
 from threading import RLock
 from typing import Optional
 
-from telegram import User, Chat, ChatMember, Update, TelegramError
+from telegram import User, Chat, ChatMember, Update, TelegramError, ParseMode
 
 from tg_bot import dispatcher, CallbackContext, DEL_CMDS, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
+ADMIN_CACHE_LOCK = RLock()
+
+
+def validate_user(update: Update, context: CallbackContext, user_id: int, sender_id: int) -> Optional[Chat]:
+    bot = context.bot
+    message = update.effective_message
+
+    if not user_id:
+        message.reply_text("You don't seem to be referring to a user.", parse_mode=ParseMode.HTML)
+        return None
+
+    if user_id == sender_id:
+        message.reply_text("You cannot target yourself.", parse_mode=ParseMode.HTML)
+        return None
+
+    if user_id == bot.id:
+        message.reply_text("I cannot act on myself.", parse_mode=ParseMode.HTML)
+        return None
+
+    if int(user_id) == OWNER_ID:
+        message.reply_text("Cannot act on the bot owner.", parse_mode=ParseMode.HTML)
+        return None
+
+    if int(user_id) in DEV_USERS:
+        message.reply_text("Cannot act on a developer.", parse_mode=ParseMode.HTML)
+        return None
+
+    if int(user_id) in SUDO_USERS:
+        message.reply_text("Cannot act on a sudo user.", parse_mode=ParseMode.HTML)
+        return None
+
+    if int(user_id) in SUPPORT_USERS:
+        message.reply_text("Cannot act on a support user.", parse_mode=ParseMode.HTML)
+        return None
+
+    try:
+        return bot.get_chat(user_id)
+    except (BadRequest, TelegramError) as excp:
+        message.reply_text(f"Error fetching user: {excp.message}", parse_mode=ParseMode.HTML)
+        return None
 
 
 def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
@@ -103,18 +143,26 @@ def sudo_plus(func):
 def support_plus(func):
 
     @wraps(func)
-    def is_support_plus_func(update: Update, context: CallbackContext, *args,
-                             **kwargs):
+    def is_support_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user
         chat = update.effective_chat
 
         if user and is_support_plus(chat, user.id):
             return func(update, context, *args, **kwargs)
         elif DEL_CMDS and " " not in update.effective_message.text:
+            update.effective_message.reply_text(
+                "This is a restricted command. You do not have permissions to run this.",
+                parse_mode=ParseMode.HTML
+            )
             try:
                 update.effective_message.delete()
             except TelegramError:
                 pass
+        else:
+            update.effective_message.reply_text(
+                "This is a restricted command. You do not have permissions to run this.",
+                parse_mode=ParseMode.HTML
+            )
 
     return is_support_plus_func
 
@@ -176,6 +224,7 @@ def is_user_ban_protected(update: Update,
 
 
 def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMember = None) -> bool:
+    """Check if a user is an admin in the chat, or in DEV_USERS/SUDO_USERS."""
     if isinstance(chat_or_update, Update):
         chat = chat_or_update.effective_chat
         msg = chat_or_update.effective_message
@@ -192,16 +241,17 @@ def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMembe
         return True
 
     if not member:
-        try:
-            return user_id in ADMIN_CACHE[chat.id]
-        except KeyError:
-            chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
-            admin_list = [x.user.id for x in chat_admins]
-            ADMIN_CACHE[chat.id] = admin_list
-
-            if user_id in admin_list:
+        with ADMIN_CACHE_LOCK:
+            if user_id in ADMIN_CACHE.get(chat.id, []):
                 return True
-            return False
+            try:
+                chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
+                admin_list = [x.user.id for x in chat_admins]
+                ADMIN_CACHE[chat.id] = admin_list
+                return user_id in admin_list
+            except TelegramError as excp:
+                LOGGER.warning(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
+                return False
 
 
 def is_bot_admin(chat: Chat,
