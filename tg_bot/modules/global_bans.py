@@ -47,68 +47,49 @@ UNGBAN_ERRORS = {
 
 
 @support_plus
-def gban(update: Update, context: CallbackContext):
+def gban(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     args = context.args
-    message = update.effective_message  # type: Optional[Message]
+    message: Optional[Message] = update.effective_message
 
+    sender_id: int = update.effective_user.id
     user_id, reason = extract_user_and_text(message, args)
-    sender_id = update.effective_user.id
 
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
 
     if not reason:
-        message.reply_text("You must provide a reason!")
+        message.reply_text("You must provide a reason.")
         return
 
     if user_id == sender_id:
-        message.reply_text("No. You're not going to gban yourself.")
-        return
-    elif int(user_id) == OWNER_ID:
-        message.reply_text(
-            "Wow! Someone's so noob that he want to gban my owner! *Grabs Potato Chips*"
-        )
+        message.reply_text("You cannot ban yourself.")
         return
 
-    if user_id == sender_id:
-        message.reply_text("No. You're not going to gban yourself.")
+    if int(user_id) == OWNER_ID:
+        message.reply_text("You cannot ban the bot owner.")
         return
-    elif int(user_id) in DEV_USERS:
-        message.reply_text("OOOF! Try again later XoXo >.<")
+    if int(user_id) in DEV_USERS:
+        message.reply_text("This user is a developer and cannot be banned.")
         return
-
-    if user_id == sender_id:
-        message.reply_text("No. You're not going to gban yourself.")
+    if int(user_id) in SUDO_USERS:
+        message.reply_text("This user is a sudo user and cannot be banned.")
         return
-    elif int(user_id) in SUDO_USERS:
-        message.reply_text(
-            "I spy, with my little eye... a sudo user war! Why are you guys turning on each other?"
-        )
+    if int(user_id) in SUPPORT_USERS:
+        message.reply_text("This user is a support user and cannot be banned.")
         return
-
-    if user_id == sender_id:
-        message.reply_text("No. You're not going to gban yourself.")
-        return
-    elif int(user_id) in SUPPORT_USERS:
-        message.reply_text(
-            "OOOH someone's trying to gban a support user! *grabs popcorn*")
-        return
-
     if user_id == bot.id:
-        message.reply_text(
-            "-_- So funny, lets gban myself why don't I? Nice try.")
+        message.reply_text("I cannot ban myself.")
         return
 
     try:
         user_chat = bot.get_chat(user_id)
+        if user_chat.type != 'private':
+            message.reply_text("That's not a user.")
+            return
     except BadRequest as excp:
-        message.reply_text(excp.message)
-        return
-
-    if user_chat.type != 'private':
-        message.reply_text("That's not a user!")
+        message.reply_text(f"Error fetching user: {excp.message}")
         return
 
     if sql.is_user_gbanned(user_id):

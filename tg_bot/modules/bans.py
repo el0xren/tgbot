@@ -34,7 +34,7 @@ def ban(update: Update, context: CallbackContext):
         return ""
 
     if user_id == sender_id:
-        message.reply_text("No. You're not going to ban yourself.")
+        message.reply_text("You cannot ban yourself.")
         return ""
 
     try:
@@ -51,7 +51,7 @@ def ban(update: Update, context: CallbackContext):
         return ""
 
     if user_id == bot.id:
-        message.reply_text("I'm not gonna BAN myself, are you crazy?")
+        message.reply_text("I cannot ban myself.")
         return ""
 
     if message.text.startswith("/d") and message.reply_to_message:
@@ -99,11 +99,16 @@ def temp_ban(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    sender_id = update.effective_user.id
 
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
+        return ""
+
+    if user_id == sender_id:
+        message.reply_text("You cannot ban yourself.")
         return ""
 
     try:
@@ -120,7 +125,7 @@ def temp_ban(update: Update, context: CallbackContext):
         return ""
 
     if user_id == bot.id:
-        message.reply_text("I'm not gonna BAN myself, are you crazy?")
+        message.reply_text("I cannot ban myself.")
         return ""
 
     if not reason:
@@ -186,11 +191,16 @@ def kick(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    sender_id = update.effective_user.id
 
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
+        return ""
+
+    if user_id == sender_id:
+        message.reply_text("You cannot ban yourself.")
         return ""
 
     try:
@@ -207,7 +217,7 @@ def kick(update: Update, context: CallbackContext):
         return ""
 
     if user_id == bot.id:
-        message.reply_text("Yeahhh I'm not gonna do that")
+        message.reply_text("I cannot ban myself.")
         return ""
 
     res = chat.unban_member(user_id)  # unban on current user = kick
@@ -260,7 +270,7 @@ def kickme(update: Update, context: CallbackContext):
     if res:
         update.effective_message.reply_text("No problem.")
     else:
-        update.effective_message.reply_text("Huh? I can't :/")
+        update.effective_message.reply_text("Huh? I can't.")
 
 
 @bot_admin
@@ -279,7 +289,7 @@ def banme(update: Update, context: CallbackContext):
     if res:
         update.effective_message.reply_text("No problem.")
     else:
-        update.effective_message.reply_text("Huh? I can't :/")
+        update.effective_message.reply_text("Huh? I can't.")
 
 
 @bot_admin
@@ -298,7 +308,6 @@ def sban(update: Update, context: CallbackContext):
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text("You don't seem to be referring to a user.")
         return ""
 
     try:
@@ -350,11 +359,16 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
+    sender_id = update.effective_user.id
 
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
+        return ""
+
+    if user_id == sender_id:
+        message.reply_text("You cannot unban yourself.")
         return ""
 
     try:
@@ -367,7 +381,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
             raise
 
     if user_id == bot.id:
-        message.reply_text("How would I unban myself if I wasn't here...?")
+        message.reply_text("I cannot unban myself.")
         return ""
 
     if is_user_in_chat(chat, user_id):
