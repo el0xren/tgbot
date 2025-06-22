@@ -18,7 +18,6 @@ def id_from_reply(message: Message) -> Tuple[Optional[int], Optional[str]]:
 
     res = message.text.split(None, 1)
     text = res[1] if len(res) >= 2 else ""
-    LOGGER.debug(f"id_from_reply: user_id={user_id}, text={text}")
     return user_id, text
 
 
@@ -31,7 +30,6 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
     split_text = message.text.split(None, 1)
 
     if len(split_text) < 2 and not prev_message:
-        LOGGER.debug("No args or reply provided")
         return None, None
 
     text = ""
@@ -40,12 +38,10 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
     if prev_message:
         user_id, text = id_from_reply(message)
         if user_id:
-            LOGGER.debug(f"Extracted from reply: user_id={user_id}, text={text}")
             try:
                 message.bot.get_chat(user_id)
                 return user_id, text
             except BadRequest as excp:
-                LOGGER.warning(f"BadRequest in reply get_chat({user_id}): {excp.message}")
                 if excp.message in ("User_id_invalid", "Chat not found", "Chat_id is empty"):
                     message.reply_text(
                         "I don't seem to have interacted with this user before - please forward a message from "
@@ -56,7 +52,6 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
                     message.reply_text(f"Error validating user: {excp.message}", parse_mode=ParseMode.HTML)
                 return None, text
         else:
-            LOGGER.debug("No valid user_id from reply (possibly channel/anonymous)")
             message.reply_text(
                 "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
                 "Please use @username or user ID.",
@@ -70,7 +65,6 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
         if ent.offset == len(message.text) - len(text_to_parse):
             user_id = ent.user.id
             text = message.text[ent.offset + ent.length:].strip()
-            LOGGER.debug(f"Extracted from text mention: user_id={user_id}, text={text}")
 
     if not user_id and args and args[0]:
         first_arg = args[0].strip()
@@ -78,19 +72,15 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
         if first_arg.startswith("@"):
             user_id = get_user_id(first_arg)
             if not user_id:
-                LOGGER.debug(f"No user_id found for handle {first_arg}")
                 message.reply_text(
                     "I don't have that user in my database. Please reply to their message, "
                     "forward one of their messages, or use their numeric user ID.",
                     parse_mode=ParseMode.HTML)
                 return None, text
-            LOGGER.debug(f"Extracted from handle: user_id={user_id}, text={text}")
-        elif first_arg.isdigit() and len(first_arg) >= 5:  # Ensure reasonable ID length
+        elif first_arg.isdigit() and len(first_arg) >= 5:
             try:
                 user_id = int(first_arg)
-                LOGGER.debug(f"Extracted from numeric ID: user_id={user_id}, text={text}")
             except ValueError:
-                LOGGER.warning(f"Invalid numeric ID: {first_arg}")
                 message.reply_text("Invalid user ID format.", parse_mode=ParseMode.HTML)
                 return None, text
 
@@ -99,7 +89,6 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
             message.bot.get_chat(user_id)
             return user_id, text
         except BadRequest as excp:
-            LOGGER.warning(f"BadRequest in get_chat({user_id}): {excp.message}")
             if excp.message in ("User_id_invalid", "Chat not found", "Chat_id is empty"):
                 message.reply_text(
                     "I don't seem to have interacted with this user before - please forward a message from "
@@ -110,7 +99,7 @@ def extract_user_and_text(message: Message, args: List[str]) -> Tuple[Optional[i
                 message.reply_text(f"Error validating user: {excp.message}", parse_mode=ParseMode.HTML)
             return None, text
 
-    LOGGER.debug("No valid user_id extracted")
+    LOGGER.debug("No valid User ID extracted.")
     message.reply_text(
         "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
         parse_mode=ParseMode.HTML)

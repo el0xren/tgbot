@@ -12,44 +12,50 @@ ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
 ADMIN_CACHE_LOCK = RLock()
 
 
-def validate_user(update: Update, context: CallbackContext, user_id: int, sender_id: int) -> Optional[Chat]:
+def validate_user(update: Update, context: CallbackContext, user_id: int, sender_id: int, skip_privileged: bool = False) -> Optional[Chat]:
     bot = context.bot
     message = update.effective_message
 
-    if not user_id:
-        message.reply_text("You don't seem to be referring to a user.", parse_mode=ParseMode.HTML)
+    if not user_id or not isinstance(user_id, int):
+        if message.reply_to_message:
+            message.reply_text(
+                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
+                "Please use @username or user ID.",
+                parse_mode=ParseMode.HTML)
+        else:
+            message.reply_text(
+                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
+                parse_mode=ParseMode.HTML)
         return None
 
     if user_id == sender_id:
-        message.reply_text("You cannot target yourself.", parse_mode=ParseMode.HTML)
+        message.reply_text("You cannot act against yourself.", parse_mode=ParseMode.HTML)
         return None
 
     if user_id == bot.id:
-        message.reply_text("I cannot act on myself.", parse_mode=ParseMode.HTML)
+        message.reply_text("I cannot act against myself.", parse_mode=ParseMode.HTML)
         return None
 
-    if int(user_id) == OWNER_ID:
-        message.reply_text("Cannot act on the bot owner.", parse_mode=ParseMode.HTML)
-        return None
-
-    if int(user_id) in DEV_USERS:
-        message.reply_text("Cannot act on a developer.", parse_mode=ParseMode.HTML)
-        return None
-
-    if int(user_id) in SUDO_USERS:
-        message.reply_text("Cannot act on a sudo user.", parse_mode=ParseMode.HTML)
-        return None
-
-    if int(user_id) in SUPPORT_USERS:
-        message.reply_text("Cannot act on a support user.", parse_mode=ParseMode.HTML)
-        return None
+    if not skip_privileged:
+        if int(user_id) == OWNER_ID:
+            message.reply_text("I cannot act against bot owner.", parse_mode=ParseMode.HTML)
+            return None
+        if int(user_id) in DEV_USERS:
+            message.reply_text("I cannot act against a developer.", parse_mode=ParseMode.HTML)
+            return None
+        if int(user_id) in SUDO_USERS:
+            message.reply_text("I cannot act against a sudo user.", parse_mode=ParseMode.HTML)
+            return None
+        if int(user_id) in SUPPORT_USERS:
+            message.reply_text("I cannot act against a support user.", parse_mode=ParseMode.HTML)
+            return None
 
     try:
-        return bot.get_chat(user_id)
+        user_chat = bot.get_chat(user_id)
+        return user_chat
     except (BadRequest, TelegramError) as excp:
         message.reply_text(f"Error fetching user: {excp.message}", parse_mode=ParseMode.HTML)
         return None
-
 
 def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in SUDO_USERS or user_id in DEV_USERS
@@ -224,7 +230,6 @@ def is_user_ban_protected(update: Update,
 
 
 def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMember = None) -> bool:
-    """Check if a user is an admin in the chat, or in DEV_USERS/SUDO_USERS."""
     if isinstance(chat_or_update, Update):
         chat = chat_or_update.effective_chat
         msg = chat_or_update.effective_message
