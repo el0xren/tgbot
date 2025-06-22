@@ -57,7 +57,7 @@ def gkick(update: Update, context: CallbackContext) -> None:
     chats = get_user_com_chats(user_id)
     if not chats:
         message.reply_text(
-            f"Cannot gkick {mention_html(user_chat.id, user_chat.first_name)}: "
+            f"Cannot kick {mention_html(user_chat.id, user_chat.first_name)}: "
             "There aren't any common chats or chats where i have permission to kick.",
             parse_mode=ParseMode.HTML)
         send_to_list(
@@ -106,7 +106,7 @@ def gkick(update: Update, context: CallbackContext) -> None:
     else:
         message.reply_text(
             f"Failed to kick {mention_html(user_chat.id, user_chat.first_name)} from any chats. "
-            "They may not be in groups I can kick from or I lack permissions.",
+            "There aren't any common chats or chats where i have permission to kick.",
             parse_mode=ParseMode.HTML)
         send_to_list(
             bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
