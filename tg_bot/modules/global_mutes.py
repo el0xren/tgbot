@@ -9,7 +9,7 @@ from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_mutes_sql as sql
 from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, STRICT_GMUTE, SUPPORT_CHAT
-from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus
+from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus, validate_user
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -33,6 +33,11 @@ GMUTE_ERRORS = {
     "Can't demote chat creator",
     "Can't remove chat owner",
     "Participant_id_invalid",
+    "User not found",
+    "Chat_id is empty",
+    "Forbidden: bot was blocked by the user",
+    "Method is available for supergroup and channel chats only",
+    "Reply message not found",
 }
 
 UNGMUTE_ERRORS = {
@@ -47,6 +52,14 @@ UNGMUTE_ERRORS = {
     "Peer_id_invalid",
     "User not found",
     "Replied message not found",
+    "Can't demote chat creator",
+    "Can't remove chat owner",
+    "Group chat was deactivated",
+    "Need to be inviter of a user to kick it from a basic group",
+    "Only the creator of a basic group can kick group administrators",
+    "Chat_id is empty",
+    "Forbidden: bot was blocked by the user",
+    "Participant_id_invalid",
 }
 
 
@@ -54,62 +67,34 @@ UNGMUTE_ERRORS = {
 def gmute(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     args = context.args
-    message: Optional[Message] = update.effective_message
+    message = update.effective_message
+    muter = update.effective_user
 
-    sender_id: int = update.effective_user.id
     user_id, reason = extract_user_and_text(message, args)
 
-    if not user_id:
-        message.reply_text("You don't seem to be referring to a user.")
-        return
-
     if not reason:
-        message.reply_text("You must provide a reason.")
+        message.reply_text("You must provide a reason.", parse_mode=ParseMode.HTML)
         return
 
-    if user_id == sender_id:
-        message.reply_text("You cannot mute yourself.")
+    user_chat = validate_user(update, context, user_id, muter.id)
+    if not user_chat:
         return
 
-    if int(user_id) == OWNER_ID:
-        message.reply_text("You cannot mute the bot owner.")
+    if user_chat.type != 'private':
+        message.reply_text("That's not a user.", parse_mode=ParseMode.HTML)
         return
-    if int(user_id) in DEV_USERS:
-        message.reply_text("This user is a developer and cannot be muted.")
-        return
-    if int(user_id) in SUDO_USERS:
-        message.reply_text("This user is a sudo user and cannot be muted.")
-        return
-    if int(user_id) in SUPPORT_USERS:
-        message.reply_text("This user is a support user and cannot be muted.")
-        return
-    if user_id == bot.id:
-        message.reply_text("I cannot mute myself.")
-        return
-
-    try:
-        user_chat = bot.get_chat(user_id)
-        if user_chat.type != 'private':
-            message.reply_text("That's not a user.")
-            return
-    except BadRequest as excp:
-        message.reply_text(f"Error fetching user: {excp.message}")
-        return
-
 
     if sql.is_user_gmuted(user_id):
         if not reason:
             message.reply_text(
-                "This user is already gmuted; I'd change the reason, but you haven't given me one..."
-            )
+                "This user is already gmuted; I'd change the reason, but you haven't given me one...",
+                parse_mode=ParseMode.HTML)
             return
-
         old_reason = sql.update_gmute_reason(
             user_id, user_chat.username or user_chat.first_name, reason)
-        user_id, new_reason = extract_user_and_text(message, args)
+        _, new_reason = extract_user_and_text(message, args)
         if old_reason:
-            muter = update.effective_user  # type: Optional[User]
-            send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
+            send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
                          "<b>Emendation of Global Mute</b>" \
                          "\n#GMUTE" \
                          "\n<b>Status:</b> <code>Amended</code>" \
@@ -118,9 +103,10 @@ def gmute(update: Update, context: CallbackContext) -> None:
                          "\n<b>ID:</b> <code>{}</code>" \
                          "\n<b>Initiated From:</b> <code>{}</code>" \
                          "\n<b>Previous Reason:</b> {}" \
-                         "\n<b>Amended Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
-                                                              mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                           user_chat.id, message.chat.title, old_reason, new_reason),
+                         "\n<b>Amended Reason:</b> {}".format(
+                             mention_html(muter.id, muter.first_name),
+                             mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
+                             user_chat.id, message.chat.title, old_reason, new_reason),
                          html=True)
 
             message.reply_text(
@@ -130,8 +116,7 @@ def gmute(update: Update, context: CallbackContext) -> None:
                     html.escape(old_reason)),
                 parse_mode=ParseMode.HTML)
         else:
-            muter = update.effective_user  # type: Optional[User]
-            send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
+            send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
                          "<b>Emendation of Global Mute</b>" \
                          "\n#GMUTE" \
                          "\n<b>Status:</b> <code>New reason</code>" \
@@ -139,21 +124,20 @@ def gmute(update: Update, context: CallbackContext) -> None:
                          "\n<b>User:</b> {}" \
                          "\n<b>ID:</b> <code>{}</code>" \
                          "\n<b>Initiated From:</b> <code>{}</code>" \
-                         "\n<b>New Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
-                                                          mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                       user_chat.id, message.chat.title, new_reason),
+                         "\n<b>New Reason:</b> {}".format(
+                             mention_html(muter.id, muter.first_name),
+                             mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
+                             user_chat.id, message.chat.title, new_reason),
                          html=True)
 
             message.reply_text(
-                "This user is already gmuted, but had no reason set; I've gone and updated it!"
-            )
-
+                "This user is already gmuted, but had no reason set; I've gone and updated it!",
+                parse_mode=ParseMode.HTML)
         return
 
-    message.reply_text("*Gets duct tape* 😉")
+    message.reply_text("*Gets duct tape* 😉", parse_mode=ParseMode.HTML)
 
-    muter = update.effective_user  # type: Optional[User]
-    send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
+    send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
                  "<b>Global Mute</b>" \
                  "\n#GMUTE" \
                  "\n<b>Status:</b> <code>Enforcing</code>" \
@@ -161,18 +145,22 @@ def gmute(update: Update, context: CallbackContext) -> None:
                  "\n<b>User:</b> {}" \
                  "\n<b>ID:</b> <code>{}</code>" \
                  "\n<b>Initiated From:</b> <code>{}</code>" \
-                 "\n<b>Reason:</b> {}".format(mention_html(muter.id, muter.first_name),
-                                              mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                           user_chat.id, message.chat.title, reason or "No reason given"),
+                 "\n<b>Reason:</b> {}".format(
+                     mention_html(muter.id, muter.first_name),
+                     mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
+                     user_chat.id, message.chat.title, reason or "No reason given"),
                  html=True)
 
-    sql.gmute_user(user_id, user_chat.username or user_chat.first_name, reason)
+    try:
+        sql.gmute_user(user_id, user_chat.username or user_chat.first_name, reason)
+    except Exception as excp:
+        message.reply_text(f"Failed to set gmute: {str(excp)}", parse_mode=ParseMode.HTML)
+        return
 
     chats = get_all_chats()
     for chat in chats:
         chat_id = chat.chat_id
 
-        # Check if this group has disabled gmutes
         if not sql.does_chat_gmute(chat_id):
             continue
 
@@ -185,112 +173,111 @@ def gmute(update: Update, context: CallbackContext) -> None:
             if excp.message in GMUTE_ERRORS:
                 pass
             else:
-                message.reply_text("Could not gmute due to: {}".format(
-                    excp.message))
-                send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                             "Could not gmute due to: {}".format(excp.message))
+                message.reply_text(f"Could not gmute due to: {excp.message}", parse_mode=ParseMode.HTML)
+                send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
+                             f"Could not gmute due to: {excp.message}")
                 sql.ungmute_user(user_id)
                 return
         except TelegramError:
             pass
 
-    send_to_list(bot,
-                 SUDO_USERS + SUPPORT_USERS,
-                 "{} has been gmuted.".format(
-                     mention_html(user_chat.id, user_chat.first_name
-                                  or "Deleted Account")),
+    send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
+                 f"{mention_html(user_chat.id, user_chat.first_name or 'Deleted Account')} has been gmuted.",
                  html=True)
 
     message.reply_text(
-        "Done! Gmuted.\n<b>ID:</b> <code>{}</code>".format(user_id),
+        f"Done! Gmuted.\n<b>ID:</b> <code>{user_id}</code>",
         parse_mode=ParseMode.HTML)
     try:
         bot.send_message(
             user_id,
-            f"You have been globally muted from all groups where I have administrative permissions. If you think that this was a mistake, you may appeal your mute here: @{SUPPORT_CHAT}",
+            f"You have been globally muted from all groups where I have administrative permissions. "
+            f"If you think that this was a mistake, you may appeal your mute here: @{SUPPORT_CHAT}",
             parse_mode=ParseMode.HTML)
     except:
         pass
 
 
 @support_plus
-def ungmute(update: Update, context: CallbackContext):
+def ungmute(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     args = context.args
-    message = update.effective_message  # type: Optional[Message]
+    message = update.effective_message
+    muter = update.effective_user
 
     user_id = extract_user(message, args)
-    if not user_id:
-        message.reply_text("You don't seem to be referring to a user.")
+
+    user_chat = validate_user(update, context, user_id, muter.id)
+    if not user_chat:
         return
 
-    user_chat = bot.get_chat(user_id)
     if user_chat.type != 'private':
-        message.reply_text("That's not a user!")
+        message.reply_text("That's not a user!", parse_mode=ParseMode.HTML)
         return
 
     if not sql.is_user_gmuted(user_id):
-        message.reply_text("This user is not gmuted!")
+        message.reply_text("This user is not gmuted!", parse_mode=ParseMode.HTML)
         return
 
-    muter = update.effective_user  # type: Optional[User]
+    message.reply_text(
+        f"I'll let {html.escape(user_chat.first_name)} speak again, globally.",
+        parse_mode=ParseMode.HTML)
 
-    message.reply_text("I'll let {} speak again, globally.".format(
-        user_chat.first_name))
-
-    send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
+    send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
                  "<b>Regression of Global Mute</b>" \
                  "\n#UNGMUTE" \
                  "\n<b>Status:</b> <code>Ceased</code>" \
                  "\n<b>Sudo Admin:</b> {}" \
                  "\n<b>User:</b> {}" \
-                 "\n<b>ID:</b> <code>{}</code>".format(mention_html(muter.id, muter.first_name),
-                                                       mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-                                                                    user_chat.id),
+                 "\n<b>Initiated From:</b> <code>{}</code>" \
+                 "\n<b>ID:</b> <code>{}</code>".format(
+                     mention_html(muter.id, muter.first_name),
+                     mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
+                     message.chat.title, user_chat.id),
                  html=True)
 
     chats = get_all_chats()
     for chat in chats:
         chat_id = chat.chat_id
 
-        # Check if this group has disabled gmutes
         if not sql.does_chat_gmute(chat_id):
             continue
 
         try:
             member = bot.get_chat_member(chat_id, user_id)
             if member.status == 'restricted':
-                bot.restrict_chat_member(chat_id,
-                                         int(user_id),
-                                         permissions=ChatPermissions(
-                                             can_send_messages=True,
-                                             can_send_media_messages=True,
-                                             can_send_other_messages=True,
-                                             can_add_web_page_previews=True))
-
+                bot.restrict_chat_member(
+                    chat_id,
+                    int(user_id),
+                    permissions=ChatPermissions(
+                        can_send_messages=True,
+                        can_send_media_messages=True,
+                        can_send_other_messages=True,
+                        can_add_web_page_previews=True))
         except BadRequest as excp:
             if excp.message in UNGMUTE_ERRORS:
                 pass
             else:
-                message.reply_text("Could not un-gmute due to: {}".format(
-                    excp.message))
+                message.reply_text(f"Could not un-gmute due to: {excp.message}", parse_mode=ParseMode.HTML)
                 bot.send_message(
                     OWNER_ID,
-                    "Could not un-gmute due to: {}".format(excp.message))
+                    f"Could not un-gmute due to: {excp.message}",
+                    parse_mode=ParseMode.HTML)
                 return
         except TelegramError:
             pass
 
-    sql.ungmute_user(user_id)
+    try:
+        sql.ungmute_user(user_id)
+    except Exception as excp:
+        message.reply_text(f"Failed to un-gmute: {str(excp)}", parse_mode=ParseMode.HTML)
+        return
 
-    send_to_list(bot,
-                 SUDO_USERS + SUPPORT_USERS,
-                 "{} has been un-gmuted.".format(
-                     mention_html(user_chat.id, user_chat.first_name
-                                  or "Deleted Account")),
+    send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
+                 f"{mention_html(user_chat.id, user_chat.first_name or 'Deleted Account')} has been un-gmuted.",
                  html=True)
 
-    message.reply_text("Person has been un-gmuted.")
+    message.reply_text("Person has been un-gmuted.", parse_mode=ParseMode.HTML)
 
 
 @support_plus

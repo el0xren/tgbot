@@ -6,7 +6,7 @@ from telegram.error import BadRequest, TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
-from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, LOGGER
+from tg_bot import dispatcher, CallbackContext, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS
 from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin, support_plus, validate_user
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
@@ -26,53 +26,53 @@ GKICK_ERRORS = {
     "Only the creator of a basic group can kick group administrators",
     "Channel_private",
     "Not in the chat",
+    "Can't remove chat owner",
     "Method is available for supergroup and channel chats only",
-    "Reply message not found",
+    "User not found",
+    "Method is available only for supergroups",
     "Bots can't add new chat members",
     "Can't demote chat creator",
-    "Method is available only for supergroups",
-    "Can't remove chat owner",
-    "User not found",
+    "Reply message not found",
     "Chat_id is empty",
+    "Forbidden: bot was blocked by the user",
 }
 
 @support_plus
-def gkick(update: Update, context: CallbackContext) -> Optional[str]:
+def gkick(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     args = context.args
     message = update.effective_message
-    kicker = update.effective_user  # type: Optional[User]
+    kicker = update.effective_user
 
     user_id, reason = extract_user_and_text(message, args)
-    LOGGER.debug(f"gkick: user_id={user_id}, reason={reason}, kicker_id={kicker.id}")
-
-    if not user_id:
-        if message.reply_to_message:
-            message.reply_text(
-                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
-                "Please use @username or user ID.",
-                parse_mode=ParseMode.HTML)
-        else:
-            message.reply_text(
-                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
-                parse_mode=ParseMode.HTML)
-        return ""
 
     if not reason:
         message.reply_text("You must provide a reason.", parse_mode=ParseMode.HTML)
-        return ""
+        return
 
     user_chat = validate_user(update, context, user_id, kicker.id)
     if not user_chat:
-        return ""
+        return
+
+    chats = get_user_com_chats(user_id)
+    if not chats:
+        message.reply_text(
+            f"Cannot gkick {mention_html(user_chat.id, user_chat.first_name)}: "
+            "There aren't any common chats or chats where i have permission to kick.",
+            parse_mode=ParseMode.HTML)
+        send_to_list(
+            bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
+            f"Failed to globally kick user {mention_html(user_chat.id, user_chat.first_name)} ({user_id}): "
+            "Not in any groups I can kick from.",
+            html=True)
+        return
 
     message.reply_text("*Snaps with fingers* 😉", parse_mode=ParseMode.HTML)
 
-    chats = get_user_com_chats(user_id)
     kicked_chats = []
     for chat in chats:
         try:
-            bot.unban_chat_member(chat, user_id)
+            bot.ban_chat_member(chat, user_id)
             kicked_chats.append(chat)
         except BadRequest as excp:
             if excp.message in GKICK_ERRORS:
@@ -80,9 +80,8 @@ def gkick(update: Update, context: CallbackContext) -> Optional[str]:
             else:
                 message.reply_text(
                     f"User cannot be globally kicked because: {excp.message}", parse_mode=ParseMode.HTML)
-                return ""
+                return
         except TelegramError as excp:
-            LOGGER.warning(f"TelegramError in gkick for chat {chat}: {excp.message}")
             pass
 
     if kicked_chats:
@@ -100,51 +99,42 @@ def gkick(update: Update, context: CallbackContext) -> Optional[str]:
         if reason:
             log += "\n<b>Reason:</b> {}".format(reason)
 
-        send_to_list(bot, SUDO_USERS + SUPPORT_USERS, log, html=True)
+        send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS, log, html=True)
         message.reply_text(
             f"Done! Gkicked.\n<b>ID:</b> <code>{user_id}</code>\n<b>Chats:</b> <code>{len(kicked_chats)}</code>",
             parse_mode=ParseMode.HTML)
-        return log
     else:
-        message.reply_text("Failed to kick user from any chats.", parse_mode=ParseMode.HTML)
-        send_to_list(bot, SUDO_USERS + SUPPORT_USERS,
-                     f"Failed to globally kick user {user_chat.first_name} ({user_id}): No chats affected.",
-                     html=True)
-        return ""
+        message.reply_text(
+            f"Failed to kick {mention_html(user_chat.id, user_chat.first_name)} from any chats. "
+            "They may not be in groups I can kick from or I lack permissions.",
+            parse_mode=ParseMode.HTML)
+        send_to_list(
+            bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS,
+            f"Failed to globally kick user {mention_html(user_chat.id, user_chat.first_name)} ({user_id}): "
+            "No chats affected, possibly due to permissions or user not in groups.",
+            html=True)
+    return
 
 @support_plus
-def gkickset(update: Update, context: CallbackContext) -> Optional[str]:
+def gkickset(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     args = context.args
     message = update.effective_message
-    kicker = update.effective_user  # type: Optional[User]
+    kicker = update.effective_user
+
     user_id, value = extract_user_and_text(message, args)
-
-    LOGGER.debug(f"gkickset: user_id={user_id}, value={value}, kicker_id={kicker.id}")
-
-    if not user_id:
-        if message.reply_to_message:
-            message.reply_text(
-                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
-                "Please use @username or user ID.",
-                parse_mode=ParseMode.HTML)
-        else:
-            message.reply_text(
-                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
-                parse_mode=ParseMode.HTML)
-        return ""
 
     user_chat = validate_user(update, context, user_id, kicker.id)
     if not user_chat:
-        return ""
+        return
 
-    if not value:
-        message.reply_text("You must provide a value to set.", parse_mode=ParseMode.HTML)
-        return ""
+    if not value or not value.strip():
+        message.reply_text("You must provide a valid number to set.", parse_mode=ParseMode.HTML)
+        return
 
     if not value.strip().isdigit():
         message.reply_text("Value must be a number!", parse_mode=ParseMode.HTML)
-        return ""
+        return
 
     value = int(value.strip())
     try:
@@ -152,47 +142,30 @@ def gkickset(update: Update, context: CallbackContext) -> Optional[str]:
         message.reply_text(
             f"Set gkick value for {mention_html(user_chat.id, user_chat.first_name)} to {value}.",
             parse_mode=ParseMode.HTML)
-        return ""
     except Exception as excp:
-        LOGGER.error(f"Error setting gkick value for user {user_id}: {excp}")
         message.reply_text(f"Failed to set gkick value: {str(excp)}", parse_mode=ParseMode.HTML)
-        return ""
+    return
 
 @support_plus
-def gkickreset(update: Update, context: CallbackContext) -> Optional[str]:
+def gkickreset(update: Update, context: CallbackContext) -> None:
     args = context.args
     message = update.effective_message
-    kicker = update.effective_user  # type: Optional[User]
+    kicker = update.effective_user
+
     user_id, _ = extract_user_and_text(message, args)
-
-    LOGGER.debug(f"gkickreset: user_id={user_id}, kicker_id={kicker.id}")
-
-    if not user_id:
-        if message.reply_to_message:
-            message.reply_text(
-                "Cannot extract a user from this forwarded message (possibly a channel or anonymous admin). "
-                "Please use @username or user ID.",
-                parse_mode=ParseMode.HTML)
-        else:
-            message.reply_text(
-                "You don't seem to be referring to a user. Reply to a message, use @username, or provide a user ID.",
-                parse_mode=ParseMode.HTML)
-        return ""
 
     user_chat = validate_user(update, context, user_id, kicker.id)
     if not user_chat:
-        return ""
+        return
 
     try:
         sql.gkick_reset(user_id)
         message.reply_text(
             f"Reset gkick for {mention_html(user_chat.id, user_chat.first_name)}.",
             parse_mode=ParseMode.HTML)
-        return ""
     except Exception as excp:
-        LOGGER.error(f"Error resetting gkick for user {user_id}: {excp}")
         message.reply_text(f"Failed to reset gkick: {str(excp)}", parse_mode=ParseMode.HTML)
-        return ""
+    return
 
 def __user_info__(user_id):
     times = sql.get_times(user_id)
@@ -207,7 +180,7 @@ def __user_info__(user_id):
     return text
 
 __help__ = """
-*Support users only:*
+*Super Users Only:*
  - /gkick <userhandle> <reason>: Globally kicks a user from all common chats with a reason
  - /gkickset <userhandle> <value>: Sets a gkick value for a user (e.g., number of kicks)
  - /gkickreset <userhandle>: Resets a user's gkick status
