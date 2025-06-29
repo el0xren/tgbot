@@ -1,6 +1,6 @@
 from typing import List, Optional, Tuple
 
-from telegram import Message, MessageEntity
+from telegram import Message, MessageEntity, ParseMode
 from telegram.error import BadRequest
 
 from tg_bot import LOGGER
