@@ -20,6 +20,7 @@ from telegram.utils.helpers import escape_markdown
 from tg_bot import dispatcher, updater, CallbackContext, TOKEN, WEBHOOK, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL, SUPPORT_CHAT, START_STICKER, IGNORE_PENDING_REQUESTS
 from tg_bot.modules import ALL_MODULES
+from tg_bot.modules import timer
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 from tg_bot.modules.helper_funcs.misc import send_to_list
@@ -531,6 +532,7 @@ def debug_config(update: Update, context: CallbackContext):
 
 
 def main():
+    timer.register_timer_handlers(dispatcher)
     start_handler = CommandHandler("start", start, run_async=True)
     help_handler = CommandHandler("help", get_help, run_async=True)
     help_callback_handler = CallbackQueryHandler(help_button,
