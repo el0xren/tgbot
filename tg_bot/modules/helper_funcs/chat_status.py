@@ -255,7 +255,7 @@ def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMembe
                 ADMIN_CACHE[chat.id] = admin_list
                 return user_id in admin_list
             except TelegramError as excp:
-                LOGGER.warning(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
+                message.reply_text(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}", parse_mode=ParseMode.HTML)
                 return False
 
 
