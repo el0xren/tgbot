@@ -584,16 +584,36 @@ def flash(update: Update, context: CallbackContext):
             parse_mode=ParseMode.HTML)
 
 
-def cowsay(update: Update, context: CallbackContext):
-    with io.StringIO() as buf, redirect_stdout(buf):
-        try:
-            cow(update.message.text.split(' ', 1)[1])
-        except IndexError:
-            update.message.reply_text(f"Usage: `/cowsay bow-bow or <text>`",
-                                      parse_mode=ParseMode.MARKDOWN)
-        else:
-            update.message.reply_text(f"`{buf.getvalue()}`",
-                                      parse_mode=ParseMode.MARKDOWN)
+def cowsay(update: Update, context: CallbackContext) -> None:
+    if not update.message or not update.message.text:
+        return
+
+    try:
+        args = update.message.text.split(' ', 1)
+        
+        if len(args) < 2 or not args[1].strip():
+            update.message.reply_text(
+                "Usage: `/cowsay <text>`\nExample: `/cowsay bow-bow`",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
+
+        with io.StringIO() as buf, redirect_stdout(buf):
+            cow(args[1].strip())
+            output = buf.getvalue()
+        
+        escaped_output = output.replace('`', '\\`').replace('_', '\\_')
+        
+        update.message.reply_text(
+            f"```{escaped_output}```",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+
+    except Exception as e:
+        update.message.reply_text(
+            f"Error: Something went wrong. Please try again.\nDetails: {str(e)}",
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
 
 
 def gdpr(update: Update, context: CallbackContext):
