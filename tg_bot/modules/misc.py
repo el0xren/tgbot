@@ -561,16 +561,14 @@ def recho(update: Update, context: CallbackContext):
 
         context.bot.send_message(chat_id=chat_id, text=to_send)
         
-        # Send "Message sent." only if in private chat
         if chat.type == "private":
             message.reply_text("Message sent.")
 
     except ValueError:
-        message.reply_text("Invalid chat ID. It must be a number.")
+        message.reply_text("Invalid chat ID.")
     except (BadRequest, TelegramError) as e:
         message.reply_text(f"Failed to send message: {e.message}")
     finally:
-        # Delete the command message only if in a group or supergroup
         if chat.type != "private":
             try:
                 message.delete()
@@ -714,9 +712,12 @@ __help__ = """
  - /slap: slap a user, or get slapped if not a reply.
  - /info: get information about a user.
  - /info -f: get full information about a user.
- - /flash: <text>: flashes your choosed strings.
+ - /permissions: display a user's permissions in the current chat.
+ - /ginfo: get information about the current group.
+ - /flash: <text>: flashes your chosen strings.
+ - /cowsay <text>: displays the text in a fun ASCII cow format.
  - /gdpr: deletes your information from the bot's database. Private chats only.
- - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
+ - /markdownhelp: quick summary of how markdown works in Telegram - can only be called in private chats.
 """
 
 __mod_name__ = "Misc"
