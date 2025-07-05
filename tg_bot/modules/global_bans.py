@@ -1,9 +1,10 @@
 import html
+import traceback
 from io import BytesIO
 from typing import Optional, List
 
 from telegram import Message, Update, Bot, User, Chat, ParseMode
-from telegram.error import BadRequest, TelegramError
+from telegram.error import BadRequest, TelegramError, Unauthorized
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
@@ -304,29 +305,53 @@ def check_and_ban(update, user_id, should_message=True):
 
 def enforce_gban(update: Update, context: CallbackContext):
     bot = context.bot
-    # Not using @restrict handler to avoid spamming - just ignore if cant gban.
-    if sql.does_chat_gban(
-            update.effective_chat.id) and update.effective_chat.get_member(
-                bot.id).can_restrict_members:
-        user = update.effective_user  # type: Optional[User]
-        chat = update.effective_chat  # type: Optional[Chat]
-        msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    msg = update.effective_message
 
-        if user and not is_user_admin(update, user.id):
-            check_and_ban(update, user.id)
-            return
+    try:
+        if sql.does_chat_gban(chat.id) and chat.get_member(bot.id).can_restrict_members:
+            user = update.effective_user
 
-        if msg.new_chat_members:
-            new_members = update.effective_message.new_chat_members
-            for mem in new_members:
-                check_and_ban(update, mem.id)
-            return
-
-        if msg.reply_to_message:
-            user = msg.reply_to_message.from_user  # type: Optional[User]
             if user and not is_user_admin(update, user.id):
-                check_and_ban(update, user.id, should_message=False)
+                check_and_ban(update, user.id)
                 return
+
+            if msg.new_chat_members:
+                for mem in msg.new_chat_members:
+                    check_and_ban(update, mem.id)
+                return
+
+            if msg.reply_to_message:
+                user = msg.reply_to_message.from_user
+                if user and not is_user_admin(update, user.id):
+                    check_and_ban(update, user.id, should_message=False)
+                    return
+
+    except Unauthorized as e:
+        log = (
+            f"<b>Bot was kicked or unauthorized in chat</b>\n"
+            f"<b>Chat ID:</b> <code>{chat.id}</code>\n"
+            f"<b>Error:</b> <code>{str(e)}</code>"
+        )
+        send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS, log, html=True)
+
+    except TelegramError as e:
+        log = (
+            f"<b>TelegramError in enforce_gban</b>\n"
+            f"<b>Chat ID:</b> <code>{chat.id}</code>\n"
+            f"<b>Type:</b> <code>{type(e).__name__}</code>\n"
+            f"<b>Message:</b> <code>{e}</code>"
+        )
+        send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS, log, html=True)
+
+    except Exception as e:
+        tb = traceback.format_exc()
+        log = (
+            f"<b>Unexpected Exception in enforce_gban</b>\n"
+            f"<b>Chat ID:</b> <code>{chat.id if chat else 'unknown'}</code>\n"
+            f"<b>Traceback:</b>\n<code>{tb}</code>"
+        )
+        send_to_list(bot, SUPPORT_USERS + SUDO_USERS + DEV_USERS, log, html=True)
 
 
 @user_admin
