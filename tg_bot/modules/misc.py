@@ -514,35 +514,57 @@ def get_time(update: Update, context: CallbackContext):
 
 @sudo_plus
 def echo(update: Update, context: CallbackContext):
-    bot = context.bot
-    args = update.effective_message.text.split(None, 1)
     message = update.effective_message
-    if message.reply_to_message:
-        message.reply_to_message.reply_text(args[1])
-    else:
-        message.reply_text(args[1], quote=False)
+
     try:
-        message.delete()
-    except BadRequest:
-        pass
+        args = message.text.split(None, 1)
+        if len(args) < 2:
+            message.reply_text("Usage: /echo <text>")
+            return
+
+        reply_text = args[1]
+
+        if message.reply_to_message:
+            message.reply_to_message.reply_text(reply_text)
+        else:
+            message.reply_text(reply_text, quote=False)
+
+    except (IndexError, TypeError):
+        message.reply_text("Usage: /echo <text>")
+    except (BadRequest, TelegramError) as e:
+        message.reply_text(f"Failed to send message: {e.message}")
+    finally:
+        try:
+            message.delete()
+        except BadRequest:
+            pass
 
 
 @sudo_plus
 def recho(update: Update, context: CallbackContext):
-    bot = context.bot
-    args = context.args
     message = update.effective_message
+
     try:
-        chat_id = str(args[0])
-        del args[0]
-    except TypeError as excp:
-        message.reply_text("Please give me a chat ID.")
-    to_send = " ".join(args)
-    if len(to_send) >= 2:
-        try:
-            bot.sendMessage(int(chat_id), str(to_send))
-        except BadRequest:
-            pass
+        args = context.args
+        if not args or len(args) < 2:
+            raise IndexError
+
+        chat_id = int(args[0])
+        to_send = " ".join(args[1:]).strip()
+
+        if not to_send:
+            message.reply_text("Nothing to send.")
+            return
+
+        context.bot.send_message(chat_id=chat_id, text=to_send)
+        message.reply_text("Message sent.")
+
+    except (IndexError, TypeError):
+        message.reply_text("Usage: /recho <chat_id> <text>")
+    except ValueError:
+        message.reply_text("Invalid chat ID. It must be a number.")
+    except (BadRequest, TelegramError) as e:
+        message.reply_text(f"Failed to send message: {e.message}")
 
 
 def flash(update: Update, context: CallbackContext):
