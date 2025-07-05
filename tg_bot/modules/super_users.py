@@ -1,7 +1,7 @@
 import html
 import json
 import os
-from typing import Optional
+from typing import Optional, List
 
 from telegram import Message, Update, Bot, User, Chat, ParseMode
 from telegram.error import BadRequest, TelegramError
@@ -291,54 +291,110 @@ def devlist(update: Update, context: CallbackContext):
 
 
 @whitelist_plus
-def sudolist(update: Update, context: CallbackContext):
-    bot = context.bot
+def sudolist(update: Update, context: CallbackContext) -> None:
+    bot: Bot = context.bot
     message = update.effective_message
-    true_sudo = list(set(SUDO_USERS) - set(DEV_USERS))
-    msg = "<b>Sudo users:</b>\n"
-    for each_user in true_sudo:
-        user_id = int(each_user)
+
+    true_sudo: List[int] = sorted([user_id for user_id in SUDO_USERS if user_id not in DEV_USERS])
+
+    if not true_sudo:
+        message.reply_text("No sudo users found.", parse_mode=ParseMode.HTML)
+        return
+
+    msg = "<b>Sudo Users:</b>\n"
+    skipped_users = 0
+
+    for user_id in true_sudo:
         try:
             user = bot.get_chat(user_id)
-            if user.first_name == "":
+            if not user.first_name:
+                skipped_users += 1
                 continue
-            msg += f"• {mention_html(user_id, user.first_name)}\n"
+            msg += f"• {mention_html(user_id, html.escape(user.first_name))} (<code>{user_id}</code>)\n"
         except TelegramError:
-            pass
+            skipped_users += 1
+            continue
+
+    if not msg.endswith("\n"):
+        message.reply_text("No valid sudo users found.", parse_mode=ParseMode.HTML)
+        return
+
+    if skipped_users > 0:
+        msg += f"\n<i>{skipped_users} user(s) could not be fetched (e.g., deleted accounts or bot blocked).</i>"
+
+    msg += f"\n<b>Total Sudo Users:</b> <code>{len(true_sudo)}</code>"
     message.reply_text(msg, parse_mode=ParseMode.HTML)
 
 
 @whitelist_plus
-def supportlist(update: Update, context: CallbackContext):
-    bot = context.bot
+def supportlist(update: Update, context: CallbackContext) -> None:
+    bot: Bot = context.bot
     message = update.effective_message
-    msg = "<b>Support users:</b>\n"
-    for each_user in SUPPORT_USERS:
-        user_id = int(each_user)
+
+    support_users: List[int] = sorted(SUPPORT_USERS)
+
+    if not support_users:
+        message.reply_text("No support users found.", parse_mode=ParseMode.HTML)
+        return
+
+    msg = "<b>Support Users:</b>\n"
+    skipped_users = 0
+
+    for user_id in support_users:
         try:
             user = bot.get_chat(user_id)
-            if user.first_name == "":
+            if not user.first_name:
+                skipped_users += 1
                 continue
-            msg += f"• {mention_html(user_id, user.first_name)}\n"
+            msg += f"• {mention_html(user_id, html.escape(user.first_name))} (<code>{user_id}</code>)\n"
         except TelegramError:
-            pass
+            skipped_users += 1
+            continue
+
+    if not msg.endswith("\n"):
+        message.reply_text("No valid support users found.", parse_mode=ParseMode.HTML)
+        return
+
+    if skipped_users > 0:
+        msg += f"\n<i>{skipped_users} user(s) could not be fetched (e.g., deleted accounts or bot blocked).</i>"
+
+    msg += f"\n<b>Total Support Users:</b> <code>{len(support_users)}</code>"
     message.reply_text(msg, parse_mode=ParseMode.HTML)
 
 
 @whitelist_plus
-def whitelistlist(update: Update, context: CallbackContext):
-    bot = context.bot
+def whitelistlist(update: Update, context: CallbackContext) -> None:
+    bot: Bot = context.bot
     message = update.effective_message
-    msg = "<b>Whitelist users:</b>\n"
-    for each_user in WHITELIST_USERS:
-        user_id = int(each_user)
+
+    whitelist_users: List[int] = sorted(WHITELIST_USERS)
+
+    if not whitelist_users:
+        message.reply_text("No whitelist users found.", parse_mode=ParseMode.HTML)
+        return
+
+    msg = "<b>Whitelist Users:</b>\n"
+    skipped_users = 0
+
+    for user_id in whitelist_users:
         try:
             user = bot.get_chat(user_id)
-            if user.first_name == "":
+            if not user.first_name:
+                skipped_users += 1
                 continue
-            msg += f"• {mention_html(user_id, user.first_name)}\n"
+            msg += f"• {mention_html(user_id, html.escape(user.first_name))} (<code>{user_id}</code>)\n"
         except TelegramError:
-            pass
+            skipped_users += 1
+            continue
+
+    if not msg.endswith("\n"):
+        message.reply_text("No valid whitelist users found.", parse_mode=ParseMode.HTML)
+        return
+
+    if skipped_users > 0:
+        msg += f"\n<i>{skipped_users} user(s) could not be fetched (e.g., deleted accounts or bot blocked).</i>"
+
+    msg += f"\n<b>Total Whitelist Users:</b> <code>{len(whitelist_users)}</code>"
     message.reply_text(msg, parse_mode=ParseMode.HTML)
 
 
