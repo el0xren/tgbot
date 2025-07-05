@@ -26,6 +26,7 @@ from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.chat_status import user_admin, sudo_plus
 from tg_bot.modules.helper_funcs.permissions import AdminPerms
+from tg_bot.modules.sql import afk_sql as sql
 
 RUN_STRINGS = (
     "Where do you think you're going?",
@@ -287,6 +288,15 @@ def info(update: Update, context: CallbackContext):
         text += f"  <b>Username</b>: @{html.escape(user.username)}\n"
     if is_chat:
         text += f"  <b>Chat Type</b>: {user.type.capitalize()}\n"
+
+    try:
+        is_afk, reason = sql.check_afk_status(user.id)
+        if is_afk:
+            text += f"  <b>AFK</b>: Yes\n"
+            if reason and reason.strip():
+                text += f"    <b>Reason</b>: <code>{html.escape(reason)}</code>\n"
+    except (IndexError, TypeError):
+        pass
 
     # Get full user info if applicable
     if not is_chat:
@@ -714,8 +724,11 @@ __help__ = """
  - /info -f: get full information about a user.
  - /permissions: display a user's permissions in the current chat.
  - /ginfo: get information about the current group.
- - /flash: <text>: flashes your chosen strings.
+ - /flash <text>: flashes your chosen strings.
  - /cowsay <text>: displays the text in a fun ASCII cow format.
+ - /echo <text>: echoes the provided text in the current chat.
+ - /recho <chat_id> <text>: sends the provided text to the specified chat ID.
+ - /stats: displays bot statistics (sudo users only).
  - /gdpr: deletes your information from the bot's database. Private chats only.
  - /markdownhelp: quick summary of how markdown works in Telegram - can only be called in private chats.
 """
