@@ -381,14 +381,14 @@ gigachad_flavors = [
 ]
 
 iq_flavors = [
-    lambda x, p: f"*{x}* has *{p}%* IQ! Brainpower off the charts! 🧠",
+    lambda x, p: f"*{x}* has *{p}* IQ! Brainpower off the charts! 🧠",
     lambda x, p:
-    f"*{x}* with *{p}%* IQ! You’re solving equations in your sleep! 📊",
-    lambda x, p: f"Yo, *{x}* at *{p}%* IQ! Einstein’s taking notes! 🤓",
+    f"*{x}* with *{p}* IQ! You’re solving equations in your sleep! 📊",
+    lambda x, p: f"Yo, *{x}* at *{p}* IQ! Einstein’s taking notes! 🤓",
     lambda x, p:
-    f"*{x}* radiating *{p}%* IQ! You’re a walking supercomputer! 💻",
+    f"*{x}* radiating *{p}* IQ! You’re a walking supercomputer! 💻",
     lambda x, p:
-    f"*{x}* serving *{p}%* IQ vibes! You’re outsmarting the multiverse! 🌌",
+    f"*{x}* serving *{p}* IQ vibes! You’re outsmarting the multiverse! 🌌",
 ]
 
 emojis = {
@@ -1084,7 +1084,7 @@ def iq(update: Update, context: CallbackContext) -> None:
              < 0.5 else get_random_flavor(name, percentage, "IQ"))
     update.message.reply_text(f"{reply} {get_random_emoji('iq')}",
                               parse_mode="Markdown")
-    if percentage > 130:
+    if percentage > 180:
         update.message.reply_text(
             "Genius alert! You’re out here inventing new dimensions! 📊")
     elif percentage < 80:
