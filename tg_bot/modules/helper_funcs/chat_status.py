@@ -57,6 +57,9 @@ def validate_user(update: Update, context: CallbackContext, user_id: int, sender
         message.reply_text(f"Error fetching user: {excp.message}", parse_mode=ParseMode.HTML)
         return None
 
+def is_privileged_user(user_id: int) -> bool:
+    return int(user_id) in (OWNER_ID, *DEV_USERS, *SUDO_USERS, *SUPPORT_USERS)
+
 def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in SUDO_USERS or user_id in DEV_USERS
 

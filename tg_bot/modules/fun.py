@@ -4,6 +4,7 @@ from tg_bot import dispatcher
 import random
 import time
 from collections import defaultdict
+from tg_bot.modules.helper_funcs.chat_status import is_privileged_user
 
 response_flavors = [
     ("chill",
@@ -425,7 +426,10 @@ cooldowns = defaultdict(lambda: defaultdict(float))
 COOLDOWN_TIME = 10
 
 
-def check_cooldown(user_id: int, command: str, update: Update) -> bool:
+def check_cooldown(user_id: int, command: str, update: Update, skip_if_privileged: bool = False) -> bool:
+    if skip_if_privileged and is_privileged_user(user_id):
+        return True
+
     current_time = time.time()
     last_used = cooldowns[user_id][command]
     if current_time - last_used < COOLDOWN_TIME:
@@ -434,6 +438,7 @@ def check_cooldown(user_id: int, command: str, update: Update) -> bool:
             f"Chill, {update.effective_user.first_name}! Wait {remaining}s before using /{command} again! ⏳"
         )
         return False
+
     cooldowns[user_id][command] = current_time
     return True
 
@@ -455,7 +460,7 @@ def extract_target(update: Update, default_name: str) -> str:
 
 def gay(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "gay", update):
+    if not check_cooldown(user.id, "gay", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -479,7 +484,7 @@ def gay(update: Update, context: CallbackContext) -> None:
 
 def furry(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "furry", update):
+    if not check_cooldown(user.id, "furry", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -503,7 +508,7 @@ def furry(update: Update, context: CallbackContext) -> None:
 
 def vibe(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "vibe", update):
+    if not check_cooldown(user.id, "vibe", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -527,7 +532,7 @@ def vibe(update: Update, context: CallbackContext) -> None:
 
 def sus(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "sus", update):
+    if not check_cooldown(user.id, "sus", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -551,7 +556,7 @@ def sus(update: Update, context: CallbackContext) -> None:
 
 def roast(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "roast", update):
+    if not check_cooldown(user.id, "roast", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -572,7 +577,7 @@ def roast(update: Update, context: CallbackContext) -> None:
 
 def group_vibe(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "groupvibe", update):
+    if not check_cooldown(user.id, "groupvibe", update, skip_if_privileged=True):
         return
     percentage = random.randint(0, 100)
     reply = (random.choice(groupvibe_flavors)(None, percentage)
@@ -590,7 +595,7 @@ def group_vibe(update: Update, context: CallbackContext) -> None:
 
 def vape(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "vape", update):
+    if not check_cooldown(user.id, "vape", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -614,7 +619,7 @@ def vape(update: Update, context: CallbackContext) -> None:
 
 def twink(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "twink", update):
+    if not check_cooldown(user.id, "twink", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -638,7 +643,7 @@ def twink(update: Update, context: CallbackContext) -> None:
 
 def lesbian(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "lesbian", update):
+    if not check_cooldown(user.id, "lesbian", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -663,7 +668,7 @@ def lesbian(update: Update, context: CallbackContext) -> None:
 
 def top(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "top", update):
+    if not check_cooldown(user.id, "top", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -687,7 +692,7 @@ def top(update: Update, context: CallbackContext) -> None:
 
 def bottom(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "bottom", update):
+    if not check_cooldown(user.id, "bottom", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -712,7 +717,7 @@ def bottom(update: Update, context: CallbackContext) -> None:
 
 def rizz(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "rizz", update):
+    if not check_cooldown(user.id, "rizz", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -736,7 +741,7 @@ def rizz(update: Update, context: CallbackContext) -> None:
 
 def sigma(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "sigma", update):
+    if not check_cooldown(user.id, "sigma", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -760,7 +765,7 @@ def sigma(update: Update, context: CallbackContext) -> None:
 
 def simp(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "simp", update):
+    if not check_cooldown(user.id, "simp", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -784,7 +789,7 @@ def simp(update: Update, context: CallbackContext) -> None:
 
 def based(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "based", update):
+    if not check_cooldown(user.id, "based", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -808,7 +813,7 @@ def based(update: Update, context: CallbackContext) -> None:
 
 def horny(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "horny", update):
+    if not check_cooldown(user.id, "horny", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -832,7 +837,7 @@ def horny(update: Update, context: CallbackContext) -> None:
 
 def lgbtq(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "lgbtq", update):
+    if not check_cooldown(user.id, "lgbtq", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -856,7 +861,7 @@ def lgbtq(update: Update, context: CallbackContext) -> None:
 
 def hot(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "hot", update):
+    if not check_cooldown(user.id, "hot", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -879,7 +884,7 @@ def hot(update: Update, context: CallbackContext) -> None:
 
 def wet(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "wet", update):
+    if not check_cooldown(user.id, "wet", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -902,7 +907,7 @@ def wet(update: Update, context: CallbackContext) -> None:
 
 def cringe(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "cringe", update):
+    if not check_cooldown(user.id, "cringe", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -927,7 +932,7 @@ def cringe(update: Update, context: CallbackContext) -> None:
 
 def goofy(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "goofy", update):
+    if not check_cooldown(user.id, "goofy", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -951,7 +956,7 @@ def goofy(update: Update, context: CallbackContext) -> None:
 
 def npc(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "npc", update):
+    if not check_cooldown(user.id, "npc", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -975,7 +980,7 @@ def npc(update: Update, context: CallbackContext) -> None:
 
 def uwu(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "uwu", update):
+    if not check_cooldown(user.id, "uwu", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -999,7 +1004,7 @@ def uwu(update: Update, context: CallbackContext) -> None:
 
 def emo(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "emo", update):
+    if not check_cooldown(user.id, "emo", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -1022,7 +1027,7 @@ def emo(update: Update, context: CallbackContext) -> None:
 
 def clown(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "clown", update):
+    if not check_cooldown(user.id, "clown", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -1045,7 +1050,7 @@ def clown(update: Update, context: CallbackContext) -> None:
 
 def gigachad(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "gigachad", update):
+    if not check_cooldown(user.id, "gigachad", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -1070,7 +1075,7 @@ def gigachad(update: Update, context: CallbackContext) -> None:
 
 def iq(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-    if not check_cooldown(user.id, "iq", update):
+    if not check_cooldown(user.id, "iq", update, skip_if_privileged=True):
         return
     name = extract_target(update, user.first_name)
     if random.random() < 0.05:
@@ -1080,11 +1085,10 @@ def iq(update: Update, context: CallbackContext) -> None:
         )
         return
     percentage = random.randint(50, 150)
-    reply = (random.choice(iq_flavors)(name, percentage) if random.random()
-             < 0.5 else get_random_flavor(name, percentage, "IQ"))
+    reply = random.choice(iq_flavors)(name, percentage)
     update.message.reply_text(f"{reply} {get_random_emoji('iq')}",
                               parse_mode="Markdown")
-    if percentage > 180:
+    if percentage > 130:
         update.message.reply_text(
             "Genius alert! You’re out here inventing new dimensions! 📊")
     elif percentage < 80:
