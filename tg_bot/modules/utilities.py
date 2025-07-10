@@ -1,3 +1,4 @@
+import re
 import requests
 import ipaddress
 import urllib.parse
@@ -20,49 +21,76 @@ SHORTENER_DOMAINS = {
     "shrtco.de",
 }
 
+COMMON_TLDS = {
+    "com",
+    "org",
+    "net",
+    "edu",
+    "gov",
+    "mil",
+    "biz",
+    "info",
+    "io",
+    "co",
+    "ai",
+    "uk",
+    "ca",
+    "de",
+    "fr",
+    "jp",
+    "cn",
+    "ru",
+    "br",
+    "au",
+    "in",
+}
 
-def extract_domain(url: str) -> str:
+URL_REGEX = r"^(?:https?://)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:/[-a-zA-Z0-9._~:/?#[\]@!$&\'()*+,;=]*)?$"
+
+
+def validate_url(url: str) -> bool:
     try:
-        test_url = url if url.startswith(("http://", "https://")) else "https://" + url
-        parsed = urllib.parse.urlparse(test_url)
-        domain = parsed.netloc.lower()
-        return domain[4:] if domain.startswith("www.") else domain
-    except ValueError:
-        return ""
+        test_url = url if url.startswith(
+            ("http://", "https://")) else "https://" + url
 
-
-def is_local_or_private(url: str) -> bool:
-    try:
-        test_url = url if url.startswith(("http://", "https://")) else "https://" + url
-        parsed = urllib.parse.urlparse(test_url)
-        domain = parsed.netloc.split(":")[0].lower()
-
-        if not domain or domain == "localhost" or domain.endswith(".local"):
-            return True
-
-        try:
-            ip = ipaddress.ip_address(domain)
-            return ip.is_private
-        except ValueError:
+        if not re.match(
+                URL_REGEX, test_url if test_url.startswith(
+                    ("http://", "https://")) else url):
             return False
-    except ValueError:
+
+        parsed = urllib.parse.urlparse(test_url)
+        if not parsed.netloc:
+            return False
+
+        domain = parsed.netloc.lower()
+        domain_parts = domain.split(".")
+
+        if domain_parts[0] == "www":
+            domain_parts = domain_parts[1:]
+
+        if len(domain_parts) < 2 or any(not part for part in domain_parts):
+            return False
+
+        for part in domain_parts[:-1]:
+            if not re.match(r"^[a-zA-Z0-9-]+$", part):
+                return False
+            if len(part) > 63:
+                return False
+            if len(part) > 10 and not any(c in "aeiou" for c in part.lower()):
+                return False
+
+        tld = domain_parts[-1]
+        if tld not in COMMON_TLDS:
+            return False
+
+        if len(domain_parts) > 2:
+            for part in domain_parts[:-1]:
+                if part in COMMON_TLDS:
+                    return False
+
         return True
-
-
-def shorten_url(url: str) -> str:
-    test_url = url if url.startswith(("http://", "https://")) else "https://" + url
-    try:
-        response = requests.get(
-            "https://is.gd/create.php",
-            params={"format": "simple", "url": test_url},
-            timeout=5,
-        )
-        if response.ok and response.text.startswith("http"):
-            return response.text
-        return url
-    except requests.RequestException as e:
-        print(f"Error shortening {url}: {e}")
-        return url
+    except ValueError:
+        return False
 
 
 @user_admin
@@ -96,8 +124,8 @@ def shortening_toggle(update: Update, context: CallbackContext) -> None:
         else:
             sql.set_shortening_enabled(chat_id, True)
             update.message.reply_text(
-                "URL shortening <b>enabled</b> for this chat.", parse_mode="HTML"
-            )
+                "URL shortening <b>enabled</b> for this chat.",
+                parse_mode="HTML")
     elif command == "disable":
         if not sql.is_shortening_enabled(chat_id):
             update.message.reply_text(
@@ -107,12 +135,65 @@ def shortening_toggle(update: Update, context: CallbackContext) -> None:
         else:
             sql.set_shortening_enabled(chat_id, False)
             update.message.reply_text(
-                "URL shortening <b>disabled</b> for this chat.", parse_mode="HTML"
-            )
+                "URL shortening <b>disabled</b> for this chat.",
+                parse_mode="HTML")
     else:
         update.message.reply_text(
-            "Usage: /shortening [<b>enable</b>|<b>disable</b>]", parse_mode="HTML"
+            "Usage: /shortening [<b>enable</b>|<b>disable</b>]",
+            parse_mode="HTML")
+
+
+def extract_domain(url: str) -> str:
+    try:
+        test_url = url if url.startswith(
+            ("http://", "https://")) else "https://" + url
+        parsed = urllib.parse.urlparse(test_url)
+        domain = parsed.netloc.lower()
+        return domain[4:] if domain.startswith("www.") else domain
+    except ValueError:
+        return ""
+
+
+def is_local_or_private(url: str) -> bool:
+    try:
+        test_url = url if url.startswith(
+            ("http://", "https://")) else "https://" + url
+        parsed = urllib.parse.urlparse(test_url)
+        domain = parsed.netloc.split(":")[0].lower()
+
+        if not domain or domain == "localhost" or domain.endswith(".local"):
+            return True
+
+        try:
+            ip = ipaddress.ip_address(domain)
+            return ip.is_private
+        except ValueError:
+            return False
+    except ValueError:
+        return True
+
+
+def shorten_url(url: str) -> str:
+    if not validate_url(url):
+        return url
+
+    test_url = url if url.startswith(
+        ("http://", "https://")) else "https://" + url
+    try:
+        response = requests.get(
+            "https://is.gd/create.php",
+            params={
+                "format": "simple",
+                "url": test_url
+            },
+            timeout=5,
         )
+        if response.ok and response.text.startswith("http"):
+            return response.text
+        return url
+    except requests.RequestException as e:
+        print(f"Error shortening {url}: {e}")
+        return url
 
 
 def shorten_command(update: Update, context: CallbackContext) -> None:
@@ -121,14 +202,14 @@ def shorten_command(update: Update, context: CallbackContext) -> None:
     if not context.args:
         message.reply_text(
             "Please provide a URL to shorten.\nUsage: /shorten <url>",
-            parse_mode="HTML",
-        )
+            parse_mode="HTML")
         return
 
     url = context.args[0]
 
     if is_local_or_private(url):
-        message.reply_text("Cannot shorten local or private IP addresses.", parse_mode="HTML")
+        message.reply_text("Cannot shorten local or private IP addresses.",
+                           parse_mode="HTML")
         return
 
     domain = extract_domain(url)
@@ -137,7 +218,13 @@ def shorten_command(update: Update, context: CallbackContext) -> None:
         return
 
     if domain in SHORTENER_DOMAINS:
-        message.reply_text("This URL is already from a shortening service.", parse_mode="HTML")
+        message.reply_text("This URL is already from a shortening service.",
+                           parse_mode="HTML")
+        return
+
+    if not validate_url(url):
+        message.reply_text("Invalid URL. Please provide a valid URL.",
+                           parse_mode="HTML")
         return
 
     status_msg = message.reply_text("Shortening URL...")
@@ -158,14 +245,15 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
     chat_id = update.effective_chat.id
 
-    if not message or not message.text or not sql.is_shortening_enabled(chat_id):
+    if not message or not message.text or not sql.is_shortening_enabled(
+            chat_id):
         return
 
-    urls = [
-        message.text[entity.offset:entity.offset + entity.length]
-        for entity in message.entities or []
-        if entity.type == "url"
-    ]
+    urls = []
+    for entity in message.entities:
+        if entity.type == "url":
+            url = message.text[entity.offset:entity.offset + entity.length]
+            urls.append(url)
 
     if not urls:
         return
@@ -186,6 +274,10 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
             invalid_urls.append(url)
             continue
 
+        if not validate_url(url):
+            invalid_urls.append(url)
+            continue
+
         shortened = shorten_url(url)
         if shortened != url:
             shortened_map[url] = shortened
@@ -194,14 +286,18 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
             invalid_urls.append(url)
 
     if valid_urls_count > 0:
+        result_text = ""
+
         if valid_urls_count == 1:
-            original = next(iter(shortened_map))
+            original = next(iter(shortened_map.keys()))
             shortened = shortened_map[original]
             result_text = f"<b>Original</b>: {original}\n<b>Shortened</b>: {shortened}"
         else:
             result_text = "<b>Shortened Links</b>:\n\n"
             for original, short in shortened_map.items():
-                result_text += f"<b>Original</b>: {original}\n<b>Shortened</b>: {short}\n\n"
+                result_text += (
+                    f"<b>Original</b>: {original}\n<b>Shortened</b>: {short}\n\n"
+                )
 
         try:
             status_msg.edit_text(
@@ -234,20 +330,20 @@ def shorten_links(update: Update, context: CallbackContext) -> None:
 
 __help__ = """
 *Admin only:*
- - /shortening <enable/disable>: Enable or disable auto-shortening in group chats.
+ - /shortening <enable/disable>: Without args it will check if it's enabled or disabled in chat \
+else it will enable or disable shortening in the chat. Only works in groups, not in private messages.
 
 *For all users:*
- - /shorten <url>: Manually shorten a URL.
+ - /shorten <url>: Manually shorten a URL (works in private messages and groups regardless of settings).
 """
 
 __mod_name__ = "Utilities"
 
 SHORTENING_HANDLER = CommandHandler("shortening", shortening_toggle)
 SHORTEN_COMMAND_HANDLER = CommandHandler("shorten", shorten_command)
-SHORTEN_LINK_HANDLER = MessageHandler(
-    Filters.text & Filters.chat_type.groups & ~Filters.command & ~Filters.regex(r'^/.*@MissMedusaBot\b'),
-    shorten_links
-)
+SHORTEN_LINK_HANDLER = MessageHandler(Filters.text & Filters.chat_type.groups,
+                                      shorten_links)
+
 dispatcher.add_handler(SHORTENING_HANDLER)
 dispatcher.add_handler(SHORTEN_COMMAND_HANDLER)
-dispatcher.add_handler(SHORTEN_LINK_HANDLER, group=10)
+dispatcher.add_handler(SHORTEN_LINK_HANDLER)
