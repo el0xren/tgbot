@@ -173,11 +173,14 @@ def auto_shorten(update: Update, ctx: CallbackContext) -> None:
     shortened: List[Tuple[str, str]] = []
 
     for entity in msg.entities:
-        if entity.type != MessageEntity.URL:
-            continue
-        url = msg.text[entity.offset:entity.offset + entity.length]
+        url = None
 
-        if url in seen:
+        if entity.type == MessageEntity.URL:
+            url = msg.text[entity.offset:entity.offset + entity.length]
+        elif entity.type == MessageEntity.TEXT_LINK:
+            url = entity.url
+
+        if not url or url in seen:
             continue
         seen.add(url)
 
@@ -192,9 +195,8 @@ def auto_shorten(update: Update, ctx: CallbackContext) -> None:
             shortened.append((url, short))
 
     if shortened:
-        reply = "\n\n".join(
-            f"<b>Original:</b> {orig}\n<b>Shortened:</b> {short}"
-            for orig, short in shortened)
+        reply = "\n".join(
+            f"<b>Shortened:</b> {short}" for _, short in shortened)
         try:
             msg.reply_text(reply,
                            parse_mode="HTML",
@@ -207,7 +209,8 @@ dispatcher.add_handler(CommandHandler("shorten", cmd_shorten))
 dispatcher.add_handler(CommandHandler("shortening", cmd_toggle_shortening))
 dispatcher.add_handler(
     MessageHandler(
-        Filters.text & Filters.entity(MessageEntity.URL)
-        & Filters.chat_type.groups,
+        Filters.text & Filters.chat_type.groups
+        & (Filters.entity(MessageEntity.URL) | Filters.entity(MessageEntity.TEXT_LINK)),
         auto_shorten,
-    ), )
+    )
+)
