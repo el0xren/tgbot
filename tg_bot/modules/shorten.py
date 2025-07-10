@@ -211,6 +211,6 @@ dispatcher.add_handler(
     MessageHandler(
         Filters.text & Filters.chat_type.groups
         & (Filters.entity(MessageEntity.URL) | Filters.entity(MessageEntity.TEXT_LINK)),
-        auto_shorten,
-    )
+        auto_shorten),
+        group=0,
 )
