@@ -341,34 +341,35 @@ def kernelsu(update: Update, context: CallbackContext):
     )
 
 
-def twrp(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+def twrp(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
-    device = (args[0])
-    link = get(f'https://eu.dl.twrp.me/{device}')
+    device = " ".join(context.args)
+    if not device:
+        update.effective_message.reply_text("Error: use /twrp codename")
+        return
 
+    link = get(f"https://eu.dl.twrp.me/{device}")
     if link.status_code == 404:
-        message = f"TWRP currently is not avaliable for {device}"
-
+        msg = f"TWRP currently is not available for {device}"
     else:
-
-        page = BeautifulSoup(link.content, 'lxml')
-        download = page.find('table').find('tr').find('a')
+        page = BeautifulSoup(link.content, "lxml")
+        download = page.find("table").find("tr").find("a")
         dl_link = f"https://eu.dl.twrp.me{download['href']}"
         dl_file = download.text
         size = page.find("span", {"class": "filesize"}).text
         date = page.find("em").text.strip()
-        message = f'<b>Latest TWRP for the {device}</b>\n\n'
-        message += f'• Release type: official\n'
-        message += f'• Size: {size}\n'
-        message += f'• Date: {date}\n'
-        message += f'• File: {dl_file}\n\n'
-        message += f'• <b>Download:</b> {dl_link}\n'
-    
-    bot.send_message(chat_id = update.effective_chat.id,
-                        text = message,
-                        parse_mode = ParseMode.HTML,
-                        disable_web_page_preview = True)
+        msg = f"<b>Latest TWRP for the {device}</b>\n\n"
+        msg += f"• Release type: official\n"
+        msg += f"• Size: {size}\n"
+        msg += f"• Date: {date}\n"
+        msg += f"• File: {dl_file}\n\n"
+        msg += f"• <b>Download:</b> {dl_link}\n"
+
+    message.reply_text(
+        text=msg,
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
 
 
 __help__ = """
