@@ -8,14 +8,18 @@ import logging
 from urllib.parse import urljoin
 from html import escape
 from bs4 import BeautifulSoup
-from requests import get
+from requests import get, HTTPError
 from ujson import loads
 from datetime import datetime
+from typing import Optional, List, Tuple
 
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, CallbackContext, Filters
 from tg_bot import dispatcher
 
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
@@ -102,6 +106,18 @@ SDK_URLS = {
     "linux":
     "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
 }
+
+
+def validate_codename(device: str) -> bool:
+    return bool(re.match(r"^[a-zA-Z0-9_-]+$", device))
+
+
+def format_size(size_bytes: int) -> str:
+    for unit in ["B", "KB", "MB", "GB"]:
+        if size_bytes < 1024:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024
+    return f"{size_bytes:.1f} TB"
 
 
 def fetch_html_with_selenium(url: str, timestamp: int):
@@ -295,148 +311,272 @@ def get_sdk(update: Update, context: CallbackContext):
     )
 
 
-def kernelsu(update: Update, context: CallbackContext):
+def kernelsu(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
-    chat = update.effective_chat
-    repos = [
+    repos: List[Tuple[str, str]] = [
         ("KernelSU", "tiann/KernelSU"),
         ("KernelSU-Next", "KernelSU-Next/KernelSU-Next"),
     ]
-
-    msg = "*Latest KernelSU Releases:*\n\n"
+    msg = "*Latest KernelSU Releases*\n\n"
 
     for repo_name, repo_path in repos:
         try:
-            api_url = f"https://api.github.com/repos/{repo_path}/releases/latest"
-            response = get(api_url, headers=HEADERS)
-            response.raise_for_status()
-            data = response.json()
+            with get(
+                    f"https://api.github.com/repos/{repo_path}/releases/latest",
+                    headers=HEADERS,
+                    timeout=5,
+            ) as response:
+                response.raise_for_status()
+                data = response.json()
 
-            msg += f"*{repo_name}:*\n"
-            msg += f'• Release - [{data["tag_name"]}]({data["html_url"]})\n'
+                msg += f"*{repo_name}*\n"
+                msg += f"• Release: [{data['tag_name']}]({data['html_url']})\n"
 
-            apk_assets = [
-                asset for asset in data["assets"]
-                if asset["name"].lower().endswith(".apk")
-            ]
-            if apk_assets:
-                for asset in apk_assets:
-                    msg += (
-                        f'• APK - [{asset["name"]}]({asset["browser_download_url"]})\n'
-                    )
-            else:
-                msg += "• APK - No APK assets found\n"
+                apk_assets = [
+                    asset for asset in data["assets"]
+                    if asset["name"].lower().endswith(".apk")
+                ]
+                msg += ("".join(
+                    f"• APK: [{asset['name']}]({asset['browser_download_url']})\n"
+                    for asset in apk_assets) or "• APK: No APK assets found\n")
+                msg += "\n"
 
-            msg += "\n"
-
+        except HTTPError as e:
+            msg += f"*{repo_name}*: Failed to fetch release data\n\n"
         except Exception as e:
-            msg += f"*{repo_name}:* Error fetching data ({str(e)})\n\n"
-            continue
+            logger.error(f"Error fetching {repo_name} release: {str(e)}")
+            msg += f"*{repo_name}*: Error fetching data\n\n"
 
-    if "Error fetching data" in msg:
-        msg += "Failed to fetch releases, try again later."
+    if "Failed to fetch" in msg or "Error fetching" in msg:
+        msg += "_Note: Some data could not be retrieved. Please try again later._"
 
-    message.reply_text(
-        text=msg,
-        parse_mode=ParseMode.MARKDOWN,
-        disable_web_page_preview=True,
-    )
+    message.reply_text(text=msg,
+                       parse_mode="MARKDOWN",
+                       disable_web_page_preview=True)
 
 
 def twrp(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
-    device = " ".join(context.args)
-    if not device:
-        update.effective_message.reply_text("Error: use /twrp codename")
+    device = " ".join(context.args).strip()
+
+    if not device or not validate_codename(device):
+        message.reply_text(
+            text=
+            "Error: Please provide a valid device codename (e.g., /twrp a3y17lte)",
+            parse_mode="MARKDOWN",
+        )
         return
 
-    link = get(f"https://eu.dl.twrp.me/{device}")
-    if link.status_code == 404:
-        msg = f"TWRP currently is not available for {device}"
-    else:
-        page = BeautifulSoup(link.content, "lxml")
-        download = page.find("table").find("tr").find("a")
-        dl_link = f"https://eu.dl.twrp.me{download['href']}"
-        dl_file = download.text
-        size = page.find("span", {"class": "filesize"}).text
-        date = page.find("em").text.strip()
-        msg = f"<b>Latest TWRP for the {device}</b>\n\n"
-        msg += f"• Release type: official\n"
-        msg += f"• Size: {size}\n"
-        msg += f"• Date: {date}\n"
-        msg += f"• File: {dl_file}\n\n"
-        msg += f"• <b>Download:</b> {dl_link}\n"
+    try:
+        with get(f"https://eu.dl.twrp.me/{device}", timeout=5) as response:
+            if response.status_code == 404:
+                message.reply_text(
+                    text=f"TWRP is currently unavailable for *{device}*",
+                    parse_mode="MARKDOWN",
+                )
+                return
 
-    message.reply_text(
-        text=msg,
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True,
-    )
+            page = BeautifulSoup(response.content, "lxml")
+            table = page.find("table")
+            if not table:
+                message.reply_text(
+                    text=f"Error: Could not parse TWRP data for *{device}*",
+                    parse_mode="MARKDOWN",
+                )
+                return
 
+            download = table.find("tr").find("a")
+            dl_link = f"https://eu.dl.twrp.me{download['href']}"
+            dl_file = download.text
+            size = page.find("span", {"class": "filesize"}).text
+            date = page.find("em").text.strip()
 
-def orangefox(update: Update, context: CallbackContext):
-    message = update.effective_message
-    chat = update.effective_chat
-    device = message.text[len("/orangefox ") :]
-    btn = ""
-
-    if device:
-        link = get(f"https://api.orangefox.download/v3/releases/?codename={device}&sort=date_desc&limit=1")
-
-        page = loads(link.content)
-        file_id = page["data"][0]["_id"] if "data" in page else ""
-        link = get(f"https://api.orangefox.download/v3/devices/get?codename={device}")
-        page = loads(link.content)
-        if "detail" in page and page["detail"] == "Not Found":
-            msg = f"OrangeFox recovery is not avaliable for {device}"
-        else:
-            oem = page["oem_name"]
-            model = page["model_name"]
-            full_name = page["full_name"]
-            maintainer = page["maintainer"]["username"]
-            link = get(f"https://api.orangefox.download/v3/releases/get?_id={file_id}")
-            page = loads(link.content)
-            dl_file = page["filename"]
-            build_type = page["type"]
-            version = page["version"]
-            changelog = page["changelog"][0]
-            size = str(round(float(page["size"]) / 1024 / 1024, 1)) + "MB"
-            dl_link = page["mirrors"][next(iter(page["mirrors"]))]
-            date = datetime.fromtimestamp(page["date"])
-            md5 = page["md5"]
-            msg = f"*Latest OrangeFox Recovery for the {full_name}*\n\n"
-            msg += f"• Manufacturer: `{oem}`\n"
-            msg += f"• Model: `{model}`\n"
-            msg += f"• Codename: `{device}`\n"
-            msg += f"• Build type: `{build_type}`\n"
-            msg += f"• Maintainer: `{maintainer}`\n"
-            msg += f"• Version: `{version}`\n"
-            msg += f"• Changelog: `{changelog}`\n"
+            msg = f"*Latest TWRP Recovery for {device}*\n\n"
+            msg += f"• Release Type: `Official`\n"
             msg += f"• Size: `{size}`\n"
             msg += f"• Date: `{date}`\n"
             msg += f"• File: `{dl_file}`\n"
-            msg += f"• MD5: `{md5}`\n"
-            btn = [[InlineKeyboardButton(text=f"Download", url = dl_link)]]
-    else:
-        msg = 'Give me something to fetch, like:\n`/orangefox a3y17lte`'
 
-    message.reply_text(
-        text = msg,
-        reply_markup = InlineKeyboardMarkup(btn),
-        parse_mode = ParseMode.MARKDOWN,
-        disable_web_page_preview = True,
-    )
+            buttons = [[
+                InlineKeyboardButton(text="Download TWRP", url=dl_link)
+            ]]
+
+            message.reply_text(
+                text=msg,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode="MARKDOWN",
+                disable_web_page_preview=True,
+            )
+
+    except Exception as e:
+        logger.error(f"Error in twrp command for {device}: {str(e)}")
+        message.reply_text(
+            text="An unexpected error occurred. Please try again later.",
+            parse_mode="MARKDOWN",
+        )
+
+
+def orangefox(update: Update, context: CallbackContext) -> None:
+    message = update.effective_message
+    device = " ".join(context.args).strip()
+
+    if not device or not validate_codename(device):
+        message.reply_text(
+            text=
+            "Error: Please provide a valid device codename (e.g., /orangefox a3y17lte)",
+            parse_mode="MARKDOWN",
+        )
+        return
+
+    try:
+        with get(
+                f"https://api.orangefox.download/v3/releases/?codename={device}&sort=date_desc&limit=1",
+                timeout=5,
+        ) as response:
+            if response.status_code == 404 or not response.content:
+                send_response(
+                    message,
+                    f"OrangeFox Recovery is not available for *{device}*",
+                    device,
+                )
+                return
+
+            page = loads(response.content)
+            if not page.get("data"):
+                send_response(
+                    message,
+                    f"OrangeFox Recovery is not available for *{device}*",
+                    device,
+                )
+                return
+
+            file_id = page["data"][0]["_id"]
+
+            with get(
+                    f"https://api.orangefox.download/v3/devices/get?codename={device}",
+                    timeout=5,
+            ) as response:
+                page = loads(response.content)
+                if page.get("detail") == "Not Found":
+                    send_response(
+                        message,
+                        f"OrangeFox Recovery is not available for *{device}*",
+                        device,
+                    )
+                    return
+
+                oem = page.get("oem_name", "Unknown")
+                model = page.get("model_name", "Unknown")
+                full_name = page.get("full_name", device)
+                maintainer = page.get("maintainer",
+                                      {}).get("username", "Unknown")
+
+            with get(
+                    f"https://api.orangefox.download/v3/releases/get?_id={file_id}",
+                    timeout=5,
+            ) as response:
+                page = loads(response.content)
+                dl_file = page.get("filename", "Unknown")
+                build_type = page.get("type", "Unknown")
+                version = page.get("version", "Unknown")
+                changelog = page.get("changelog",
+                                     ["No changelog available"])[0]
+                size = format_size(page.get("size", 0))
+                mirrors = page.get("mirrors", {})
+                date = datetime.fromtimestamp(page.get("date",
+                                                       0)).strftime("%Y-%m-%d")
+                md5 = page.get("md5", "Unknown")
+
+                dl_link = mirrors.get("DL", "")
+                if not (dl_link and isinstance(dl_link, str)
+                        and dl_link.startswith("http")):
+                    dl_link = next(
+                        (mirrors[key]
+                         for key in mirrors if isinstance(mirrors[key], str)
+                         and mirrors[key].startswith("http")),
+                        "",
+                    )
+
+                msg = f"*Latest OrangeFox Recovery for {full_name}*\n\n"
+                msg += f"• Manufacturer: `{oem}`\n"
+                msg += f"• Model: `{model}`\n"
+                msg += f"• Codename: `{device}`\n"
+                msg += f"• Build Type: `{build_type}`\n"
+                msg += f"• Maintainer: `{maintainer}`\n"
+                msg += f"• Version: `{version}`\n"
+                msg += f"• Changelog: `{changelog}`\n"
+                msg += f"• Size: `{size}`\n"
+                msg += f"• Date: `{date}`\n"
+                msg += f"• File: `{dl_file}`\n"
+                msg += f"• MD5: `{md5}`\n"
+
+                buttons = [[
+                    InlineKeyboardButton(
+                        text="Check OrangeFox Website",
+                        url=f"https://orangefox.download/device/{device}",
+                    )
+                ]]
+                if dl_link:
+                    buttons.insert(
+                        0,
+                        [
+                            InlineKeyboardButton(text="Download OrangeFox",
+                                                 url=dl_link)
+                        ],
+                    )
+                else:
+                    msg += "\n_Direct download link unavailable. Please check the OrangeFox website for download options._"
+
+                send_response(message, msg, device, buttons)
+
+    except Exception as e:
+        logger.error(f"Error in orangefox command for {device}: {str(e)}")
+        send_response(message,
+                      "An unexpected error occurred. Please try again later.",
+                      device)
+
+
+def send_response(
+    message,
+    text: str,
+    device: str,
+    buttons: Optional[List[List[InlineKeyboardButton]]] = None,
+) -> None:
+    for attempt in range(3):
+        try:
+            message.reply_text(
+                text=text,
+                reply_markup=InlineKeyboardMarkup(buttons)
+                if buttons else None,
+                parse_mode="MARKDOWN",
+                disable_web_page_preview=True,
+            )
+            return
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(1)
+            else:
+                logger.error(
+                    f"Failed to send message for {device} after 3 attempts: {str(e)}"
+                )
+                message.reply_text(
+                    text="Failed to send response. Please try again later.",
+                    parse_mode="MARKDOWN",
+                )
 
 
 __help__ = """
-*GSM Arena Lookup:*
-Get specs and images of any phone.
+Android device recoveries, kernels, and SDK tools.
 
-• /gsm <device> - Search for a device, e.g. /gsm iPhone 16 Pro Max.
+• /gsm <device> - Get specs and images of a phone (e.g., /gsm iPhone 16 Pro Max).
 
-*Latest Android SDK Platform Tools:*
-• /sdk - Get platform tools for all OS.
-• /sdk <os> - Only each OS (windows/mac/linux).
+• /sdk - Get latest Android SDK Platform Tools for all OS (Windows, Mac, Linux).
+• /sdk <os> - Get SDK Platform Tools for a specific OS (e.g., /sdk windows).
+
+• /orangefox <codename> - Fetch latest OrangeFox recovery for a device (e.g., /orangefox a40).
+• /twrp <codename> - Fetch latest TWRP recovery for a device (e.g., /twrp a40).
+
+• /kernelsu - Get latest KernelSU releases from GitHub.
 """
 
 __mod_name__ = "Android"
