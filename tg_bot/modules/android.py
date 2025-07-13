@@ -373,45 +373,56 @@ def twrp(update: Update, context: CallbackContext) -> None:
     )
 
 
-def orangefox(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+def orangefox(update: Update, context: CallbackContext) -> None:
     message = update.effective_message
-    device = (args[0])
-    link = get(f'https://api.orangefox.download/v2/device/{device}/releases/last')
-
+    device = " ".join(context.args)
+    if not device:
+        update.effective_message.reply_text("Error: use /ofox codename")
+        return
+    link = get(
+        f"https://api.orangefox.download/v3/releases/?codename={device}&sort=date_desc&limit=1"
+    )
     if link.status_code == 404:
-        message = f"OrangeFox currently is not avaliable for {device}"
-
+        msg = f"OrangeFox currently is not available for {device}"
     else:
         page = loads(link.content)
-        file_id = page["data"][0]["_id"] if "data" in page else ""
-        link = get(f"https://api.orangefox.download/v3/devices/get?codename={device}")
+        file_id = page["data"][0]["_id"]
+        link = get(
+            f"https://api.orangefox.download/v3/devices/get?codename={device}")
         page = loads(link.content)
-        if "detail" in page and page["detail"] == "Not Found":
+        oem = page["oem_name"]
+        model = page["model_name"]
+        full_name = page["full_name"]
+        link = get(
+            f"https://api.orangefox.download/v3/releases/get?_id={file_id}")
         page = loads(link.content)
-        dl_file = page['file_name']
-        build_type = page['build_type']
-        version = page['version']
-        changelog = page['changelog']
-        size = page['size_human']
+        dl_file = page["filename"]
+        build_type = page["type"]
+        version = page["version"]
+        changelog = page["changelog"][0]
+        size = page["size"]
         dl_link = page["mirrors"][next(iter(page["mirrors"]))]
-        date = page['date']
-        md5 = page['md5']
-        message = f'<b>Latest OrangeFox Recovery for the {device}</b>\n\n'
-        message += f'• Release type: official\n'
-        message += f'• Build type: {build_type}\n'        
-        message += f'• Version: {version}\n'
-        message += f'• Changelog: {changelog}\n'
-        message += f'• Size: {size}\n'
-        message += f'• Date: {date}\n'
-        message += f'• File: {dl_file}\n'
-        message += f'• MD5: {md5}\n\n'
-        message += f'• <b>Download:</b> {dl_link}\n'
+        date = page["date"]
+        md5 = page["md5"]
+        msg = f"<b>Latest OrangeFox Recovery for the {full_name}</b>\n\n"
+        msg += f"• Manufacturer: {oem}\n"
+        msg += f"• Model: {model}\n"
+        msg += f"• Codename: {device}\n"
+        msg += f"• Release type: official\n"
+        msg += f"• Build type: {build_type}\n"
+        msg += f"• Version: {version}\n"
+        msg += f"• Changelog: {changelog}\n"
+        msg += f"• Size: {size}\n"
+        msg += f"• Date: {date}\n"
+        msg += f"• File: {dl_file}\n"
+        msg += f"• MD5: {md5}\n\n"
+        msg += f"• <b>Download:</b> {dl_link}\n"
 
-    bot.send_message(chat_id = update.effective_chat.id,
-                        text = message,
-                        parse_mode = ParseMode.HTML,
-                        disable_web_page_preview = True)
+    message.reply_text(
+        text=msg,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
 
 __help__ = """
 *GSM Arena Lookup:*
@@ -430,4 +441,4 @@ dispatcher.add_handler(CommandHandler("gsm", gsm_command, run_async=True))
 dispatcher.add_handler(CommandHandler("sdk", get_sdk, run_async=True))
 dispatcher.add_handler(CommandHandler("kernelsu", kernelsu, run_async=True))
 dispatcher.add_handler(CommandHandler("twrp", twrp, run_async=True))
-dispatcher.add_handler(CommandHandler("orangefox", "ofox", orangefox, run_async=True))
+dispatcher.add_handler(CommandHandler("orangefox", orangefox, run_async=True))
