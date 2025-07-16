@@ -15,8 +15,8 @@ from speedtest import Speedtest
 from functools import lru_cache
 from typing import Dict, List, Optional
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from telegram.ext import CommandHandler, CallbackContext, Filters
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError
+from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 from telegram.error import TelegramError
 
@@ -431,7 +431,6 @@ def leave(update: Update, context: CallbackContext):
         chat_id = str(args[0])
         leave_msg = " ".join(args[1:])
         try:
-            context.bot.send_message(chat_id, leave_msg)
             bot.leave_chat(int(chat_id))
             update.effective_message.reply_text("Left chat.")
         except TelegramError:
