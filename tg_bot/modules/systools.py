@@ -6,7 +6,7 @@ from datetime import datetime
 from subprocess import Popen, PIPE
 from speedtest import Speedtest
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.callbackqueryhandler import CallbackQueryHandler
 
@@ -51,7 +51,6 @@ def leave(update: Update, context: CallbackContext):
         chat_id = str(args[0])
         leave_msg = " ".join(args[1:])
         try:
-            context.bot.send_message(chat_id, leave_msg)
             bot.leave_chat(int(chat_id))
             update.effective_message.reply_text("Left chat.")
         except TelegramError:
