@@ -220,32 +220,37 @@ def slap(update: Update, context: CallbackContext):
 def get_id(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
-    user_id = extract_user(update.effective_message, args)
+    message = update.effective_message
+    user_id = extract_user(message, args)
+
+    def mention(user):
+        return f"[{user.first_name}](tg://user?id={user.id})"
+
     if user_id:
-        if update.effective_message.reply_to_message and update.effective_message.reply_to_message.forward_from:
-            user1 = update.effective_message.reply_to_message.from_user
-            user2 = update.effective_message.reply_to_message.forward_from
-            update.effective_message.reply_text(
-                "The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`."
-                .format(escape_markdown(user2.first_name), user2.id,
-                        escape_markdown(user1.first_name), user1.id),
+        if message.reply_to_message and message.reply_to_message.forward_from:
+            user1 = message.reply_to_message.from_user
+            user2 = message.reply_to_message.forward_from
+            message.reply_text(
+                "The original sender, {} has an ID of `{}`\n"
+                "The forwarder, {} has an ID of `{}`".format(
+                    mention(user2), user2.id,
+                    mention(user1), user1.id),
                 parse_mode=ParseMode.MARKDOWN)
         else:
             user = bot.get_chat(user_id)
-            update.effective_message.reply_text("{}'s id is `{}`.".format(
-                escape_markdown(user.first_name), user.id),
-                                                parse_mode=ParseMode.MARKDOWN)
-    else:
-        chat = update.effective_chat  # type: Optional[Chat]
-        if chat.type == "private":
-            update.effective_message.reply_text("Your id is `{}`.".format(
-                chat.id),
-                                                parse_mode=ParseMode.MARKDOWN)
-
-        else:
-            update.effective_message.reply_text(
-                "This group's id is `{}`.".format(chat.id),
+            message.reply_text(
+                "{}'s ID is `{}`".format(
+                    mention(user), user.id),
                 parse_mode=ParseMode.MARKDOWN)
+    else:
+        chat = update.effective_chat
+        from_user = message.from_user
+        message.reply_text(
+            "{}'s ID: `{}`\nChat ID: `{}`\nMessage ID: `{}`".format(
+                mention(from_user), from_user.id,
+                chat.id,
+                message.message_id),
+            parse_mode=ParseMode.MARKDOWN)
 
 
 def info(update: Update, context: CallbackContext):
