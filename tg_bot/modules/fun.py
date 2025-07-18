@@ -1,4 +1,4 @@
-from telegram import Update, Dice
+from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext
 from tg_bot import dispatcher
 import random
@@ -424,60 +424,6 @@ emojis = {
 
 cooldowns = defaultdict(lambda: defaultdict(float))
 COOLDOWN_TIME = 10
-
-
-def dice(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "dice", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.DICE)
-
-
-def dart(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "dart", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.DARTS)
-
-
-def basket(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "basket", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.BASKETBALL)
-
-
-def football(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "football", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.FOOTBALL)
-
-
-def slotmachine(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "slotmachine", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.SLOT_MACHINE)
-
-
-def bowling(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "bowling", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.BOWLING)
-
-
-def alldice(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    if not check_cooldown(user.id, "alldice", update, skip_if_privileged=True):
-        return
-    update.message.reply_dice(emoji=Dice.DICE)
-    update.message.reply_dice(emoji=Dice.DARTS)
-    update.message.reply_dice(emoji=Dice.BASKETBALL)
-    update.message.reply_dice(emoji=Dice.FOOTBALL)
-    update.message.reply_dice(emoji=Dice.SLOT_MACHINE)
-    update.message.reply_dice(emoji=Dice.BOWLING)
 
 
 def check_cooldown(user_id: int, command: str, update: Update, skip_if_privileged: bool = False) -> bool:
@@ -1180,27 +1126,11 @@ __help__ = """
  - /gigachad: Checks your or a replied-to user's GIGACHAD status. Ultimate legend! 💪
  - /iq: Measures your or a replied-to user's brainpower. Genius or meme lord? 🧠
 
-*Emoji Dice Commands:*
- - /basket: Shoot a basketball. Will it land? 🏀
- - /bowling: Try to bowl a strike! 🎳
- - /dart: Hit the bullseye with a dart! 🎯
- - /dice: Classic 6-sided dice roll! 🎲
- - /football: Try to score a goal! ⚽
- - /slotmachine: Spin the slots and test your luck! 🎰
- - /alldice: Show off all supported dice types at once!
-
 *Note*: Reply to a message to target another user, or the bot will rate you! All commands have a 10-second cooldown to keep the chaos in check. 😜
 """
 
 __mod_name__ = "Fun"
 
-dispatcher.add_handler(CommandHandler("basket", basket, run_async=True))
-dispatcher.add_handler(CommandHandler("bowling", bowling, run_async=True))
-dispatcher.add_handler(CommandHandler("dart", dart, run_async=True))
-dispatcher.add_handler(CommandHandler("dice", dice, run_async=True))
-dispatcher.add_handler(CommandHandler("football", football, run_async=True))
-dispatcher.add_handler(CommandHandler("slotmachine", slotmachine, run_async=True))
-dispatcher.add_handler(CommandHandler("alldice", alldice, run_async=True))
 dispatcher.add_handler(CommandHandler("gay", gay, run_async=True))
 dispatcher.add_handler(CommandHandler("furry", furry, run_async=True))
 dispatcher.add_handler(CommandHandler("vibe", vibe, run_async=True))
