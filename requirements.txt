@@ -16,3 +16,5 @@ Pillow==10.4.0
 lxml==6.0.0
 ujson==5.10.0
 psutil==7.0.0
+beautifulsoup4==4.13.4
+lxml==5.2.2
