@@ -435,47 +435,83 @@ def permissions(update: Update, context: CallbackContext):
 def ginfo(update: Update, context: CallbackContext):
     bot = context.bot
     msg = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    args = context.args
 
-    if chat.type == "private":
-        msg.reply_text("Please reply this command in group!")
+    if args:
+        target = args[0]
+        try:
+            chat = bot.get_chat(target)
+        except (BadRequest, Unauthorized):
+            return msg.reply_text("Could not retrieve the chat. Make sure I'm in that group or channel.")
     else:
-        text = "<b>Chat info:</b>" \
-               "\nㅤ<b>Title</b>: <code>{}</code>".format(update.effective_chat.title)
+        chat = update.effective_chat
+        if chat.type == "private":
+            return msg.reply_text("This command can only be used in a group or channel.")
 
-        if chat.username:
-            text += "\nㅤ<b>Username</b>: @{}".format(chat.username)
+    try:
+        bot_member = chat.get_member(bot.id)
+    except (BadRequest, Unauthorized):
+        return msg.reply_text("Could not retrieve bot permissions in that chat.")
 
-        text += "\nㅤ<b>ID</b>: <code>{}</code>".format(chat.id)
+    text = f"<b>Chat Info</b>\n"
+    text += f"ㅤ<b>Title:</b> <code>{chat.title}</code>\n"
+    text += f"ㅤ<b>ID:</b> <code>{chat.id}</code>\n"
 
-        if chat.type in [chat.SUPERGROUP, chat.CHANNEL]:
-            bot_member = chat.get_member(bot.id)
-            if bot_member.can_invite_users:
-                invitelink = bot.exportChatInviteLink(chat.id)
-                text += f"\nㅤ<b>Invitelink</b>: {invitelink}"
+    if chat.username:
+        text += f"ㅤ<b>Username:</b> @{chat.username}\n"
 
-        if chat.type == "group":
-            text += f"\nㅤ<b>Type</b>: <code>Group</code>"
+    if chat.type == chat.SUPERGROUP:
+        text += "ㅤ<b>Type:</b> Supergroup\n"
+    elif chat.type == chat.GROUP:
+        text += "ㅤ<b>Type:</b> Group\n"
+    elif chat.type == chat.CHANNEL:
+        text += "ㅤ<b>Type:</b> Channel\n"
 
-        if chat.type == "supergroup":
-            text += f"\nㅤ<b>Type</b>: <code>Supergroup</code>"
+    if bot_member.can_invite_users:
+        try:
+            invite_link = bot.export_chat_invite_link(chat.id)
+            text += f"ㅤ<b>Invite Link:</b> {invite_link}\n"
+        except BadRequest:
+            pass
 
-        admins_count = bot.getChatAdministrators(chat.id)
-        status = chat.get_member(user.id)
-        if status == "administrator":
-            text += "\nㅤ<b>Total Admins</b>: <code>{}</code>".format(
-                len(admins_count))
-        if status == "creator":
-            text += "\n  Creator: {}".format(
-                mention_html(user.id, user.first_name))
+    try:
+        admins = bot.get_chat_administrators(chat.id)
+        text += f"ㅤ<b>Total Admins:</b> {len(admins)}\n"
+    except:
+        admins = []
 
-        text += "\nㅤ<b>Total Members</b>: <code>{}</code>".format(
-            chat.get_member_count(user.id))
+    try:
+        for admin in admins:
+            if admin.status == "creator":
+                creator = admin.user
+                if creator and creator.id:
+                    text += f"ㅤ<b>Creator:</b> {mention_html(creator.id, creator.full_name)}\n"
+                else:
+                    text += f"ㅤ<b>Creator:</b> {creator.full_name if creator else 'Unknown'}\n"
+                break
+    except Exception:
+        pass
 
-        msg.reply_text(text,
-                       disable_web_page_preview=True,
-                       parse_mode=ParseMode.HTML)
+    try:
+        members = bot.get_chat_member_count(chat.id)
+        text += f"ㅤ<b>Total Members:</b> {members}\n"
+    except:
+        pass
+
+    try:
+        if hasattr(chat, "slow_mode_delay") and chat.slow_mode_delay:
+            text += f"ㅤ<b>Slowmode:</b> {chat.slow_mode_delay} sec\n"
+    except:
+        pass
+
+    if chat.sticker_set_name:
+        text += f"ㅤ<b>Sticker Set:</b> <code>{chat.sticker_set_name}</code>\n"
+
+    msg.reply_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
 
 
 def get_time(update: Update, context: CallbackContext):
