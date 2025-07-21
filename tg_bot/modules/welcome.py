@@ -38,13 +38,11 @@ ENUM_FUNC_MAP = {
 }
 
 
-# do not async
 def send(update, message, keyboard, backup_message):
     chat = update.effective_chat
     cleanserv = sql.clean_service(chat.id)
-    reply = update.message.message_id
+    reply = update.message.message_id if update.message else None
 
-    # Clean service welcome
     if cleanserv:
         try:
             dispatcher.bot.delete_message(chat.id, update.message.message_id)
@@ -52,7 +50,7 @@ def send(update, message, keyboard, backup_message):
             pass
         reply = False
 
-    msg = None  # <--- Default assignment
+    msg = None
 
     try:
         msg = update.effective_message.reply_text(
@@ -60,67 +58,76 @@ def send(update, message, keyboard, backup_message):
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
             reply_to_message_id=reply,
-            allow_sending_without_reply=True)
+            allow_sending_without_reply=True
+        )
     except BadRequest as excp:
-        if excp.message == "Reply message not found":
+        if excp.message == "Topic_closed":
+            LOGGER.warning(f"Cannot send message to chat {chat.id} because the topic is closed.")
+            return None
+        elif excp.message == "Reply message not found":
             msg = update.effective_message.reply_text(
                 message,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=keyboard,
-                quote=False)
+                quote=False
+            )
         elif excp.message == "Button_url_invalid":
             msg = update.effective_message.reply_text(
                 markdown_parser(
                     backup_message +
-                    "\nNote: the current message has an invalid url "
-                    "in one of its buttons. Please update."),
-                parse_mode=ParseMode.MARKDOWN)
+                    "\nNote: the current message has an invalid url in one of its buttons. Please update."
+                ),
+                parse_mode=ParseMode.MARKDOWN
+            )
         elif excp.message == "Unsupported url protocol":
             msg = update.effective_message.reply_text(
                 markdown_parser(
                     backup_message +
-                    "\nNote: the current message has buttons which "
-                    "use url protocols that are unsupported by "
-                    "telegram. Please update."),
-                parse_mode=ParseMode.MARKDOWN)
+                    "\nNote: the current message has buttons which use url protocols that are unsupported by telegram. Please update."
+                ),
+                parse_mode=ParseMode.MARKDOWN
+            )
         elif excp.message == "Wrong url host":
             msg = update.effective_message.reply_text(
                 markdown_parser(
                     backup_message +
-                    "\nNote: the current message has some bad urls. "
-                    "Please update."),
-                parse_mode=ParseMode.MARKDOWN)
+                    "\nNote: the current message has some bad urls. Please update."
+                ),
+                parse_mode=ParseMode.MARKDOWN
+            )
             LOGGER.warning(message)
             LOGGER.warning(keyboard)
             LOGGER.exception("Could not parse! got invalid url host errors")
         else:
             msg = update.effective_message.reply_text(
-                markdown_parser(backup_message +
-                                "\nNote: An error occurred when sending the "
-                                "custom message. Please update."),
-                parse_mode=ParseMode.MARKDOWN)
-            LOGGER.exception()
+                markdown_parser(
+                    backup_message +
+                    "\nNote: An error occurred when sending the custom message. Please update."
+                ),
+                parse_mode=ParseMode.MARKDOWN
+            )
+            LOGGER.exception(f"Unexpected error: {excp.message}")
 
     except IndexError:
         msg = update.effective_message.reply_text(
-            markdown_parser(backup_message + "\nNote: the current message was "
-                            "invalid due to markdown issues. Could be "
-                            "due to the user's name."),
-            parse_mode=ParseMode.MARKDOWN)
+            markdown_parser(
+                backup_message +
+                "\nNote: the current message was invalid due to markdown issues. Could be due to the user's name."
+            ),
+            parse_mode=ParseMode.MARKDOWN
+        )
     except KeyError:
         msg = update.effective_message.reply_text(
-            markdown_parser(backup_message + "\nNote: the current message is "
-                            "invalid due to an issue with some misplaced "
-                            "curly brackets. Please update"),
-            parse_mode=ParseMode.MARKDOWN)
+            markdown_parser(
+                backup_message +
+                "\nNote: the current message is invalid due to an issue with some misplaced curly brackets. Please update"
+            ),
+            parse_mode=ParseMode.MARKDOWN
+        )
 
-    # Final fallback: still unassigned?
     if msg is None:
-        msg = update.effective_message.reply_text(
-            markdown_parser(backup_message +
-                            "\nNote: an unknown error occurred while sending the welcome message."),
-            parse_mode=ParseMode.MARKDOWN)
         LOGGER.error("Fallback triggered in send(); original message couldn't be sent.")
+        return None
 
     return msg
 
