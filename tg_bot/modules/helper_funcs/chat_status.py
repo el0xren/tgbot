@@ -259,6 +259,11 @@ def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMembe
             admin_list = [x.user.id for x in chat_admins]
             ADMIN_CACHE[chat.id] = admin_list
             return user_id in admin_list
+        except telegram.error.TimedOut:
+            LOGGER.warning(f"Timeout when checking admin status for user {user_id} in chat {chat.id}")
+            if msg:
+                msg.reply_text("Failed to check admin status due to a timeout. Please try again later.", parse_mode=ParseMode.HTML)
+            return False
         except TelegramError as excp:
             LOGGER.error(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
             if msg:
