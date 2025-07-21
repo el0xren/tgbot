@@ -70,50 +70,86 @@ def mute(update: Update, context: CallbackContext) -> str:
 @loggable
 def unmute(update: Update, context: CallbackContext) -> str:
     bot = context.bot
-    args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text("You don't seem to be referring to a user.")
+        message.reply_text("You don't seem to be referring to a user. Use @username or reply to their message.", parse_mode=ParseMode.HTML)
         return ""
 
-    member = chat.get_member(int(user_id))
+    if user_id == bot.id:
+        message.reply_text("I'm not muting myself!", parse_mode=ParseMode.HTML)
+        return ""
 
-    if member:
-        if is_user_admin(update, user_id, member=member):
-            message.reply_text(
-                "This is an admin, what do you expect me to do?")
+    if user_id == user.id:
+        message.reply_text("You cannot unmute yourself!", parse_mode=ParseMode.HTML)
+        return ""
+
+    try:
+        member = chat.get_member(int(user_id))
+    except BadRequest as excp:
+        if excp.message == "User not found":
+            message.reply_text("This user isn't in the chat!", parse_mode=ParseMode.HTML)
+            return ""
+        else:
+            LOGGER.exception(f"Error fetching member {user_id} in chat {chat.id}: {excp.message}")
+            message.reply_text(f"Error fetching user: {excp.message}", parse_mode=ParseMode.HTML)
             return ""
 
-        elif member.status != 'kicked' and member.status != 'left':
-            if member.can_send_messages and member.can_send_media_messages \
-                    and member.can_send_other_messages and member.can_add_web_page_previews:
-                message.reply_text("This user already has the right to speak.")
-                return ""
-            else:
-                bot.restrict_chat_member(chat.id,
-                                         int(user_id),
-                                         permissions=ChatPermissions(
-                                             can_send_messages=True,
-                                             can_send_media_messages=True,
-                                             can_send_other_messages=True,
-                                             can_add_web_page_previews=True))
-                message.reply_text("Unmuted!")
-                return "<b>{}:</b>" \
-                       "\n#UNMUTE" \
-                       "\n<b>Admin:</b> {}" \
-                       "\n<b>User:</b> {}".format(html.escape(chat.title),
-                                                  mention_html(user.id, user.first_name),
-                                                  mention_html(member.user.id, member.user.first_name))
-    else:
-        message.reply_text(
-            "This user isn't even in the chat, unmuting them won't make them talk more than they "
-            "already do!")
+    if is_user_admin(update, user_id, member=member):
+        message.reply_text("This user is an administrator and cannot be unmuted.", parse_mode=ParseMode.HTML)
+        return ""
 
-    return ""
+    if member.status in ('kicked', 'left'):
+        message.reply_text("This user isn't in the chat, unmuting them won't make them talk!", parse_mode=ParseMode.HTML)
+        return ""
+
+    if (member.can_send_messages and member.can_send_media_messages and 
+        member.can_send_other_messages and member.can_send_polls and 
+        member.can_add_web_page_previews):
+        message.reply_text("This user already has the right to speak.", parse_mode=ParseMode.HTML)
+        return ""
+
+    try:
+        bot.restrict_chat_member(
+            chat.id,
+            int(user_id),
+            permissions=ChatPermissions(
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_other_messages=True,
+                can_send_polls=True,
+                can_add_web_page_previews=True
+            ),
+            message_thread_id=update.message.message_thread_id if update.message else None
+        )
+        message.reply_text(f"Unmuted {mention_html(member.user.id, member.user.first_name)}!", parse_mode=ParseMode.HTML)
+        return (
+            f"<b>{html.escape(chat.title)}:</b>\n"
+            f"#UNMUTE\n"
+            f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+            f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
+        )
+
+    except BadRequest as excp:
+        if excp.message == "User is an administrator of the chat":
+            message.reply_text("This user is an administrator and cannot be unmuted.", parse_mode=ParseMode.HTML)
+            return ""
+        elif excp.message == "Not enough rights to restrict/unrestrict chat member":
+            message.reply_text("I don't have permission to unmute users in this chat!", parse_mode=ParseMode.HTML)
+            return ""
+        else:
+            LOGGER.exception(f"Error unmuting user {user_id} in chat {chat.id}: {excp.message}")
+            message.reply_text(f"Failed to unmute user: {excp.message}", parse_mode=ParseMode.HTML)
+            return ""
+
+    except Exception as e:
+        LOGGER.exception(f"Unexpected error unmuting user {user_id} in chat {chat.id}: {str(e)}")
+        message.reply_text(f"An unexpected error occurred: {str(e)}", parse_mode=ParseMode.HTML)
+        return ""
 
 
 @bot_admin
