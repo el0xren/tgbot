@@ -248,18 +248,22 @@ def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMembe
                 msg.reply_to_message.sender_chat.type != "channel"):
         return True
 
-    if not member:
-        with ADMIN_CACHE_LOCK:
-            if user_id in ADMIN_CACHE.get(chat.id, []):
-                return True
-            try:
-                chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
-                admin_list = [x.user.id for x in chat_admins]
-                ADMIN_CACHE[chat.id] = admin_list
-                return user_id in admin_list
-            except TelegramError as excp:
-                msg.reply_text(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.msg}", parse_mode=ParseMode.HTML)
-                return False
+    if member and member.status in ('administrator', 'creator'):
+        return True
+
+    with ADMIN_CACHE_LOCK:
+        if user_id in ADMIN_CACHE.get(chat.id, []):
+            return True
+        try:
+            chat_admins = dispatcher.bot.getChatAdministrators(chat.id)
+            admin_list = [x.user.id for x in chat_admins]
+            ADMIN_CACHE[chat.id] = admin_list
+            return user_id in admin_list
+        except TelegramError as excp:
+            LOGGER.error(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
+            if msg:
+                msg.reply_text(f"Error checking admin status: {excp.message}", parse_mode=ParseMode.HTML)
+            return False
 
 
 def is_bot_admin(chat: Chat,
