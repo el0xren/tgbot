@@ -42,6 +42,7 @@ def send(update, message, keyboard, backup_message):
     chat = update.effective_chat
     cleanserv = sql.clean_service(chat.id)
     reply = update.message.message_id if update.message else None
+    thread_id = update.message.message_thread_id if update.message else None
 
     if cleanserv:
         try:
@@ -58,18 +59,32 @@ def send(update, message, keyboard, backup_message):
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
             reply_to_message_id=reply,
+            message_thread_id=thread_id,
             allow_sending_without_reply=True
         )
     except BadRequest as excp:
-        if excp.message == "Topic_closed":
-            LOGGER.warning(f"Cannot send message to chat {chat.id} because the topic is closed.")
+        if excp.message == "Not enough rights to send text messages to the chat":
+            LOGGER.warning(f"Cannot send message to chat {chat.id} (topic {thread_id}): Bot lacks permission to send messages.")
+            try:
+                admin_chat_id = chat.id
+                dispatcher.bot.send_message(
+                    admin_chat_id,
+                    f"Failed to send welcome message in chat {chat.title} (ID: {chat.id}, Topic ID: {thread_id or 'General'}) because the bot lacks permission to send messages.",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+            except BadRequest as admin_excp:
+                LOGGER.error(f"Failed to notify admins: {admin_excp.message}")
+            return None
+        elif excp.message == "Topic_closed":
+            LOGGER.warning(f"Cannot send message to chat {chat.id}, topic {thread_id}: Topic is closed.")
             return None
         elif excp.message == "Reply message not found":
             msg = update.effective_message.reply_text(
                 message,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=keyboard,
-                quote=False
+                quote=False,
+                message_thread_id=thread_id
             )
         elif excp.message == "Button_url_invalid":
             msg = update.effective_message.reply_text(
