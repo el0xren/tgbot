@@ -5,6 +5,7 @@ from threading import RLock
 from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, TelegramError, ParseMode
+from telegram.error import RetryAfter, TimedOut, NetworkError
 
 from tg_bot import dispatcher, CallbackContext, DEL_CMDS, OWNER_ID, DEV_USERS, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, SUPPORT_CHAT
 
@@ -259,10 +260,20 @@ def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMembe
             admin_list = [x.user.id for x in chat_admins]
             ADMIN_CACHE[chat.id] = admin_list
             return user_id in admin_list
-        except telegram.error.TimedOut:
+        except RetryAfter as excp:
+            LOGGER.warning(f"Rate limit exceeded for user {user_id} in chat {chat.id}: Retry after {excp.retry_after} seconds")
+            if msg:
+                msg.reply_text(f"Rate limit exceeded. Please try again in {excp.retry_after} seconds.", parse_mode=ParseMode.HTML)
+            return False
+        except TimedOut:
             LOGGER.warning(f"Timeout when checking admin status for user {user_id} in chat {chat.id}")
             if msg:
                 msg.reply_text("Failed to check admin status due to a timeout. Please try again later.", parse_mode=ParseMode.HTML)
+            return False
+        except NetworkError as excp:
+            LOGGER.error(f"Network error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
+            if msg:
+                msg.reply_text(f"Network error checking admin status: {excp.message}", parse_mode=ParseMode.HTML)
             return False
         except TelegramError as excp:
             LOGGER.error(f"Error checking admin status for user {user_id} in chat {chat.id}: {excp.message}")
