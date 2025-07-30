@@ -233,7 +233,7 @@ def is_user_ban_protected(update: Update,
     return member.status in ('administrator', 'creator')
 
 
-def is_user_admin(chat_or_update: Update | Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_user_admin(chat_or_update, user_id: int, member: ChatMember = None) -> bool:
     if isinstance(chat_or_update, Update):
         chat = chat_or_update.effective_chat
         msg = chat_or_update.effective_message
