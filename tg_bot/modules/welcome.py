@@ -42,7 +42,6 @@ def send(update, message, keyboard, backup_message):
     chat = update.effective_chat
     cleanserv = sql.clean_service(chat.id)
     reply = update.message.message_id if update.message else None
-    thread_id = update.message.message_thread_id if update.message else None
 
     if cleanserv:
         try:
@@ -59,7 +58,6 @@ def send(update, message, keyboard, backup_message):
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
             reply_to_message_id=reply,
-            message_thread_id=thread_id,
             allow_sending_without_reply=True
         )
     except BadRequest as excp:
