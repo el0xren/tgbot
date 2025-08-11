@@ -12,9 +12,9 @@ import requests
 import tg_bot.modules.helper_funcs.cas_api as cas
 from telegram import Message, Chat, User, Update, Bot, MessageEntity
 from telegram import ParseMode
-from telegram.ext import CommandHandler, run_async, Filters
+from telegram.ext import CommandHandler, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
-from telegram.error import BadRequest
+from telegram.error import BadRequest, Unauthorized
 from contextlib import redirect_stdout
 from cowsay import cow
 
